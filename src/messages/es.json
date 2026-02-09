@@ -127,7 +127,11 @@
     "canCreateLabel": "Crear etiquetas",
     "canEditProduct": "Editar productos",
     "canEditBitacora": "Editar bitacora",
-    "canUseAI": "Usar asistente IA"
+    "canUseAI": "Usar asistente IA",
+    "dataExport": "Exportar Datos",
+    "dataExportHint": "Descarga los datos de tu instancia en formato CSV.",
+    "exportProducts": "Exportar Productos (CSV)",
+    "exportBitacora": "Exportar Bitacora (CSV)"
   },
   "auth": {
     "login": "Iniciar sesion",
