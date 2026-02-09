@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, ClipboardList, Search } from "lucide-react";
+import { Trash2, Download, ClipboardList, Search, FileSpreadsheet, FileText } from "lucide-react";
 
 interface BitacoraEntry {
   id: string;
@@ -20,6 +20,7 @@ interface BitacoraEntry {
   packedBy: string | null;
   destination: string | null;
   batch: string | null;
+  traceDate?: string | null;
   createdAt: string;
 }
 
@@ -28,6 +29,15 @@ function formatDate(dateStr: string | null): string {
   return new Date(dateStr).toLocaleDateString("es-CO", {
     day: "numeric",
     month: "short",
+    year: "numeric",
+  });
+}
+
+function formatDateShort(dateStr: string | null): string {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("es-CO", {
+    day: "2-digit",
+    month: "2-digit",
     year: "numeric",
   });
 }
@@ -41,6 +51,49 @@ const DEMO_ENTRIES: BitacoraEntry[] = [
   { id: "4", productName: "Queso Campesino", category: "Lacteos", coldChain: "Refrigerado", processDate: "2026-02-08T06:00:00Z", expiryRefrigerated: "2026-02-23T06:00:00Z", expiryFrozen: "2026-05-09T06:00:00Z", quantity: "20 bloques", quantityProduced: "8 kg", packedBy: "Maria Lopez", destination: "ALZATE", batch: "QS-080226", createdAt: "2026-02-08T06:00:00Z" },
   { id: "5", productName: "Bunuelo", category: "Fritos", coldChain: null, processDate: "2026-02-07T09:00:00Z", expiryRefrigerated: "2026-02-10T09:00:00Z", expiryFrozen: "2026-03-09T09:00:00Z", quantity: "150 und", quantityProduced: "12 kg", packedBy: "Carlos Perez", destination: "MIRANORTE", batch: "BU-070226", createdAt: "2026-02-07T09:00:00Z" },
 ];
+
+const EXPORT_HEADERS = [
+  "Id",
+  "Categoria",
+  "Producto",
+  "Cadena de frio",
+  "Fecha proceso",
+  "F.V. Refrigeracion",
+  "F.V. Congelacion",
+  "Peso / Cantidad",
+  "Cantidad producida",
+  "Rotulado por",
+  "Destino",
+  "Lote",
+  "Fecha Trazabilidad",
+];
+
+function getExportRows(entries: BitacoraEntry[]) {
+  return entries.map((e, i) => [
+    String(i + 1),
+    e.category || "",
+    e.productName,
+    e.coldChain || "",
+    formatDateShort(e.processDate),
+    formatDateShort(e.expiryRefrigerated),
+    formatDateShort(e.expiryFrozen),
+    e.quantity || "",
+    e.quantityProduced || "",
+    e.packedBy || "",
+    e.destination || "",
+    e.batch || "",
+    formatDateShort(e.traceDate || e.createdAt),
+  ]);
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function BitacoraPage() {
   const [entries, setEntries] = useState<BitacoraEntry[]>(DEMO_MODE ? DEMO_ENTRIES : []);
@@ -101,23 +154,47 @@ export default function BitacoraPage() {
     }
   };
 
-  const handleExportCSV = async () => {
-    const token = await getToken();
-    if (!token) return;
+  const handleExportXLS = () => {
+    const rows = getExportRows(filtered);
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const headerCells = EXPORT_HEADERS.map(
+      (h) => `<th style="background:#f2f2f2;font-weight:bold;border:1px solid #ccc;padding:4px">${esc(h)}</th>`
+    ).join("");
+    const bodyRows = rows.map(
+      (row) => "<tr>" + row.map((cell) => `<td style="border:1px solid #ccc;padding:4px">${esc(cell)}</td>`).join("") + "</tr>"
+    ).join("");
 
-    const res = await fetch("/api/bitacora/export?format=csv", {
-      headers: { Authorization: `Bearer ${token}` },
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Bitacora</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body><table><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></body></html>`;
+
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    downloadBlob(blob, `bitacora_${new Date().toISOString().split("T")[0]}.xls`);
+  };
+
+  const handleExportPDF = async () => {
+    const { jsPDF } = await import("jspdf");
+    await import("jspdf-autotable");
+
+    const doc = new jsPDF({ orientation: "landscape", format: "tabloid" });
+    const rows = getExportRows(filtered);
+
+    doc.setFontSize(14);
+    doc.text("Trazabilidad - Bitacora", 28, 24);
+    doc.setFontSize(9);
+    doc.text(`Registros: ${rows.length}  |  Fecha: ${new Date().toLocaleDateString("es-CO")}`, 28, 32);
+
+    (doc as unknown as { autoTable: (opts: Record<string, unknown>) => void }).autoTable({
+      head: [EXPORT_HEADERS],
+      body: rows,
+      startY: 38,
+      margin: { left: 28, right: 28 },
+      styles: { fontSize: 7, cellPadding: 3 },
+      headStyles: { fillColor: [242, 242, 242], textColor: [0, 0, 0], fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [250, 250, 250] },
     });
 
-    if (!res.ok) return;
-
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `bitacora_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    doc.save(`bitacora_${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
   return (
@@ -131,9 +208,13 @@ export default function BitacoraPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportCSV} disabled={entries.length === 0}>
-            <Download className="h-4 w-4" />
-            {t("exportCSV")}
+          <Button variant="outline" onClick={handleExportXLS} disabled={entries.length === 0}>
+            <FileSpreadsheet className="h-4 w-4" />
+            {t("exportXLS")}
+          </Button>
+          <Button variant="outline" onClick={handleExportPDF} disabled={entries.length === 0}>
+            <FileText className="h-4 w-4" />
+            {t("exportPDF")}
           </Button>
         </div>
       </div>
@@ -157,9 +238,9 @@ export default function BitacoraPage() {
       ) : entries.length === 0 ? (
         <div className="text-center py-20">
           <ClipboardList className="mx-auto h-12 w-12 text-slate-300" />
-          <p className="mt-4 text-slate-500">No hay registros en la bitacora</p>
+          <p className="mt-4 text-slate-500">{t("empty")}</p>
           <p className="text-xs text-slate-400 mt-1">
-            Los registros se crean automaticamente al guardar etiquetas.
+            {t("emptyHint")}
           </p>
         </div>
       ) : (

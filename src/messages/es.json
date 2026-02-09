@@ -88,6 +88,8 @@
     "title": "Bitacora",
     "subtitle": "Registro de trazabilidad y produccion.",
     "exportCSV": "Exportar CSV",
+    "exportXLS": "Descargar XLS",
+    "exportPDF": "Descargar PDF",
     "empty": "No hay registros en la bitacora",
     "emptyHint": "Los registros se crean automaticamente al guardar etiquetas.",
     "product": "Producto",

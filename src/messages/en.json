@@ -88,6 +88,8 @@
     "title": "Log",
     "subtitle": "Traceability and production records.",
     "exportCSV": "Export CSV",
+    "exportXLS": "Download XLS",
+    "exportPDF": "Download PDF",
     "empty": "No records in the log",
     "emptyHint": "Records are created automatically when saving labels.",
     "product": "Product",
