@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         "Porciones por Envase",
       ];
 
-      const rows = products.map((p) => [
+      const rows = products.map((p: typeof products[number]) => [
         p.code,
         p.batchAbbr || "",
         p.name,
@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
 
       const csvContent = [
         headers.join(","),
-        ...rows.map((row) =>
-          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+        ...rows.map((row: (string | number | null)[]) =>
+          row.map((cell: string | number | null) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
         ),
       ].join("\n");
 

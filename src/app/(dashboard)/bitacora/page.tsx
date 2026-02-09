@@ -201,18 +201,28 @@ export default function BitacoraPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{t("title")}</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t("title")}</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {t("subtitle")}
           </p>
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportXLS} disabled={entries.length === 0}>
+          <Button
+            variant="outline"
+            onClick={handleExportXLS}
+            disabled={entries.length === 0}
+            className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+          >
             <FileSpreadsheet className="h-4 w-4" />
             {t("exportXLS")}
           </Button>
-          <Button variant="outline" onClick={handleExportPDF} disabled={entries.length === 0}>
+          <Button
+            variant="outline"
+            onClick={handleExportPDF}
+            disabled={entries.length === 0}
+            className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+          >
             <FileText className="h-4 w-4" />
             {t("exportPDF")}
           </Button>
@@ -221,87 +231,89 @@ export default function BitacoraPage() {
 
       {!loading && entries.length > 0 && (
         <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <Input
             placeholder={t("product") + ", " + t("batch") + ", " + t("destination")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
         </div>
       )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-20">
-          <ClipboardList className="mx-auto h-12 w-12 text-slate-300" />
-          <p className="mt-4 text-slate-500">{t("empty")}</p>
-          <p className="text-xs text-slate-400 mt-1">
+          <ClipboardList className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600" />
+          <p className="mt-4 text-slate-500 dark:text-slate-400">{t("empty")}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
             {t("emptyHint")}
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 shadow-sm">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("product")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("category")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("coldChain")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("processDate")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("expiryRef")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("expiryCong")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("quantity")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("produced")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("packedBy")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("destination")}</th>
-                <th className="px-3 py-2.5 text-left font-semibold text-slate-600">{t("batch")}</th>
+              <tr className="border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-700/30">
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("product")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("category")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("coldChain")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("processDate")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("expiryRef")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("expiryCong")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("quantity")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("produced")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("packedBy")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("destination")}</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("batch")}</th>
                 {canDelete && (
-                  <th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-12"></th>
+                  <th className="px-3 py-2.5 text-center font-semibold text-slate-600 dark:text-slate-300 w-12"></th>
                 )}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((entry) => (
+              {filtered.map((entry, idx) => (
                 <tr
                   key={entry.id}
-                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                  className={`border-b border-slate-100 dark:border-slate-700/30 hover:bg-orange-50/50 dark:hover:bg-orange-500/5 transition-colors ${
+                    idx % 2 === 0 ? "bg-white dark:bg-transparent" : "bg-slate-50/30 dark:bg-slate-700/10"
+                  }`}
                 >
-                  <td className="px-3 py-2 font-medium text-slate-900">{entry.productName}</td>
-                  <td className="px-3 py-2 text-slate-500">{entry.category || "--"}</td>
+                  <td className="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">{entry.productName}</td>
+                  <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{entry.category || "--"}</td>
                   <td className="px-3 py-2">
                     {entry.coldChain ? (
-                      <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-1.5 py-0.5 text-[10px] font-medium text-blue-700">
+                      <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-400">
                         {entry.coldChain}
                       </span>
                     ) : (
-                      "--"
+                      <span className="text-slate-400 dark:text-slate-500">--</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-slate-500">{formatDate(entry.processDate)}</td>
-                  <td className="px-3 py-2 text-slate-500">{formatDate(entry.expiryRefrigerated)}</td>
-                  <td className="px-3 py-2 text-slate-500">{formatDate(entry.expiryFrozen)}</td>
-                  <td className="px-3 py-2 text-slate-500">{entry.quantity || "--"}</td>
-                  <td className="px-3 py-2 text-slate-500">{entry.quantityProduced || "--"}</td>
-                  <td className="px-3 py-2 text-slate-500 truncate max-w-[120px]">{entry.packedBy || "--"}</td>
+                  <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{formatDate(entry.processDate)}</td>
+                  <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{formatDate(entry.expiryRefrigerated)}</td>
+                  <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{formatDate(entry.expiryFrozen)}</td>
+                  <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{entry.quantity || "--"}</td>
+                  <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{entry.quantityProduced || "--"}</td>
+                  <td className="px-3 py-2 text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{entry.packedBy || "--"}</td>
                   <td className="px-3 py-2">
                     {entry.destination ? (
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                      <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
                         {entry.destination}
                       </span>
                     ) : (
-                      "--"
+                      <span className="text-slate-400 dark:text-slate-500">--</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 font-mono text-slate-500">{entry.batch || "--"}</td>
+                  <td className="px-3 py-2 font-mono text-slate-500 dark:text-slate-400">{entry.batch || "--"}</td>
                   {canDelete && (
                     <td className="px-3 py-2 text-center">
                       <button
                         onClick={() => handleDelete(entry.id)}
-                        className="rounded-lg p-1 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                        className="rounded-lg p-1 text-slate-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -314,7 +326,7 @@ export default function BitacoraPage() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-slate-400 dark:text-slate-500">
         {filtered.length} de {total} registros
       </p>
     </div>

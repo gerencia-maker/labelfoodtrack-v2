@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         "Creado",
       ];
 
-      const rows = entries.map((e) => [
+      const rows = entries.map((e: typeof entries[number]) => [
         e.productName,
         e.category || "",
         e.coldChain || "",
@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
 
       const csvContent = [
         headers.join(","),
-        ...rows.map((row) =>
-          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+        ...rows.map((row: string[]) =>
+          row.map((cell: string) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
         ),
       ].join("\n");
 

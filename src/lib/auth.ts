@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth } from "./firebase-admin";
 import { prisma } from "./prisma";
-import type { User } from "@prisma/client";
+
+type DbUser = NonNullable<Awaited<ReturnType<typeof prisma.user.findUnique>>>;
 
 export async function withAuth(
   request: NextRequest,
-  handler: (user: User) => Promise<NextResponse>
+  handler: (user: DbUser) => Promise<NextResponse>
 ): Promise<NextResponse> {
   const authorization = request.headers.get("Authorization");
 

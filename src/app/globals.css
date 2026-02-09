@@ -1,9 +1,7 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -12,69 +10,37 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Dark mode via class (manual toggle) */
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
 html.dark {
-  --background: #0f172a;
+  --background: #0b1120;
   --foreground: #e2e8f0;
-}
-
-html.dark body {
-  background: var(--background);
-  color: var(--foreground);
-}
-
-html.dark .bg-white {
-  background-color: #1e293b !important;
-}
-
-html.dark .bg-slate-50 {
-  background-color: #0f172a !important;
-}
-
-html.dark .border-slate-200 {
-  border-color: #334155 !important;
-}
-
-html.dark .text-slate-900 {
-  color: #f1f5f9 !important;
-}
-
-html.dark .text-slate-700 {
-  color: #cbd5e1 !important;
-}
-
-html.dark .text-slate-600 {
-  color: #94a3b8 !important;
-}
-
-html.dark .text-slate-500 {
-  color: #64748b !important;
-}
-
-html.dark .text-slate-400 {
-  color: #64748b !important;
-}
-
-html.dark .hover\:bg-slate-50:hover {
-  background-color: #1e293b !important;
-}
-
-html.dark .hover\:bg-slate-100:hover {
-  background-color: #334155 !important;
-}
-
-html.dark input,
-html.dark select,
-html.dark textarea {
-  background-color: #1e293b;
-  border-color: #334155;
-  color: #e2e8f0;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Smooth dark mode transitions */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Scrollbar styling for dark mode */
+html.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
 }
 
 /* Print styles for label printing */

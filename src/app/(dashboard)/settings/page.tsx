@@ -39,35 +39,35 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">{t("title")}</h1>
-        <p className="mt-1 text-sm text-slate-500">{t("subtitle")}</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t("title")}</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t("subtitle")}</p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-        <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">{t("account")}</h3>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">{t("account")}</h3>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-slate-500">{t("name")}</p>
-            <p className="font-medium text-slate-900">{userData?.name || "--"}</p>
+            <p className="text-slate-500 dark:text-slate-400">{t("name")}</p>
+            <p className="font-medium text-slate-900 dark:text-slate-100">{userData?.name || "--"}</p>
           </div>
           <div>
-            <p className="text-slate-500">{t("email")}</p>
-            <p className="font-medium text-slate-900">{userData?.email || "--"}</p>
+            <p className="text-slate-500 dark:text-slate-400">{t("email")}</p>
+            <p className="font-medium text-slate-900 dark:text-slate-100">{userData?.email || "--"}</p>
           </div>
           <div>
-            <p className="text-slate-500">{t("role")}</p>
-            <p className="font-medium text-slate-900">{userData?.role || "--"}</p>
+            <p className="text-slate-500 dark:text-slate-400">{t("role")}</p>
+            <p className="font-medium text-slate-900 dark:text-slate-100">{userData?.role || "--"}</p>
           </div>
           <div>
-            <p className="text-slate-500">{t("instance")}</p>
-            <p className="font-medium text-slate-900">{userData?.instanceId || "--"}</p>
+            <p className="text-slate-500 dark:text-slate-400">{t("instance")}</p>
+            <p className="font-medium text-slate-900 dark:text-slate-100">{userData?.instanceId || "--"}</p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-        <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">{t("permissions")}</h3>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">{t("permissions")}</h3>
 
         <div className="grid grid-cols-2 gap-3 text-sm">
           <PermissionRow label={t("canCreateLabel")} granted={userData?.canCreateLabel} />
@@ -77,9 +77,9 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-        <h3 className="text-lg font-semibold text-slate-900 border-b pb-2">{t("dataExport")}</h3>
-        <p className="text-sm text-slate-500">{t("dataExportHint")}</p>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">{t("dataExport")}</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{t("dataExportHint")}</p>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() =>
@@ -90,7 +90,7 @@ export default function SettingsPage() {
               )
             }
             disabled={exportingProducts}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Download className="h-4 w-4" />
             {exportingProducts ? "Exportando..." : t("exportProducts")}
@@ -104,7 +104,7 @@ export default function SettingsPage() {
               )
             }
             disabled={exportingBitacora}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Download className="h-4 w-4" />
             {exportingBitacora ? "Exportando..." : t("exportBitacora")}
@@ -112,7 +112,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-slate-400 dark:text-slate-500">
         LabelFoodTrack v2.0 — Contacta al administrador para cambios de permisos.
       </p>
     </div>
@@ -121,13 +121,13 @@ export default function SettingsPage() {
 
 function PermissionRow({ label, granted }: { label: string; granted?: boolean }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-      <span className="text-slate-700">{label}</span>
+    <div className="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-700/30 px-3 py-2">
+      <span className="text-slate-700 dark:text-slate-300">{label}</span>
       <span
         className={`text-xs font-medium px-2 py-0.5 rounded-full ${
           granted
-            ? "bg-emerald-100 text-emerald-700"
-            : "bg-slate-200 text-slate-500"
+            ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+            : "bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400"
         }`}
       >
         {granted ? "Si" : "No"}

@@ -34,9 +34,9 @@ export function Topbar() {
   };
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">
+    <header className="flex h-14 items-center justify-between border-b border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 px-6 backdrop-blur-sm">
       <div>
-        <h2 className="text-sm font-semibold text-slate-900">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
           {userData?.name ?? ""}
         </h2>
       </div>
@@ -45,31 +45,37 @@ export function Topbar() {
         {/* Dark mode toggle */}
         <button
           onClick={toggleDark}
-          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+          className="rounded-lg p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-orange-400 transition-colors"
           title="Dark mode"
         >
-          {dark ? <Sun size={16} /> : <Moon size={16} />}
+          {dark ? <Sun size={16} className="text-orange-400" /> : <Moon size={16} />}
         </button>
 
         {/* Language toggle */}
         <button
           onClick={() => setLocale(locale === "es" ? "en" : "es")}
-          className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
           title="Cambiar idioma"
         >
           <Globe size={14} />
           {locale.toUpperCase()}
         </button>
 
-        <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500">
+        <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
           <User size={16} />
           <span>{userData?.email}</span>
-          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+          <span className="rounded-full bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 text-xs font-medium text-orange-700 dark:text-orange-400">
             {userData?.role}
           </span>
         </div>
 
-        <Button variant="ghost" size="icon" onClick={signOut} title={t("logout")}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={signOut}
+          title={t("logout")}
+          className="text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+        >
           <LogOut size={18} />
         </Button>
       </div>
