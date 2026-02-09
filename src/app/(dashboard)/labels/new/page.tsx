@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { LabelForm, type LabelSaveData } from "@/components/labels/label-form";
 import { LabelPreview, type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
+import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
 import Link from "next/link";
@@ -43,37 +44,74 @@ export default function NewLabelPage() {
     qrData: "",
   });
 
+  // Print flow modal state
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState<LabelSaveData | null>(null);
+
   const handlePreviewChange = useCallback((data: LabelPreviewData) => {
     setPreviewData(data);
   }, []);
 
+  // When form calls onSave, we intercept to show the quantity modal first
   const handleSave = async (data: LabelSaveData) => {
+    setPendingSaveData(data);
+    setShowPrintModal(true);
+  };
+
+  // After user enters quantity and confirms in the modal
+  const handlePrintConfirm = async (quantity: string) => {
+    if (!pendingSaveData) return;
+
+    const token = await getToken();
+
     if (DEMO_MODE) {
       toast({ title: t("saved"), variant: "success" });
-      router.push("/labels");
+      setShowPrintModal(false);
+      setTimeout(() => window.print(), 300);
       return;
     }
 
-    const token = await getToken();
     if (!token) return;
 
-    const res = await fetch("/api/labels", {
+    // 1. Save label
+    const labelRes = await fetch("/api/labels", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(pendingSaveData),
     });
 
-    if (!res.ok) {
-      const err = await res.json();
+    if (!labelRes.ok) {
+      const err = await labelRes.json();
       toast({ title: err.error || "Error al guardar etiqueta", variant: "error" });
       return;
     }
 
+    // 2. Create bitacora entry with quantity
+    await fetch("/api/bitacora", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        productName: pendingSaveData.productName,
+        processDate: pendingSaveData.productionDate,
+        quantityProduced: quantity,
+        packedBy: pendingSaveData.packedBy,
+        destination: pendingSaveData.destination,
+        batch: pendingSaveData.batch,
+        coldChain: previewData.coldChain !== "--" ? previewData.coldChain : null,
+      }),
+    });
+
     toast({ title: t("saved"), variant: "success" });
-    router.push("/labels");
+    setShowPrintModal(false);
+
+    // 3. Print
+    setTimeout(() => window.print(), 300);
   };
 
   const handlePrint = () => {
@@ -92,8 +130,8 @@ export default function NewLabelPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{t("newLabel")}</h1>
-              <p className="text-sm text-slate-500">{t("newLabelSubtitle")}</p>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t("newLabel")}</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{t("newLabelSubtitle")}</p>
             </div>
           </div>
 
@@ -106,7 +144,7 @@ export default function NewLabelPage() {
         {/* Layout: Formulario + Preview */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Formulario */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
             <LabelForm
               onPreviewChange={handlePreviewChange}
               onSave={handleSave}
@@ -120,8 +158,8 @@ export default function NewLabelPage() {
           {/* Preview */}
           <div className="space-y-4">
             <div className="sticky top-4">
-              <h3 className="text-sm font-semibold text-slate-500 mb-2">{t("preview")}</h3>
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">{t("preview")}</h3>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 shadow-sm">
                 <LabelPreview data={previewData} />
               </div>
             </div>
@@ -133,6 +171,14 @@ export default function NewLabelPage() {
       <div ref={printRef}>
         <LabelPrint data={previewData} />
       </div>
+
+      {/* Modal cantidad producida */}
+      <PrintFlowModal
+        open={showPrintModal}
+        onClose={() => setShowPrintModal(false)}
+        onConfirm={handlePrintConfirm}
+        productName={previewData.productName}
+      />
     </>
   );
 }

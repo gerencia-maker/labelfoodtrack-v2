@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
 import { LabelPreview, type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
+import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer, Trash2, Copy } from "lucide-react";
 import Link from "next/link";
@@ -127,6 +128,7 @@ export default function LabelDetailPage({
     DEMO_MODE ? (DEMO_LABELS[id] || null) : null
   );
   const [loading, setLoading] = useState(!DEMO_MODE);
+  const [showPrintModal, setShowPrintModal] = useState(false);
 
   const canDelete = userData?.role === "ADMIN" || userData?.role === "EDITOR";
 
@@ -172,6 +174,51 @@ export default function LabelDetailPage({
     }
   };
 
+  // Print flow: show modal, then create bitacora entry + print
+  const handlePrintClick = () => {
+    setShowPrintModal(true);
+  };
+
+  const handlePrintConfirm = async (quantity: string) => {
+    if (!label) return;
+
+    if (DEMO_MODE) {
+      setShowPrintModal(false);
+      setTimeout(() => window.print(), 300);
+      return;
+    }
+
+    const token = await getToken();
+    if (!token) return;
+
+    // Compute cold chain from product data
+    const p = label.product;
+    const coldChain = p
+      ? resolveColdChain(p.refrigeratedDays, p.frozenDays, p.ambientDays)
+      : null;
+
+    // Create bitacora entry with quantity
+    await fetch("/api/bitacora", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        productName: label.productName,
+        processDate: label.productionDate,
+        quantityProduced: quantity,
+        packedBy: label.packedBy,
+        destination: label.destination,
+        batch: label.batch,
+        coldChain: coldChain !== "--" ? coldChain : null,
+      }),
+    });
+
+    setShowPrintModal(false);
+    setTimeout(() => window.print(), 300);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -215,8 +262,8 @@ export default function LabelDetailPage({
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{label.productName}</h1>
-              <p className="text-sm text-slate-500">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{label.productName}</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 {label.batch} — {new Date(label.createdAt).toLocaleDateString("es-CO", {
                   day: "numeric", month: "long", year: "numeric",
                 })}
@@ -225,7 +272,7 @@ export default function LabelDetailPage({
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => window.print()}>
+            <Button variant="outline" onClick={handlePrintClick}>
               <Printer className="h-4 w-4" />
               {t("print")}
             </Button>
@@ -247,15 +294,15 @@ export default function LabelDetailPage({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Preview */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-500 mb-2">{t("preview")}</h3>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">{t("preview")}</h3>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 shadow-sm">
               <LabelPreview data={previewData} />
             </div>
           </div>
 
           {/* Details */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-sm font-semibold text-slate-900 border-b pb-2">Detalles</h3>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Detalles</h3>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Detail label={t("product")} value={`${p?.code || "---"} - ${label.productName}`} />
@@ -270,16 +317,16 @@ export default function LabelDetailPage({
             </div>
 
             {p?.ingredients && (
-              <div className="pt-2 border-t">
-                <p className="text-xs font-semibold text-slate-500 mb-1">Ingredientes</p>
-                <p className="text-xs text-slate-700 leading-relaxed">{p.ingredients}</p>
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Ingredientes</p>
+                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{p.ingredients}</p>
               </div>
             )}
 
             {p?.allergens && (
               <div>
-                <p className="text-xs font-semibold text-slate-500 mb-1">Alergenos</p>
-                <p className="text-xs text-red-600 font-medium">{p.allergens}</p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Alergenos</p>
+                <p className="text-xs text-red-600 dark:text-red-400 font-medium">{p.allergens}</p>
               </div>
             )}
           </div>
@@ -288,6 +335,14 @@ export default function LabelDetailPage({
 
       {/* Print */}
       <LabelPrint data={previewData} />
+
+      {/* Modal cantidad producida */}
+      <PrintFlowModal
+        open={showPrintModal}
+        onClose={() => setShowPrintModal(false)}
+        onConfirm={handlePrintConfirm}
+        productName={label.productName}
+      />
     </>
   );
 }
@@ -295,13 +350,13 @@ export default function LabelDetailPage({
 function Detail({ label, value, mono, badge }: { label: string; value: string | null; mono?: boolean; badge?: boolean }) {
   return (
     <div>
-      <p className="text-slate-500 text-xs">{label}</p>
+      <p className="text-slate-500 dark:text-slate-400 text-xs">{label}</p>
       {badge && value ? (
-        <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-700 mt-0.5">
+        <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 mt-0.5">
           {value}
         </span>
       ) : (
-        <p className={`font-medium text-slate-900 ${mono ? "font-mono text-xs" : ""}`}>
+        <p className={`font-medium text-slate-900 dark:text-slate-100 ${mono ? "font-mono text-xs" : ""}`}>
           {value || "--"}
         </p>
       )}
