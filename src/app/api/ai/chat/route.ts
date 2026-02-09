@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth";
-import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAI() {
+  const { default: OpenAI } = require("openai") as { default: typeof import("openai").default };
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
 
 const SYSTEM_PROMPT = `Eres FoodBot, un asistente especializado en seguridad alimentaria, rotulado de alimentos, normativa sanitaria (INVIMA, FDA, EU), trazabilidad y buenas practicas de manufactura (BPM).
 
@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+      const openai = getOpenAI();
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
