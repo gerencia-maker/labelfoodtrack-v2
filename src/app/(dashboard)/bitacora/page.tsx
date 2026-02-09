@@ -174,7 +174,7 @@ export default function BitacoraPage() {
 
   const handleExportPDF = async () => {
     const { jsPDF } = await import("jspdf");
-    await import("jspdf-autotable");
+    const autoTable = (await import("jspdf-autotable")).default;
 
     const doc = new jsPDF({ orientation: "landscape", format: "tabloid" });
     const rows = getExportRows(filtered);
@@ -184,7 +184,7 @@ export default function BitacoraPage() {
     doc.setFontSize(9);
     doc.text(`Registros: ${rows.length}  |  Fecha: ${new Date().toLocaleDateString("es-CO")}`, 28, 32);
 
-    (doc as unknown as { autoTable: (opts: Record<string, unknown>) => void }).autoTable({
+    autoTable(doc, {
       head: [EXPORT_HEADERS],
       body: rows,
       startY: 38,
