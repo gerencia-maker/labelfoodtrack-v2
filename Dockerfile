@@ -45,7 +45,8 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
-# Migration script (firebase-admin is already in standalone node_modules)
+# Full node_modules for migration script (firebase-admin + all deps)
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/scripts/migrate.js ./scripts/migrate.js
 
 # Entrypoint script
