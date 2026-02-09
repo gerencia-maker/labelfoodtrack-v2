@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Instance {
+  id           String   @id @default(cuid())
+  name         String
+  brandName    String?
+  sheetId      String?
+  sheetGid     String?
+  destinations String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users        User[]
+  products     Product[]
+  labels       Label[]
+  bitacora     BitacoraEntry[]
+  printPresets PrintPreset[]
+}
+
+model User {
+  id             String    @id @default(cuid())
+  firebaseUid    String    @unique
+  email          String    @unique
+  name           String
+  role           Role      @default(VIEWER)
+  status         Status    @default(ACTIVE)
+  licenseEndDate DateTime?
+
+  canCreateLabel  Boolean @default(false)
+  canEditProduct  Boolean @default(false)
+  canEditBitacora Boolean @default(false)
+  canUseAI        Boolean @default(false)
+
+  instanceId String
+  instance   Instance @relation(fields: [instanceId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([firebaseUid])
+  @@index([instanceId])
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Product {
+  id               String  @id @default(cuid())
+  code             String
+  batchAbbr        String?
+  name             String
+  category         String?
+  sede             String?
+  ingredients      String?
+  allergens        String?
+  storage          String?
+  usage            String?
+  packaging        String?
+
+  refrigeratedDays Int @default(0)
+  frozenDays       Int @default(0)
+  ambientDays      Int @default(0)
+
+  calories         Float?
+  energyKj         Float?
+  fat              Float?
+  saturatedFat     Float?
+  carbs            Float?
+  sugars           Float?
+  fiber            Float?
+  protein          Float?
+  sodium           Float?
+
+  servingSize          Float?
+  servingsPerContainer Float?
+
+  instanceId String
+  instance   Instance @relation(fields: [instanceId], references: [id])
+  labels     Label[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([code, instanceId])
+  @@index([instanceId])
+}
+
+model Label {
+  id             String    @id @default(cuid())
+  productName    String
+  brand          String?
+  netContent     String?
+  origin         String?
+  productionDate DateTime?
+  batch          String?
+  expiry         String?
+  packedBy       String?
+  destination    String?
+  qrData         String?
+
+  productId  String?
+  product    Product?  @relation(fields: [productId], references: [id])
+  instanceId String
+  instance   Instance  @relation(fields: [instanceId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  @@index([instanceId])
+}
+
+model BitacoraEntry {
+  id                 String    @id @default(cuid())
+  category           String?
+  productName        String
+  coldChain          String?
+  processDate        DateTime?
+  expiryRefrigerated DateTime?
+  expiryFrozen       DateTime?
+  quantity           String?
+  quantityProduced   String?
+  packedBy           String?
+  destination        String?
+  batch              String?
+  traceDate          DateTime?
+
+  instanceId String
+  instance   Instance @relation(fields: [instanceId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@index([instanceId])
+  @@index([createdAt])
+}
+
+model PrintPreset {
+  id           String @id @default(cuid())
+  name         String
+  widthMm      Float
+  heightMm     Float
+  marginTop    Float  @default(0)
+  marginRight  Float  @default(0)
+  marginBottom Float  @default(0)
+  marginLeft   Float  @default(0)
+  orientation  String @default("portrait")
+  stockType    String?
+
+  instanceId String
+  instance   Instance @relation(fields: [instanceId], references: [id])
+
+  @@index([instanceId])
+}
