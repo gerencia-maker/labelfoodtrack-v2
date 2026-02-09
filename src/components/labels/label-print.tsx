@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import type { LabelPreviewData } from "./label-preview";
 
@@ -9,88 +8,102 @@ interface LabelPrintProps {
 }
 
 /**
- * Componente de impresion: tabla matricial optimizada para impresoras de etiquetas.
- * Portado de app.js v1 (lineas 5314-5649).
- * Se muestra solo al imprimir (display: none en pantalla).
+ * Componente de impresion: tabla matricial 3 columnas con QR inline.
+ * Portado de v1 app.js buildPrintMatrixHtml() (lineas 5185-5249).
+ * Se muestra solo al imprimir (hidden en pantalla, block en print via CSS).
  */
 export function LabelPrint({ data }: LabelPrintProps) {
-  const printRef = useRef<HTMLDivElement>(null);
-
-  return (
-    <div
-      ref={printRef}
-      className="label-print-matrix hidden print:block"
-      style={{ fontFamily: "Arial, sans-serif", fontSize: "6pt", lineHeight: 1.1 }}
-    >
-      {/* Header */}
-      <div style={{ textAlign: "center", fontWeight: "bold", fontSize: "7pt", marginBottom: "2px" }}>
-        {data.brand || "MARCA"} — USO GASTRONOMICO
-      </div>
-
-      {/* Tabla matricial */}
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          border: "0.5pt solid #333",
-        }}
-      >
-        <tbody>
-          <Row label="Producto" value={data.productName} />
-          <Row label="Cadena de frio" value={data.coldChain} />
-          <Row label="Contenido neto" value={data.netContent} />
-          <Row label="Fecha produccion" value={
-            data.productionDate
-              ? new Date(data.productionDate + "T00:00:00").toLocaleDateString("es-CO")
-              : "--"
-          } />
-          <Row label="Vence refrigerado" value={data.expiryRefrigerated} />
-          {data.expiryFrozen !== "--" && (
-            <Row label="Vence congelado" value={data.expiryFrozen} />
-          )}
-          <Row label="Lote" value={data.batch} />
-          <Row label="Destino" value={data.destination} />
-          <Row label="Empacado por" value={data.packedBy} />
-          {data.ingredients && (
-            <Row label="Ingredientes" value={data.ingredients} wide />
-          )}
-          {data.allergens && (
-            <Row label="Alergenos" value={data.allergens} wide />
-          )}
-          {data.storage && (
-            <Row label="Conservacion" value={data.storage} wide />
-          )}
-          {data.usage && (
-            <Row label="Modo de uso" value={data.usage} wide />
-          )}
-        </tbody>
-      </table>
-
-      {/* QR en impresion */}
-      {data.qrData && (
-        <div style={{ textAlign: "right", marginTop: "1mm" }}>
-          <QRCodeCanvas value={data.qrData} size={40} level="L" />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Row({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
-  const cellStyle: React.CSSProperties = {
-    border: "0.5pt solid #666",
-    padding: "1px 3px",
-    verticalAlign: "top",
+  const formatDate = (dateStr: string) => {
+    if (!dateStr || dateStr === "--") return "--";
+    try {
+      return new Date(dateStr + "T00:00:00").toLocaleDateString("es-CO");
+    } catch {
+      return dateStr;
+    }
   };
 
   return (
-    <tr>
-      <td style={{ ...cellStyle, width: wide ? "20%" : "30%", fontWeight: "bold", whiteSpace: "nowrap" }}>
-        {label}
-      </td>
-      <td style={{ ...cellStyle }} colSpan={wide ? 2 : 1}>
-        {value || "--"}
-      </td>
-    </tr>
+    <div id="printMatrixContainer">
+      <div id="printMatrixLabel">
+        <table>
+          <thead>
+            <tr>
+              <th colSpan={3}>
+                {data.brand || "MARCA"} USO GASTRON&Oacute;MICO
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Producto:</td>
+              <td>{data.productName || "--"}</td>
+              <td rowSpan={7} className="qr-cell">
+                {data.qrData ? (
+                  <QRCodeCanvas value={data.qrData} size={60} level="L" />
+                ) : (
+                  <span style={{ fontSize: "5pt", color: "#999" }}>QR</span>
+                )}
+              </td>
+            </tr>
+            <tr>
+              <td>Tipo de cadena de fr\u00edo:</td>
+              <td>{data.coldChain || "--"}</td>
+            </tr>
+            <tr>
+              <td>Fecha de producci\u00f3n:</td>
+              <td>{formatDate(data.productionDate)}</td>
+            </tr>
+            <tr>
+              <td>Vence (refrigerado 0\u00b0C a 4\u00b0C):</td>
+              <td>{data.expiryRefrigerated || "--"}</td>
+            </tr>
+            <tr>
+              <td>Vence (congelado -18\u00b0C a -22\u00b0C):</td>
+              <td>{data.expiryFrozen || "--"}</td>
+            </tr>
+            <tr>
+              <td>Peso/Cantidad:</td>
+              <td>{data.netContent || "--"}</td>
+            </tr>
+            <tr>
+              <td>Envasado por:</td>
+              <td>{data.packedBy || "--"}</td>
+            </tr>
+            <tr>
+              <td>Destino:</td>
+              <td colSpan={2}>{data.destination || "--"}</td>
+            </tr>
+            <tr>
+              <td>Lote:</td>
+              <td colSpan={2}>{data.batch || "--"}</td>
+            </tr>
+            {data.ingredients && (
+              <tr className="multiline-row">
+                <td>Ingredientes:</td>
+                <td colSpan={2}>{data.ingredients}</td>
+              </tr>
+            )}
+            {data.allergens && (
+              <tr className="multiline-row">
+                <td>Al\u00e9rgenos:</td>
+                <td colSpan={2}>{data.allergens}</td>
+              </tr>
+            )}
+            {data.storage && (
+              <tr className="multiline-row">
+                <td>Conservaci\u00f3n:</td>
+                <td colSpan={2}>{data.storage}</td>
+              </tr>
+            )}
+            {data.usage && (
+              <tr className="multiline-row">
+                <td>Uso:</td>
+                <td colSpan={2}>{data.usage}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
