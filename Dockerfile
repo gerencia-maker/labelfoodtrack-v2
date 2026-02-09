@@ -45,6 +45,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
+# Migration script (firebase-admin is already in standalone node_modules)
+COPY --from=builder /app/scripts/migrate.js ./scripts/migrate.js
+
 # Entrypoint script
 COPY --chown=nextjs:nodejs start.sh ./start.sh
 RUN chmod +x ./start.sh
