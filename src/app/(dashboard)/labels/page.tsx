@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { RequirePermission } from "@/components/require-permission";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, Tag } from "lucide-react";
 import Link from "next/link";
@@ -31,7 +32,7 @@ export default function LabelsPage() {
   const [loading, setLoading] = useState(!DEMO_MODE);
   const { getToken, userData } = useAuth();
 
-  const canCreate = userData?.canCreateLabel || userData?.role === "ADMIN" || userData?.role === "EDITOR";
+  const canCreate = userData?.role === "ADMIN" || userData?.role === "EDITOR";
   const canDelete = userData?.role === "ADMIN" || userData?.role === "EDITOR";
 
   const loadLabels = useCallback(async () => {
@@ -76,6 +77,7 @@ export default function LabelsPage() {
   };
 
   return (
+    <RequirePermission permission="labels">
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -173,5 +175,6 @@ export default function LabelsPage() {
 
       <p className="text-xs text-slate-400">{labels.length} etiquetas</p>
     </div>
+    </RequirePermission>
   );
 }

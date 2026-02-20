@@ -1,50 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth";
+import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { hasActionPermission } from "@/lib/permissions";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withAuth(request, async (user) => {
-    const { id } = await params;
+  const user = await verifyAuth(request);
+  if (!user) return unauthorized();
 
-    const label = await prisma.label.findFirst({
-      where: { id, instanceId: user.instanceId },
-      include: {
-        product: true,
-      },
-    });
+  const { id } = await params;
 
-    if (!label) {
-      return NextResponse.json({ error: "Etiqueta no encontrada" }, { status: 404 });
-    }
-
-    return NextResponse.json(label);
+  const label = await prisma.label.findFirst({
+    where: { id, ...tenantWhere(user) },
+    include: {
+      product: true,
+    },
   });
+
+  if (!label) {
+    return NextResponse.json({ error: "Etiqueta no encontrada" }, { status: 404 });
+  }
+
+  return NextResponse.json(label);
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withAuth(request, async (user) => {
-    if (user.role === "VIEWER") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 });
-    }
+  const user = await verifyAuth(request);
+  if (!user) return unauthorized();
 
-    const { id } = await params;
+  if (!hasActionPermission(user.role, user.permisos, "labels", "eliminar")) {
+    return forbidden();
+  }
 
-    const label = await prisma.label.findFirst({
-      where: { id, instanceId: user.instanceId },
-    });
+  const { id } = await params;
 
-    if (!label) {
-      return NextResponse.json({ error: "Etiqueta no encontrada" }, { status: 404 });
-    }
-
-    await prisma.label.delete({ where: { id } });
-
-    return NextResponse.json({ success: true });
+  const label = await prisma.label.findFirst({
+    where: { id, ...tenantWhere(user) },
   });
+
+  if (!label) {
+    return NextResponse.json({ error: "Etiqueta no encontrada" }, { status: 404 });
+  }
+
+  await prisma.label.delete({ where: { id } });
+
+  return NextResponse.json({ success: true });
 }

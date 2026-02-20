@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { RequirePermission } from "@/components/require-permission";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
 import { Download, Printer, Save, Loader2 } from "lucide-react";
+import { UserManagement } from "@/components/settings/user-management";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -127,6 +129,7 @@ export default function SettingsPage() {
   };
 
   return (
+    <RequirePermission permission="configuration">
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t("title")}</h1>
@@ -159,12 +162,26 @@ export default function SettingsPage() {
       <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">{t("permissions")}</h3>
 
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <PermissionRow label={t("canCreateLabel")} granted={userData?.canCreateLabel} />
-          <PermissionRow label={t("canEditProduct")} granted={userData?.canEditProduct} />
-          <PermissionRow label={t("canEditBitacora")} granted={userData?.canEditBitacora} />
-          <PermissionRow label={t("canUseAI")} granted={userData?.canUseAI} />
-        </div>
+        {userData?.role === "ADMIN" ? (
+          <p className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+            Administrador — acceso completo a todos los modulos
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {(userData?.permisos || []).length > 0 ? (
+              (userData?.permisos || []).map((perm) => (
+                <span
+                  key={perm}
+                  className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                >
+                  {perm}
+                </span>
+              ))
+            ) : (
+              <p className="text-sm text-slate-400">Sin permisos asignados</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Paper Configuration Card */}
@@ -347,6 +364,9 @@ export default function SettingsPage() {
         )}
       </div>
 
+      {/* User Management (visible only for users with gestionar_usuarios permission) */}
+      <UserManagement />
+
       <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">{t("dataExport")}</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400">{t("dataExportHint")}</p>
@@ -386,23 +406,7 @@ export default function SettingsPage() {
         LabelFoodTrack v2.0 — Contacta al administrador para cambios de permisos.
       </p>
     </div>
-  );
-}
-
-function PermissionRow({ label, granted }: { label: string; granted?: boolean }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-700/30 px-3 py-2">
-      <span className="text-slate-700 dark:text-slate-300">{label}</span>
-      <span
-        className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-          granted
-            ? "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
-            : "bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400"
-        }`}
-      >
-        {granted ? "Si" : "No"}
-      </span>
-    </div>
+    </RequirePermission>
   );
 }
 

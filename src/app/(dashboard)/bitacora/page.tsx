@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { RequirePermission } from "@/components/require-permission";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -198,6 +199,7 @@ export default function BitacoraPage() {
   };
 
   return (
+    <RequirePermission permission="bitacora">
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -330,5 +332,6 @@ export default function BitacoraPage() {
         {filtered.length} de {total} registros
       </p>
     </div>
+    </RequirePermission>
   );
 }

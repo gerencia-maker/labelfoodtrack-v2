@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth";
+import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 
 function getOpenAI() {
   const { default: OpenAI } = require("openai") as { default: typeof import("openai").default };
@@ -89,41 +90,42 @@ REGLAS DE USO:
 - Combina texto normal con los tags (el texto va antes de los tags)`;
 
 export async function POST(request: NextRequest) {
-  return withAuth(request, async (user) => {
-    if (!user.canUseAI && user.role === "VIEWER") {
-      return NextResponse.json({ error: "Sin permisos para usar IA" }, { status: 403 });
-    }
+  const user = await verifyAuth(request);
+  if (!user) return unauthorized();
 
-    const { messages } = await request.json();
+  if (!hasPermission(user.role, user.permisos, "ai_features")) {
+    return forbidden();
+  }
 
-    if (!Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: "Mensajes requeridos" }, { status: 400 });
-    }
+  const { messages } = await request.json();
 
-    try {
-      const openai = getOpenAI();
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...messages.map((m: { role: string; content: string }) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          })),
-        ],
-        max_tokens: 1024,
-        temperature: 0.7,
-      });
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return NextResponse.json({ error: "Mensajes requeridos" }, { status: 400 });
+  }
 
-      const reply = completion.choices[0]?.message?.content || "Sin respuesta";
+  try {
+    const openai = getOpenAI();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages.map((m: { role: string; content: string }) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+      ],
+      max_tokens: 1024,
+      temperature: 0.7,
+    });
 
-      return NextResponse.json({ reply });
-    } catch (err) {
-      console.error("OpenAI error:", err);
-      return NextResponse.json(
-        { error: "Error al comunicarse con la IA" },
-        { status: 500 }
-      );
-    }
-  });
+    const reply = completion.choices[0]?.message?.content || "Sin respuesta";
+
+    return NextResponse.json({ reply });
+  } catch (err) {
+    console.error("OpenAI error:", err);
+    return NextResponse.json(
+      { error: "Error al comunicarse con la IA" },
+      { status: 500 }
+    );
+  }
 }

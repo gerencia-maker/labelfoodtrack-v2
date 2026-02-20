@@ -91,10 +91,13 @@ async function migrateInstance(firestoreId: string, name: string) {
           role: mapRole(data.role),
           status: data.status === "ACTIVO" ? "ACTIVE" : "INACTIVE",
           instanceId: instance.id,
-          canCreateLabel: data.canCreateLabel ?? false,
-          canEditProduct: data.canEditProduct ?? false,
-          canEditBitacora: data.canEditBitacora ?? false,
-          canUseAI: data.canUseAI ?? true,
+          permisos: [
+            "dashboard", "products", "labels", "bitacora",
+            ...(data.canCreateLabel ? ["labels.crear"] : []),
+            ...(data.canEditProduct ? ["products.editar"] : []),
+            ...(data.canEditBitacora ? ["bitacora.crear", "bitacora.editar"] : []),
+            ...(data.canUseAI ? ["ai_features"] : []),
+          ],
           licenseEndDate: data.license?.endDate?.toDate?.() || null,
         },
       });

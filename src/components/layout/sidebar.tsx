@@ -17,8 +17,10 @@ import {
   Flame,
   Star,
   Zap,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { canAccessNavItem } from "@/lib/permissions";
 
 // Mock gamification data
 const MOCK_LEVEL = 12;
@@ -40,14 +42,22 @@ export function Sidebar() {
   const t = useTranslations("nav");
   const { userData } = useAuth();
 
-  const navItems = [
-    { href: "/", label: t("products"), icon: LayoutDashboard },
-    { href: "/products/new", label: t("newProduct"), icon: Package },
-    { href: "/labels", label: t("labels"), icon: Tag },
-    { href: "/bitacora", label: t("bitacora"), icon: ClipboardList },
-    { href: "/ai", label: t("ai"), icon: Bot },
-    { href: "/settings", label: t("settings"), icon: Settings },
+  const role = userData?.role || "VIEWER";
+  const permisos = userData?.permisos || [];
+  const isSuperAdmin = role === "ADMIN" && !userData?.instanceId;
+
+  const allNavItems = [
+    { href: "/", label: t("products"), icon: LayoutDashboard, permKey: "dashboard" },
+    { href: "/products/new", label: t("newProduct"), icon: Package, permKey: "products" },
+    { href: "/labels", label: t("labels"), icon: Tag, permKey: "labels" },
+    { href: "/bitacora", label: t("bitacora"), icon: ClipboardList, permKey: "bitacora" },
+    { href: "/ai", label: t("ai"), icon: Bot, permKey: "ai" },
+    { href: "/settings", label: t("settings"), icon: Settings, permKey: "settings" },
   ];
+
+  const navItems = allNavItems.filter((item) =>
+    canAccessNavItem(role, permisos, item.permKey)
+  );
 
   const initials = userData?.name
     ? userData.name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase()
@@ -105,9 +115,16 @@ export function Sidebar() {
               <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
                 {userData?.name || "Usuario"}
               </p>
-              <p className="text-xs text-orange-500 dark:text-orange-400 font-medium">
-                {MOCK_TITLE}
-              </p>
+              {isSuperAdmin ? (
+                <p className="flex items-center gap-1 text-xs text-purple-500 dark:text-purple-400 font-medium">
+                  <Shield size={10} />
+                  Super Admin
+                </p>
+              ) : (
+                <p className="text-xs text-orange-500 dark:text-orange-400 font-medium">
+                  {MOCK_TITLE}
+                </p>
+              )}
             </div>
           </div>
 

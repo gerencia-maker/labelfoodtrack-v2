@@ -1,47 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/auth";
+import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validations/product";
+import { hasActionPermission } from "@/lib/permissions";
 
 export async function GET(request: NextRequest) {
-  return withAuth(request, async (user) => {
-    const products = await prisma.product.findMany({
-      where: { instanceId: user.instanceId },
-      orderBy: { code: "asc" },
-    });
+  const user = await verifyAuth(request);
+  if (!user) return unauthorized();
 
-    return NextResponse.json(products);
+  const products = await prisma.product.findMany({
+    where: { ...tenantWhere(user) },
+    orderBy: { code: "asc" },
   });
+
+  return NextResponse.json(products);
 }
 
 export async function POST(request: NextRequest) {
-  return withAuth(request, async (user) => {
-    if (user.role === "VIEWER") {
-      return NextResponse.json({ error: "Sin permisos para crear productos" }, { status: 403 });
-    }
+  const user = await verifyAuth(request);
+  if (!user) return unauthorized();
 
-    const body = await request.json();
-    const parsed = productSchema.safeParse(body);
+  if (!hasActionPermission(user.role, user.permisos, "products", "crear")) {
+    return forbidden();
+  }
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Datos invalidos", details: parsed.error.flatten().fieldErrors },
-        { status: 400 }
-      );
-    }
+  if (!user.instanceId) {
+    return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
+  }
 
-    const existing = await prisma.product.findFirst({
-      where: { code: parsed.data.code, instanceId: user.instanceId },
-    });
+  const body = await request.json();
+  const parsed = productSchema.safeParse(body);
 
-    if (existing) {
-      return NextResponse.json({ error: "Ya existe un producto con ese codigo" }, { status: 409 });
-    }
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Datos invalidos", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
 
-    const product = await prisma.product.create({
-      data: { ...parsed.data, instanceId: user.instanceId },
-    });
-
-    return NextResponse.json(product, { status: 201 });
+  const existing = await prisma.product.findFirst({
+    where: { code: parsed.data.code, instanceId: user.instanceId },
   });
+
+  if (existing) {
+    return NextResponse.json({ error: "Ya existe un producto con ese codigo" }, { status: 409 });
+  }
+
+  const product = await prisma.product.create({
+    data: { ...parsed.data, instanceId: user.instanceId },
+  });
+
+  return NextResponse.json(product, { status: 201 });
 }

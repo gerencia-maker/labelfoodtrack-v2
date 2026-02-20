@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -9,6 +9,11 @@ import {
   type User as FirebaseUser,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase-client";
+import {
+  hasPermission as checkPermission,
+  hasActionPermission as checkActionPermission,
+  type PermisoCodigo,
+} from "@/lib/permissions";
 
 interface UserData {
   id: string;
@@ -16,11 +21,8 @@ interface UserData {
   email: string;
   name: string;
   role: string;
-  instanceId: string;
-  canCreateLabel: boolean;
-  canEditProduct: boolean;
-  canEditBitacora: boolean;
-  canUseAI: boolean;
+  permisos: string[];
+  instanceId: string | null;
 }
 
 interface AuthContextType {
@@ -31,6 +33,9 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   getToken: () => Promise<string | null>;
+  hasPermission: (permission: PermisoCodigo) => boolean;
+  hasActionPermission: (module: string, action: string) => boolean;
+  isSuperAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -43,11 +48,8 @@ const DEMO_USER_DATA: UserData = {
   email: "admin@rancherito.com",
   name: "Admin Demo",
   role: "ADMIN",
-  instanceId: "rancherito-instance",
-  canCreateLabel: true,
-  canEditProduct: true,
-  canEditBitacora: true,
-  canUseAI: true,
+  permisos: [],
+  instanceId: "demo-instance-id",
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -72,7 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (res.ok) {
             const data = await res.json();
-            setUserData(data);
+            setUserData({
+              ...data,
+              permisos: data.permisos ?? [],
+            });
           } else {
             setUserData(null);
           }
@@ -103,13 +108,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const getToken = async () => {
+    if (DEMO_MODE) return "demo-token";
     if (!firebaseUser) return null;
     return firebaseUser.getIdToken();
   };
 
+  const hasPermission = useCallback(
+    (permission: PermisoCodigo) => {
+      if (!userData) return false;
+      return checkPermission(userData.role, userData.permisos, permission);
+    },
+    [userData]
+  );
+
+  const hasActionPermission = useCallback(
+    (module: string, action: string) => {
+      if (!userData) return false;
+      return checkActionPermission(userData.role, userData.permisos, module, action);
+    },
+    [userData]
+  );
+
+  const isSuperAdmin = userData?.role === "ADMIN" && !userData?.instanceId;
+
   return (
     <AuthContext.Provider
-      value={{ firebaseUser, userData, loading, signIn, signOut, resetPassword, getToken }}
+      value={{
+        firebaseUser,
+        userData,
+        loading,
+        signIn,
+        signOut,
+        resetPassword,
+        getToken,
+        hasPermission,
+        hasActionPermission,
+        isSuperAdmin,
+      }}
     >
       {children}
     </AuthContext.Provider>

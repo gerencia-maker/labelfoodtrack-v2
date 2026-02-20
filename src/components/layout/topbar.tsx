@@ -6,6 +6,7 @@ import { useLocale } from "@/contexts/locale-context";
 import { useTranslations } from "next-intl";
 import { LogOut, User, Globe, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { InstanceSelector } from "./instance-selector";
 
 export function Topbar() {
   const { userData, signOut } = useAuth();
@@ -42,6 +43,9 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Super-admin instance selector */}
+        <InstanceSelector />
+
         {/* Dark mode toggle */}
         <button
           onClick={toggleDark}

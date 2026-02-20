@@ -42,10 +42,7 @@ async function main() {
       role: "ADMIN",
       status: "ACTIVE",
       instanceId: rancherito.id,
-      canCreateLabel: true,
-      canEditProduct: true,
-      canEditBitacora: true,
-      canUseAI: true,
+      permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import"],
     },
   });
   console.log(`  User: ${admin.name} (${admin.role})`);
@@ -61,10 +58,7 @@ async function main() {
       role: "EDITOR",
       status: "ACTIVE",
       instanceId: rancherito.id,
-      canCreateLabel: true,
-      canEditProduct: true,
-      canEditBitacora: true,
-      canUseAI: true,
+      permisos: ["dashboard", "products", "labels", "bitacora", "labels.crear", "products.editar", "bitacora.crear", "bitacora.editar", "ai_features"],
     },
   });
   console.log(`  User: ${editor.name} (${editor.role})`);

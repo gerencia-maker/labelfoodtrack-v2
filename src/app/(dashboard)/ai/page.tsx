@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
+import { RequirePermission } from "@/components/require-permission";
 import { useTranslations } from "next-intl";
 import { FoodBotAvatar } from "@/components/foodbot/FoodBotAvatar";
 import { BotMessageRenderer } from "@/components/foodbot/BotMessageRenderer";
@@ -222,6 +223,7 @@ export default function AIPage() {
   };
 
   return (
+    <RequirePermission permission="ai_features">
     <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200 dark:border-slate-700/50">
@@ -392,5 +394,6 @@ export default function AIPage() {
         </p>
       </div>
     </div>
+    </RequirePermission>
   );
 }

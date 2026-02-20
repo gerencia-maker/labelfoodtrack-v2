@@ -71,7 +71,7 @@ export default function ProductsPage() {
   const t = useTranslations("products");
   const router = useRouter();
 
-  const canEdit = !!(userData?.role === "ADMIN" || userData?.role === "EDITOR" || userData?.canEditProduct);
+  const canEdit = !!(userData?.role === "ADMIN" || userData?.role === "EDITOR");
 
   const loadProducts = useCallback(async () => {
     if (DEMO_MODE) return;

@@ -14,6 +14,8 @@ model Instance {
   sheetId      String?
   sheetGid     String?
   destinations String[]
+  plan         Plan     @default(BASIC)
+  activo       Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -33,15 +35,15 @@ model User {
   status         Status    @default(ACTIVE)
   licenseEndDate DateTime?
 
-  canCreateLabel  Boolean @default(false)
-  canEditProduct  Boolean @default(false)
-  canEditBitacora Boolean @default(false)
-  canUseAI        Boolean @default(false)
+  // Dynamic permissions array (module + sub-action codes)
+  permisos String[] @default([])
+  activo   Boolean  @default(true)
 
-  instanceId String
-  instance   Instance @relation(fields: [instanceId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  // Nullable instanceId: null = super-admin (global access)
+  instanceId String?
+  instance   Instance? @relation(fields: [instanceId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([firebaseUid])
   @@index([instanceId])
@@ -57,6 +59,11 @@ enum Status {
   ACTIVE
   INACTIVE
   SUSPENDED
+}
+
+enum Plan {
+  BASIC
+  ENTERPRISE
 }
 
 model Product {
