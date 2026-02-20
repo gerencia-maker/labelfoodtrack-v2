@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
+import { usePrintPreset } from "@/hooks/use-print-preset";
 import { LabelForm, type LabelSaveData } from "@/components/labels/label-form";
 import { LabelPreview, type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
@@ -20,6 +21,7 @@ export default function NewLabelPage() {
   const { getToken } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("labels");
+  const { triggerPrint } = usePrintPreset();
   const searchParams = useSearchParams();
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -67,7 +69,7 @@ export default function NewLabelPage() {
     if (DEMO_MODE) {
       toast({ title: t("saved"), variant: "success" });
       setShowPrintModal(false);
-      setTimeout(() => window.print(), 300);
+      setTimeout(() => triggerPrint(), 300);
       return;
     }
 
@@ -111,11 +113,11 @@ export default function NewLabelPage() {
     setShowPrintModal(false);
 
     // 3. Print
-    setTimeout(() => window.print(), 300);
+    setTimeout(() => triggerPrint(), 300);
   };
 
   const handlePrint = () => {
-    window.print();
+    triggerPrint();
   };
 
   return (

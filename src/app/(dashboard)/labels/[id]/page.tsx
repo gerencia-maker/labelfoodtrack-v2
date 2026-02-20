@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
+import { usePrintPreset } from "@/hooks/use-print-preset";
 import { LabelPreview, type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
 import { PrintFlowModal } from "@/components/labels/print-flow-modal";
@@ -123,6 +124,7 @@ export default function LabelDetailPage({
   const { getToken, userData } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("labels");
+  const { triggerPrint } = usePrintPreset();
 
   const [label, setLabel] = useState<LabelDetail | null>(
     DEMO_MODE ? (DEMO_LABELS[id] || null) : null
@@ -184,7 +186,7 @@ export default function LabelDetailPage({
 
     if (DEMO_MODE) {
       setShowPrintModal(false);
-      setTimeout(() => window.print(), 300);
+      setTimeout(() => triggerPrint(), 300);
       return;
     }
 
@@ -216,7 +218,7 @@ export default function LabelDetailPage({
     });
 
     setShowPrintModal(false);
-    setTimeout(() => window.print(), 300);
+    setTimeout(() => triggerPrint(), 300);
   };
 
   if (loading) {
