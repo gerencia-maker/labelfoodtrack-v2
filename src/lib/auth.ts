@@ -5,7 +5,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { adminAuth } from "./firebase-admin";
+import { adminAuth, isFirebaseAdminConfigured } from "./firebase-admin";
 import { prisma } from "./prisma";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -32,7 +32,8 @@ const demoUser: AuthUser = {
 };
 
 export async function verifyAuth(request: NextRequest): Promise<AuthUser | null> {
-  if (DEMO_MODE) {
+  // Return demo user if DEMO_MODE or Firebase Admin is not configured
+  if (DEMO_MODE || !isFirebaseAdminConfigured) {
     return demoUser;
   }
 
