@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslations } from "next-intl";
@@ -13,9 +13,16 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showReset, setShowReset] = useState(false);
-  const { signIn, resetPassword } = useAuth();
+  const { signIn, resetPassword, userData, loading: authLoading } = useAuth();
   const router = useRouter();
   const t = useTranslations("auth");
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (!authLoading && userData) {
+      router.push("/");
+    }
+  }, [userData, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -6,21 +6,19 @@ import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
-const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { firebaseUser, userData, loading } = useAuth();
+  const { userData, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!DEMO_MODE && !loading && !firebaseUser) {
+    if (!loading && !userData) {
       router.push("/login");
     }
-  }, [firebaseUser, loading, router]);
+  }, [userData, loading, router]);
 
   if (loading) {
     return (
@@ -30,7 +28,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!DEMO_MODE && !firebaseUser) return null;
+  if (!userData) return null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0b1120]">

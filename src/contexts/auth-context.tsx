@@ -54,13 +54,19 @@ const DEMO_USER_DATA: UserData = {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [userData, setUserData] = useState<UserData | null>(
-    DEMO_MODE ? DEMO_USER_DATA : null
-  );
-  const [loading, setLoading] = useState(!DEMO_MODE);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (DEMO_MODE) return;
+    if (DEMO_MODE) {
+      // In DEMO_MODE, check if user was previously "logged out"
+      const demoLoggedOut = sessionStorage.getItem("lft-demo-logout");
+      if (!demoLoggedOut) {
+        setUserData(DEMO_USER_DATA);
+      }
+      setLoading(false);
+      return;
+    }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user);
@@ -95,15 +101,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    if (DEMO_MODE) {
+      // In DEMO_MODE, accept any credentials and set the demo user
+      sessionStorage.removeItem("lft-demo-logout");
+      setUserData(DEMO_USER_DATA);
+      return;
+    }
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
+    if (DEMO_MODE) {
+      sessionStorage.setItem("lft-demo-logout", "true");
+    } else {
+      await firebaseSignOut(auth);
+    }
     setUserData(null);
   };
 
   const resetPassword = async (email: string) => {
+    if (DEMO_MODE) return;
     await sendPasswordResetEmail(auth, email);
   };
 
