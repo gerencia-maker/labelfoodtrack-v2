@@ -3,25 +3,35 @@ import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  // Super-admin (no instanceId): list all instances
-  if (!user.instanceId) {
-    const instances = await prisma.instance.findMany({
-      orderBy: { name: "asc" },
-      include: { _count: { select: { users: true } } },
-    });
-    return NextResponse.json(instances);
+  if (DEMO_MODE) {
+    return NextResponse.json([]);
   }
 
-  // Regular user: return their own instance
-  const instance = await prisma.instance.findUnique({
-    where: { id: user.instanceId },
-  });
+  try {
+    // Super-admin (no instanceId): list all instances
+    if (!user.instanceId) {
+      const instances = await prisma.instance.findMany({
+        orderBy: { name: "asc" },
+        include: { _count: { select: { users: true } } },
+      });
+      return NextResponse.json(instances);
+    }
 
-  return NextResponse.json(instance ? [instance] : []);
+    // Regular user: return their own instance
+    const instance = await prisma.instance.findUnique({
+      where: { id: user.instanceId },
+    });
+
+    return NextResponse.json(instance ? [instance] : []);
+  } catch {
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(request: NextRequest) {

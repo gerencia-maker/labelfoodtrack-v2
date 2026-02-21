@@ -3,6 +3,8 @@ import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission } from "@/lib/permissions";
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
@@ -11,27 +13,33 @@ export async function GET(request: NextRequest) {
     return forbidden();
   }
 
-  // Super-admin without instance selected: list all users
-  // Tenant user: list users from their instance only
-  const where = user.instanceId ? { instanceId: user.instanceId } : {};
+  if (DEMO_MODE) {
+    return NextResponse.json([]);
+  }
 
-  const users = await prisma.user.findMany({
-    where,
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      status: true,
-      permisos: true,
-      activo: true,
-      instanceId: true,
-      createdAt: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const where = user.instanceId ? { instanceId: user.instanceId } : {};
 
-  return NextResponse.json(users);
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        status: true,
+        permisos: true,
+        activo: true,
+        instanceId: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json(users);
+  } catch {
+    return NextResponse.json([]);
+  }
 }
 
 export async function POST(request: NextRequest) {
