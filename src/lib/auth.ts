@@ -20,15 +20,15 @@ export interface AuthUser {
   instanceId: string | null;
 }
 
-// Mock user for DEMO_MODE
+// Mock user for DEMO_MODE — super-admin (instanceId = null)
 const demoUser: AuthUser = {
   id: "demo-user-id",
   firebaseUid: "demo-firebase-uid",
-  email: "demo@labelfoodtrack.app",
-  name: "Usuario Demo",
+  email: "gerencia@gesstionpg.com",
+  name: "Gerencia GestionPG",
   role: "ADMIN",
-  permisos: [],
-  instanceId: "demo-instance-id",
+  permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"],
+  instanceId: null,
 };
 
 export async function verifyAuth(request: NextRequest): Promise<AuthUser | null> {

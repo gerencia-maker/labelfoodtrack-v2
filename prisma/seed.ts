@@ -31,7 +31,23 @@ async function main() {
   });
   console.log(`  Instance: ${grupotierra.name}`);
 
-  // 3. Crear usuario admin de prueba
+  // 3. Crear SUPER-ADMIN (instanceId = null → acceso a todas las instancias)
+  const superAdmin = await prisma.user.upsert({
+    where: { firebaseUid: "super-admin-uid" },
+    update: {},
+    create: {
+      firebaseUid: "super-admin-uid",
+      email: "gerencia@gesstionpg.com",
+      name: "Gerencia GestionPG",
+      role: "ADMIN",
+      status: "ACTIVE",
+      instanceId: null, // super-admin: sin instancia fija
+      permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"],
+    },
+  });
+  console.log(`  Super-Admin: ${superAdmin.name} (${superAdmin.email}) — instanceId: null`);
+
+  // 4. Crear usuario admin de instancia RANCHERITO
   const admin = await prisma.user.upsert({
     where: { firebaseUid: "test-admin-uid" },
     update: {},
@@ -47,7 +63,7 @@ async function main() {
   });
   console.log(`  User: ${admin.name} (${admin.role})`);
 
-  // 4. Crear usuario editor
+  // 5. Crear usuario editor
   const editor = await prisma.user.upsert({
     where: { firebaseUid: "test-editor-uid" },
     update: {},
@@ -63,7 +79,7 @@ async function main() {
   });
   console.log(`  User: ${editor.name} (${editor.role})`);
 
-  // 5. Crear productos de ejemplo
+  // 6. Crear productos de ejemplo
   const productData = [
     {
       code: "R-01",
@@ -212,7 +228,7 @@ async function main() {
   }
   console.log(`  ${productData.length} products created for RANCHERITO`);
 
-  // 6. Crear etiquetas de ejemplo
+  // 7. Crear etiquetas de ejemplo
   const labelData = [
     {
       productName: "Aji Rancherito",
@@ -250,7 +266,7 @@ async function main() {
   }
   console.log(`  ${labelData.length} labels created`);
 
-  // 7. Crear entradas de bitacora
+  // 8. Crear entradas de bitacora
   const bitacoraData = [
     {
       productName: "Aji Rancherito",
@@ -299,7 +315,7 @@ async function main() {
   }
   console.log(`  ${bitacoraData.length} bitacora entries created`);
 
-  // 8. Crear preset de impresion
+  // 9. Crear preset de impresion
   await prisma.printPreset.upsert({
     where: { id: "preset_default" },
     update: {},

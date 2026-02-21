@@ -45,11 +45,11 @@ const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 const DEMO_USER_DATA: UserData = {
   id: "demo-user",
   firebaseUid: "demo-uid",
-  email: "admin@rancherito.com",
-  name: "Admin Demo",
+  email: "gerencia@gesstionpg.com",
+  name: "Gerencia GestionPG",
   role: "ADMIN",
-  permisos: [],
-  instanceId: "demo-instance-id",
+  permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"],
+  instanceId: null,
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
