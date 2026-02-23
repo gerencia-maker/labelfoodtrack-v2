@@ -25,6 +25,10 @@ export async function PUT(
   const body = await request.json();
   const { name, brandName, plan, activo, destinations } = body;
 
+  if (DEMO_MODE) {
+    return NextResponse.json({ id, name, brandName, plan, activo, destinations });
+  }
+
   const existing = await prisma.instance.findUnique({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Instancia no encontrada" }, { status: 404 });
