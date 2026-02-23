@@ -19,7 +19,31 @@
     "labels": "Etiquetas",
     "bitacora": "Bitacora",
     "ai": "Asistente IA",
-    "settings": "Configuracion"
+    "settings": "Configuracion",
+    "instances": "Instancias"
+  },
+  "instances": {
+    "title": "Instancias",
+    "subtitle": "Gestiona las instancias (empresas/marcas) del sistema.",
+    "new": "Nueva instancia",
+    "name": "Nombre",
+    "brandName": "Nombre de marca",
+    "plan": "Plan",
+    "destinations": "Destinos",
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "users": "Usuarios",
+    "actions": "Acciones",
+    "created": "Instancia creada",
+    "updated": "Instancia actualizada",
+    "deleted": "Instancia eliminada",
+    "confirmDelete": "Estas seguro de eliminar esta instancia?",
+    "confirmDeleteHint": "Esta accion no se puede deshacer. Se eliminaran todos los datos asociados.",
+    "hasUsers": "No se puede eliminar: tiene {count} usuarios asociados",
+    "noInstances": "No hay instancias registradas",
+    "addDestination": "Agregar destino",
+    "editInstance": "Editar instancia",
+    "saveInstance": "Guardar"
   },
   "products": {
     "title": "Indice de rotulacion",

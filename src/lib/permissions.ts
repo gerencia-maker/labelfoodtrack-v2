@@ -99,6 +99,7 @@ const NAV_PERMISSION_MAP: Record<string, PermisoCodigo> = {
   bitacora: PERMISOS.bitacora,
   ai: PERMISOS.ai_features,
   settings: PERMISOS.configuration,
+  instances: PERMISOS.instances,
 };
 
 export function hasPermission(

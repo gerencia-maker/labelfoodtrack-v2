@@ -19,7 +19,31 @@
     "labels": "Labels",
     "bitacora": "Log",
     "ai": "AI Assistant",
-    "settings": "Settings"
+    "settings": "Settings",
+    "instances": "Instances"
+  },
+  "instances": {
+    "title": "Instances",
+    "subtitle": "Manage system instances (companies/brands).",
+    "new": "New instance",
+    "name": "Name",
+    "brandName": "Brand name",
+    "plan": "Plan",
+    "destinations": "Destinations",
+    "active": "Active",
+    "inactive": "Inactive",
+    "users": "Users",
+    "actions": "Actions",
+    "created": "Instance created",
+    "updated": "Instance updated",
+    "deleted": "Instance deleted",
+    "confirmDelete": "Are you sure you want to delete this instance?",
+    "confirmDeleteHint": "This action cannot be undone. All associated data will be deleted.",
+    "hasUsers": "Cannot delete: has {count} associated users",
+    "noInstances": "No instances registered",
+    "addDestination": "Add destination",
+    "editInstance": "Edit instance",
+    "saveInstance": "Save"
   },
   "products": {
     "title": "Labeling Index",

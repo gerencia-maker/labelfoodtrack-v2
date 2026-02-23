@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Bot,
   Settings,
+  Building2,
   ChevronLeft,
   ChevronRight,
   Flame,
@@ -52,6 +53,7 @@ export function Sidebar() {
     { href: "/labels", label: t("labels"), icon: Tag, permKey: "labels" },
     { href: "/bitacora", label: t("bitacora"), icon: ClipboardList, permKey: "bitacora" },
     { href: "/ai", label: t("ai"), icon: Bot, permKey: "ai" },
+    { href: "/instances", label: t("instances"), icon: Building2, permKey: "instances" },
     { href: "/settings", label: t("settings"), icon: Settings, permKey: "settings" },
   ];
 
