@@ -29,7 +29,7 @@ export function LabelPrint({ data }: LabelPrintProps) {
           <thead>
             <tr>
               <th colSpan={3}>
-                {data.brand || "MARCA"} USO GASTRON&Oacute;MICO
+                {data.brand || "MARCA"} USO GASTRONÓMICO
               </th>
             </tr>
           </thead>
@@ -46,19 +46,19 @@ export function LabelPrint({ data }: LabelPrintProps) {
               </td>
             </tr>
             <tr>
-              <td>Tipo de cadena de fr\u00edo:</td>
+              <td>Tipo de cadena de frío:</td>
               <td>{data.coldChain || "--"}</td>
             </tr>
             <tr>
-              <td>Fecha de producci\u00f3n:</td>
+              <td>Fecha de producción:</td>
               <td>{formatDate(data.productionDate)}</td>
             </tr>
             <tr>
-              <td>Vence (refrigerado 0\u00b0C a 4\u00b0C):</td>
+              <td>Vence (refrigerado 0°C a 4°C):</td>
               <td>{data.expiryRefrigerated || "--"}</td>
             </tr>
             <tr>
-              <td>Vence (congelado -18\u00b0C a -22\u00b0C):</td>
+              <td>Vence (congelado -18°C a -22°C):</td>
               <td>{data.expiryFrozen || "--"}</td>
             </tr>
             <tr>
@@ -85,13 +85,13 @@ export function LabelPrint({ data }: LabelPrintProps) {
             )}
             {data.allergens && (
               <tr className="multiline-row">
-                <td>Al\u00e9rgenos:</td>
+                <td>Alérgenos:</td>
                 <td colSpan={2}>{data.allergens}</td>
               </tr>
             )}
             {data.storage && (
               <tr className="multiline-row">
-                <td>Conservaci\u00f3n:</td>
+                <td>Conservación:</td>
                 <td colSpan={2}>{data.storage}</td>
               </tr>
             )}
