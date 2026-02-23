@@ -22,6 +22,12 @@ export function LabelPrint({ data }: LabelPrintProps) {
     }
   };
 
+  const hasRefrigerated = data.expiryRefrigerated && data.expiryRefrigerated !== "--";
+  const hasFrozen = data.expiryFrozen && data.expiryFrozen !== "--";
+
+  // Count body rows that have the QR rowSpan
+  const qrRowSpan = 5 + (hasRefrigerated ? 1 : 0) + (hasFrozen ? 1 : 0);
+
   return (
     <div id="printMatrixContainer">
       <div id="printMatrixLabel">
@@ -37,7 +43,7 @@ export function LabelPrint({ data }: LabelPrintProps) {
             <tr>
               <td>Producto:</td>
               <td>{data.productName || "--"}</td>
-              <td rowSpan={7} className="qr-cell">
+              <td rowSpan={qrRowSpan} className="qr-cell">
                 {data.qrData ? (
                   <QRCodeCanvas value={data.qrData} size={60} level="L" />
                 ) : (
@@ -53,14 +59,18 @@ export function LabelPrint({ data }: LabelPrintProps) {
               <td>Fecha de producción:</td>
               <td>{formatDate(data.productionDate)}</td>
             </tr>
-            <tr>
-              <td>Vence (refrigerado 0°C a 4°C):</td>
-              <td>{data.expiryRefrigerated || "--"}</td>
-            </tr>
-            <tr>
-              <td>Vence (congelado -18°C a -22°C):</td>
-              <td>{data.expiryFrozen || "--"}</td>
-            </tr>
+            {hasRefrigerated && (
+              <tr>
+                <td>{hasFrozen ? "Post-descongelación:" : "Vence (refrigerado 0°C a 4°C):"}</td>
+                <td>{data.expiryRefrigerated}</td>
+              </tr>
+            )}
+            {hasFrozen && (
+              <tr>
+                <td>Vence (congelado -18°C a -22°C):</td>
+                <td>{data.expiryFrozen}</td>
+              </tr>
+            )}
             <tr>
               <td>Peso/Cantidad:</td>
               <td>{data.netContent || "--"}</td>

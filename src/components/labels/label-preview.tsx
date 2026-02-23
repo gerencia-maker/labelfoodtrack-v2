@@ -51,6 +51,7 @@ export function LabelPreview({ data }: LabelPreviewProps) {
 
   const hasAllergens = data.allergens && data.allergens.trim() !== "";
   const hasFrozen = data.expiryFrozen && data.expiryFrozen !== "--";
+  const hasRefrigerated = data.expiryRefrigerated && data.expiryRefrigerated !== "--";
 
   return (
     <div
@@ -122,19 +123,24 @@ export function LabelPreview({ data }: LabelPreviewProps) {
           <Chip label="Produccion" value={formatDate(data.productionDate)} />
         </div>
 
-        {/* Alerts: Vencimientos */}
+        {/* Alerts: Vencimientos (solo los que aplican segun cadena seleccionada) */}
         <div className="space-y-2">
-          <Alert
-            type="warm"
-            label="Vence refrigerado"
-            value={data.expiryRefrigerated || "--"}
-          />
+          {hasRefrigerated && (
+            <Alert
+              type="warm"
+              label={hasFrozen ? "Post-descongelación" : "Vence refrigerado"}
+              value={data.expiryRefrigerated}
+            />
+          )}
           {hasFrozen && (
             <Alert
               type="cold"
               label="Vence congelado"
               value={data.expiryFrozen}
             />
+          )}
+          {!hasRefrigerated && !hasFrozen && (
+            <Alert type="warm" label="Vencimiento" value="--" />
           )}
         </div>
       </div>
