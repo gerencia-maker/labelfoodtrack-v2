@@ -1,6 +1,8 @@
 /**
  * Demo data sourced from: PRODUCTOS - LABELFOODTRACK.csv
  * Real products for RANCHERITO (57) and GRUPO DE LA TIERRA (20)
+ *
+ * Instances are mutable in-memory so CRUD operations persist during server session.
  */
 
 const P = "demo-inst-1"; // RANCHERITO
@@ -8,6 +10,40 @@ const G = "demo-inst-2"; // GRUPO DE LA TIERRA
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type D = Record<string, any>;
+
+// ── Mutable Instances (CRUD-capable) ──
+
+let demoInstances: D[] = [
+  { id: P, name: "RANCHERITO", brandName: "RANCHERITO", plan: "ENTERPRISE", activo: true, destinations: ["ALZATE", "MIRANORTE", "NM"], _count: { users: 3 } },
+  { id: G, name: "GRUPO DE LA TIERRA", brandName: "GRUPO DE LA TIERRA", plan: "BASIC", activo: true, destinations: ["BOGOTA", "MEDELLIN"], _count: { users: 1 } },
+];
+
+export function getDemoInstances(): D[] {
+  return demoInstances;
+}
+
+export function getDemoInstance(id: string): D | undefined {
+  return demoInstances.find((i) => i.id === id);
+}
+
+export function createDemoInstance(data: D): D {
+  const inst = { id: `demo-${Date.now()}`, activo: true, _count: { users: 0 }, ...data };
+  demoInstances.push(inst);
+  return inst;
+}
+
+export function updateDemoInstance(id: string, data: D): D | null {
+  const idx = demoInstances.findIndex((i) => i.id === id);
+  if (idx === -1) return null;
+  demoInstances[idx] = { ...demoInstances[idx], ...data };
+  return demoInstances[idx];
+}
+
+export function deleteDemoInstance(id: string): boolean {
+  const before = demoInstances.length;
+  demoInstances = demoInstances.filter((i) => i.id !== id);
+  return demoInstances.length < before;
+}
 
 export const DEMO_PRODUCTS_BY_INSTANCE: Record<string, D[]> = {
   [P]: [

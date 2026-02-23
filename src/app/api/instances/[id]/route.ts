@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, checkTenantAccess } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
+import { updateDemoInstance, deleteDemoInstance, getDemoInstance } from "@/lib/demo-data";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -26,7 +27,11 @@ export async function PUT(
   const { name, brandName, plan, activo, destinations } = body;
 
   if (DEMO_MODE) {
-    return NextResponse.json({ id, name, brandName, plan, activo, destinations });
+    const updated = updateDemoInstance(id, { name, brandName, plan, activo, destinations });
+    if (!updated) {
+      return NextResponse.json({ error: "Instancia no encontrada" }, { status: 404 });
+    }
+    return NextResponse.json(updated);
   }
 
   const existing = await prisma.instance.findUnique({ where: { id } });
@@ -60,7 +65,7 @@ export async function DELETE(
   if (!user) return unauthorized();
 
   // Only super-admin can delete instances
-  if (user.instanceId) return forbidden();
+  if (!user.isSuperAdmin) return forbidden();
 
   if (!hasPermission(user.role, user.permisos, "instances")) {
     return forbidden();
@@ -69,6 +74,11 @@ export async function DELETE(
   const { id } = await params;
 
   if (DEMO_MODE) {
+    const inst = getDemoInstance(id);
+    if (inst && inst._count?.users > 0) {
+      return NextResponse.json({ error: "hasUsers", count: inst._count.users }, { status: 409 });
+    }
+    deleteDemoInstance(id);
     return NextResponse.json({ success: true });
   }
 

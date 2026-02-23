@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
+import { getDemoInstances, createDemoInstance } from "@/lib/demo-data";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -10,15 +11,12 @@ export async function GET(request: NextRequest) {
   if (!user) return unauthorized();
 
   if (DEMO_MODE) {
-    return NextResponse.json([
-      { id: "demo-inst-1", name: "RANCHERITO", brandName: "RANCHERITO", plan: "ENTERPRISE", activo: true, destinations: ["ALZATE", "MIRANORTE", "NM"], _count: { users: 3 } },
-      { id: "demo-inst-2", name: "GRUPO DE LA TIERRA", brandName: "GRUPO DE LA TIERRA", plan: "BASIC", activo: true, destinations: ["BOGOTA", "MEDELLIN"], _count: { users: 1 } },
-    ]);
+    return NextResponse.json(getDemoInstances());
   }
 
   try {
-    // Super-admin (no instanceId): list all instances
-    if (!user.instanceId) {
+    // Super-admin: list all instances
+    if (user.isSuperAdmin) {
       const instances = await prisma.instance.findMany({
         orderBy: { name: "asc" },
         include: { _count: { select: { users: true } } },
@@ -27,6 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Regular user: return their own instance
+    if (!user.instanceId) return NextResponse.json([]);
     const instance = await prisma.instance.findUnique({
       where: { id: user.instanceId },
     });
@@ -42,7 +41,7 @@ export async function POST(request: NextRequest) {
   if (!user) return unauthorized();
 
   // Only super-admin can create instances
-  if (user.instanceId) {
+  if (!user.isSuperAdmin) {
     return forbidden();
   }
 
@@ -58,15 +57,13 @@ export async function POST(request: NextRequest) {
   }
 
   if (DEMO_MODE) {
-    return NextResponse.json({
-      id: `demo-${Date.now()}`,
+    const inst = createDemoInstance({
       name,
       brandName: brandName || null,
       plan: plan || "BASIC",
-      activo: true,
       destinations: destinations || [],
-      _count: { users: 0 },
-    }, { status: 201 });
+    });
+    return NextResponse.json(inst, { status: 201 });
   }
 
   try {

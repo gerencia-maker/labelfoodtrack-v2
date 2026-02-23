@@ -18,6 +18,8 @@ export interface AuthUser {
   role: string;
   permisos: string[];
   instanceId: string | null;
+  /** True when user has no instanceId in DB (before cookie scoping) */
+  isSuperAdmin: boolean;
 }
 
 // Mock user for DEMO_MODE — super-admin (instanceId = null)
@@ -29,6 +31,7 @@ const demoUser: AuthUser = {
   role: "ADMIN",
   permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"],
   instanceId: null,
+  isSuperAdmin: true,
 };
 
 export async function verifyAuth(request: NextRequest): Promise<AuthUser | null> {
@@ -71,8 +74,9 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
     }
 
     // Super-admin: instanceId = null, use cookie to scope to a specific instance
+    const isSuper = user.role === "ADMIN" && !user.instanceId;
     let effectiveInstanceId = user.instanceId;
-    if (user.role === "ADMIN" && !user.instanceId) {
+    if (isSuper) {
       const cookieInstanceId = request.cookies.get("lft-instance-id")?.value;
       if (cookieInstanceId) {
         effectiveInstanceId = cookieInstanceId;
@@ -87,6 +91,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       role: user.role,
       permisos: user.permisos,
       instanceId: effectiveInstanceId,
+      isSuperAdmin: isSuper,
     };
   } catch {
     return null;
@@ -133,6 +138,6 @@ export function tenantWhere(user: AuthUser): { instanceId?: string } {
  * Check if user has access to a resource by its instanceId.
  */
 export function checkTenantAccess(user: AuthUser, resourceInstanceId: string | null): boolean {
-  if (!user.instanceId) return true; // super-admin
+  if (user.isSuperAdmin) return true;
   return resourceInstanceId === user.instanceId;
 }
