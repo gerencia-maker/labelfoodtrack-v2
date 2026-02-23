@@ -14,8 +14,8 @@ type D = Record<string, any>;
 // ── Mutable Instances (CRUD-capable) ──
 
 let demoInstances: D[] = [
-  { id: P, name: "RANCHERITO", brandName: "RANCHERITO", plan: "ENTERPRISE", activo: true, destinations: ["ALZATE", "MIRANORTE", "NM"], _count: { users: 3 } },
-  { id: G, name: "GRUPO DE LA TIERRA", brandName: "GRUPO DE LA TIERRA", plan: "BASIC", activo: true, destinations: ["BOGOTA", "MEDELLIN"], _count: { users: 1 } },
+  { id: P, name: "RANCHERITO", brandName: "RANCHERITO", plan: "ENTERPRISE", activo: true, destinations: ["ALZATE", "MIRANORTE", "NM"], packers: ["Nuestra cocina intermedia Alzate Norena S.A.S", "Centro de acopio"], _count: { users: 3 } },
+  { id: G, name: "GRUPO DE LA TIERRA", brandName: "GRUPO DE LA TIERRA", plan: "BASIC", activo: true, destinations: ["BOGOTA", "MEDELLIN"], packers: ["GRUPO DE LA TIERRA"], _count: { users: 1 } },
 ];
 
 export function getDemoInstances(): D[] {

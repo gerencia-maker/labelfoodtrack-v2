@@ -25,6 +25,7 @@ interface InstanceData {
   plan: string;
   activo: boolean;
   destinations: string[];
+  packers: string[];
   _count?: { users: number };
 }
 
@@ -33,6 +34,7 @@ interface FormData {
   brandName: string;
   plan: string;
   destinations: string[];
+  packers: string[];
 }
 
 const EMPTY_FORM: FormData = {
@@ -40,6 +42,7 @@ const EMPTY_FORM: FormData = {
   brandName: "",
   plan: "BASIC",
   destinations: [],
+  packers: [],
 };
 
 export default function InstancesPage() {
@@ -62,6 +65,7 @@ function InstancesContent() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [newDest, setNewDest] = useState("");
+  const [newPacker, setNewPacker] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const loadInstances = useCallback(async () => {
@@ -98,6 +102,7 @@ function InstancesContent() {
       brandName: inst.brandName || "",
       plan: inst.plan,
       destinations: [...inst.destinations],
+      packers: [...(inst.packers || [])],
     });
     setShowForm(true);
   };
@@ -119,6 +124,18 @@ function InstancesContent() {
 
   const removeDestination = (d: string) => {
     setForm({ ...form, destinations: form.destinations.filter((x) => x !== d) });
+  };
+
+  const addPacker = () => {
+    const val = newPacker.trim();
+    if (val && !form.packers.includes(val)) {
+      setForm({ ...form, packers: [...form.packers, val] });
+    }
+    setNewPacker("");
+  };
+
+  const removePacker = (p: string) => {
+    setForm({ ...form, packers: form.packers.filter((x) => x !== p) });
   };
 
   const handleSave = async () => {
@@ -143,6 +160,7 @@ function InstancesContent() {
           brandName: form.brandName.trim() || null,
           plan: form.plan,
           destinations: form.destinations,
+          packers: form.packers,
         }),
       });
 
@@ -288,6 +306,43 @@ function InstancesContent() {
                       <button
                         onClick={() => removeDestination(d)}
                         className="ml-0.5 text-slate-400 hover:text-red-500"
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Packers (Empacado por) */}
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                {t("packers")}
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  value={newPacker}
+                  onChange={(e) => setNewPacker(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addPacker())}
+                  placeholder="Nombre empacador"
+                  className="flex-1"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={addPacker}>
+                  <Plus size={14} />
+                </Button>
+              </div>
+              {form.packers.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {form.packers.map((p) => (
+                    <span
+                      key={p}
+                      className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300"
+                    >
+                      {p}
+                      <button
+                        onClick={() => removePacker(p)}
+                        className="ml-0.5 text-blue-400 hover:text-red-500"
                       >
                         <X size={10} />
                       </button>

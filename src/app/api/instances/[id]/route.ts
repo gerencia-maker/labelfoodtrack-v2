@@ -24,10 +24,10 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { name, brandName, plan, activo, destinations } = body;
+  const { name, brandName, plan, activo, destinations, packers } = body;
 
   if (DEMO_MODE) {
-    const updated = updateDemoInstance(id, { name, brandName, plan, activo, destinations });
+    const updated = updateDemoInstance(id, { name, brandName, plan, activo, destinations, packers });
     if (!updated) {
       return NextResponse.json({ error: "Instancia no encontrada" }, { status: 404 });
     }
@@ -48,6 +48,7 @@ export async function PUT(
         ...(plan !== undefined && { plan }),
         ...(activo !== undefined && { activo }),
         ...(destinations !== undefined && { destinations }),
+        ...(packers !== undefined && { packers }),
       },
     });
 

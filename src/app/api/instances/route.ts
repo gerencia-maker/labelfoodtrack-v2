@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, brandName, plan, destinations } = body;
+  const { name, brandName, plan, destinations, packers } = body;
 
   if (!name) {
     return NextResponse.json({ error: "Nombre es requerido" }, { status: 400 });
@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
       brandName: brandName || null,
       plan: plan || "BASIC",
       destinations: destinations || [],
+      packers: packers || [],
     });
     return NextResponse.json(inst, { status: 201 });
   }
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
         brandName: brandName || null,
         plan: plan || "BASIC",
         destinations: destinations || [],
+        packers: packers || [],
       },
       include: { _count: { select: { users: true } } },
     });

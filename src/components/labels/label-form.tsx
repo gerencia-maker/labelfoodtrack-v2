@@ -57,6 +57,9 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   const { getToken, userData } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
+  const [brand, setBrand] = useState("");
+  const [destinations, setDestinations] = useState<string[]>([]);
+  const [packers, setPackers] = useState<string[]>([]);
 
   // Form state
   const [productId, setProductId] = useState(defaultValues?.productId || "");
@@ -75,24 +78,38 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     [products, productId]
   );
 
-  // Cargar productos
+  // Cargar productos e instancia actual
   useEffect(() => {
     async function load() {
       const token = await getToken();
       if (!token) return;
-      const res = await fetch("/api/products", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setProducts(data);
+
+      const [prodRes, instRes] = await Promise.all([
+        fetch("/api/products", { headers: { Authorization: `Bearer ${token}` } }),
+        fetch("/api/instances", { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+
+      if (prodRes.ok) {
+        setProducts(await prodRes.json());
+      }
+
+      if (instRes.ok) {
+        const instances = await instRes.json();
+        // Cookie-scoped: API returns the current instance (or all for super-admin)
+        // Use the first one or find by cookie
+        const cookieId = document.cookie.match(/lft-instance-id=([^;]+)/)?.[1];
+        const current = cookieId
+          ? instances.find((i: { id: string }) => i.id === cookieId)
+          : instances[0];
+        if (current) {
+          setBrand(current.brandName || current.name || "");
+          setDestinations(current.destinations || []);
+          setPackers(current.packers || []);
+        }
       }
     }
     load();
   }, [getToken]);
-
-  // Marca de la instancia (simplificado - se usa el nombre del producto como fallback)
-  const brand = "RANCHERITO"; // TODO: obtener de instance.brandName
 
   // Generar lote automaticamente
   useEffect(() => {
@@ -289,8 +306,9 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               onChange={(e) => setPackedBy(e.target.value)}
             >
               <option value="">Seleccionar...</option>
-              <option value="Nuestra cocina intermedia Alzate Norena S.A.S">NCI Alzate</option>
-              <option value="Centro de acopio">Centro de acopio</option>
+              {packers.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
             </Select>
           </div>
           <div>
@@ -301,9 +319,9 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               onChange={(e) => setDestination(e.target.value)}
             >
               <option value="">Seleccionar...</option>
-              <option value="ALZATE">ALZATE</option>
-              <option value="MIRANORTE">MIRANORTE</option>
-              <option value="NM">NM</option>
+              {destinations.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
             </Select>
           </div>
         </div>
