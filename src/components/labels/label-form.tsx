@@ -53,6 +53,29 @@ export interface LabelSaveData {
   qrData: string;
 }
 
+const NET_CONTENT_UNITS = [
+  { label: "Peso", options: [
+    { value: "g", label: "g (Gramo)" },
+    { value: "kg", label: "kg (Kilogramo)" },
+    { value: "oz", label: "oz (Onza)" },
+    { value: "lb", label: "lb (Libra)" },
+  ]},
+  { label: "Volumen", options: [
+    { value: "ml", label: "ml (Mililitro)" },
+    { value: "L", label: "L (Litro)" },
+  ]},
+  { label: "Unidad", options: [
+    { value: "und", label: "und (Unidad)" },
+  ]},
+];
+
+function parseNetContent(value: string): { qty: string; unit: string } {
+  if (!value) return { qty: "", unit: "g" };
+  const match = value.match(/^([\d.,]+)\s*(.+)$/);
+  if (match) return { qty: match[1], unit: match[2].trim() };
+  return { qty: value, unit: "g" };
+}
+
 export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
   const { getToken, userData } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
@@ -61,9 +84,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   const [destinations, setDestinations] = useState<string[]>([]);
   const [packers, setPackers] = useState<string[]>([]);
 
+  // Parse netContent default into qty + unit (e.g. "500 g" → "500", "g")
+  const parsedDefault = parseNetContent(defaultValues?.netContent || "");
+
   // Form state
   const [productId, setProductId] = useState(defaultValues?.productId || "");
-  const [netContent, setNetContent] = useState(defaultValues?.netContent || "");
+  const [netContentQty, setNetContentQty] = useState(parsedDefault.qty);
+  const [netContentUnit, setNetContentUnit] = useState(parsedDefault.unit);
   const [productionDate, setProductionDate] = useState(
     defaultValues?.productionDate || new Date().toISOString().split("T")[0]
   );
@@ -154,6 +181,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       selectedProduct.ambientDays
     );
 
+    const netContent = netContentQty ? `${netContentQty} ${netContentUnit}` : "";
     const quantityLabel = buildQuantityLabel(netContent, selectedProduct.servingSize);
 
     const qrData = batch
@@ -177,7 +205,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       usage: selectedProduct.usage || "",
       qrData,
     });
-  }, [selectedProduct, netContent, productionDate, batch, packedBy, destination, brand, onPreviewChange]);
+  }, [selectedProduct, netContentQty, netContentUnit, productionDate, batch, packedBy, destination, brand, onPreviewChange]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,6 +216,8 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       const qrData = batch
         ? `https://labelfoodtrack.com/t/${encodeURIComponent(batch)}`
         : "";
+
+      const netContent = netContentQty ? `${netContentQty} ${netContentUnit}` : "";
 
       await onSave({
         productId: selectedProduct.id,
@@ -245,13 +275,33 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="netContent">Contenido neto</Label>
-            <Input
-              id="netContent"
-              placeholder="500 g"
-              value={netContent}
-              onChange={(e) => setNetContent(e.target.value)}
-            />
+            <Label htmlFor="netContentQty">Contenido neto</Label>
+            <div className="flex gap-1.5">
+              <Input
+                id="netContentQty"
+                type="number"
+                min="0"
+                step="any"
+                placeholder="500"
+                value={netContentQty}
+                onChange={(e) => setNetContentQty(e.target.value)}
+                className="flex-1"
+              />
+              <Select
+                id="netContentUnit"
+                value={netContentUnit}
+                onChange={(e) => setNetContentUnit(e.target.value)}
+                className="w-24"
+              >
+                {NET_CONTENT_UNITS.map((group) => (
+                  <optgroup key={group.label} label={group.label}>
+                    {group.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.value}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </Select>
+            </div>
           </div>
           <div>
             <Label htmlFor="productionDate">Fecha produccion *</Label>
