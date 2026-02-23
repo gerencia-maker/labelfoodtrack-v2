@@ -34,7 +34,12 @@ const demoUser: AuthUser = {
 export async function verifyAuth(request: NextRequest): Promise<AuthUser | null> {
   // Return demo user if DEMO_MODE or Firebase Admin is not configured
   if (DEMO_MODE || !isFirebaseAdminConfigured) {
-    return demoUser;
+    // Super-admin: read cookie to scope to a specific instance (same as real auth)
+    const cookieInstanceId = request.cookies.get("lft-instance-id")?.value;
+    return {
+      ...demoUser,
+      instanceId: cookieInstanceId || null,
+    };
   }
 
   try {

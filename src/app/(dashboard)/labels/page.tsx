@@ -17,26 +17,15 @@ interface LabelItem {
   product: { code: string; name: string; category: string | null } | null;
 }
 
-const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-
-const DEMO_LABELS: LabelItem[] = [
-  { id: "1", productName: "Pandequeso", brand: "RANCHERITO", batch: "PQ-090226-0800", destination: "ALZATE", createdAt: "2026-02-09T08:30:00Z", product: { code: "P001", name: "Pandequeso", category: "Panaderia" } },
-  { id: "2", productName: "Arepa de Boyaca", brand: "RANCHERITO", batch: "AB-090226-0700", destination: "MIRANORTE", createdAt: "2026-02-09T07:15:00Z", product: { code: "P002", name: "Arepa de Boyaca", category: "Panaderia" } },
-  { id: "3", productName: "Empanada de Carne", brand: "RANCHERITO", batch: "EM-080226-1000", destination: "NM", createdAt: "2026-02-08T10:45:00Z", product: { code: "P003", name: "Empanada de Carne", category: "Fritos" } },
-  { id: "4", productName: "Queso Campesino", brand: "RANCHERITO", batch: "QS-080226-0600", destination: "ALZATE", createdAt: "2026-02-08T06:20:00Z", product: { code: "P006", name: "Queso Campesino", category: "Lacteos" } },
-  { id: "5", productName: "Buñuelo", brand: "RANCHERITO", batch: "BU-070226-0900", destination: "MIRANORTE", createdAt: "2026-02-07T09:00:00Z", product: { code: "P005", name: "Buñuelo", category: "Fritos" } },
-];
-
 export default function LabelsPage() {
-  const [labels, setLabels] = useState<LabelItem[]>(DEMO_MODE ? DEMO_LABELS : []);
-  const [loading, setLoading] = useState(!DEMO_MODE);
+  const [labels, setLabels] = useState<LabelItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const { getToken, userData } = useAuth();
 
   const canCreate = userData?.role === "ADMIN" || userData?.role === "EDITOR";
   const canDelete = userData?.role === "ADMIN" || userData?.role === "EDITOR";
 
   const loadLabels = useCallback(async () => {
-    if (DEMO_MODE) return;
     const token = await getToken();
     if (!token) return;
 

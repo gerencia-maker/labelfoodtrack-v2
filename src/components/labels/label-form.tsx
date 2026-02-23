@@ -53,27 +53,9 @@ export interface LabelSaveData {
   qrData: string;
 }
 
-const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-
-const DEMO_PRODUCTS: Product[] = [
-  { id: "1", code: "R-01", name: "AJI RANCHERITO", batchAbbr: "PP0003", category: "COCINA INTERMEDIA", sede: null, ingredients: "Aji topito, vinagre, sal, ajo, aceite vegetal", allergens: null, storage: "Conservar refrigerado (0-4°C)", usage: "Condimento para acompañar platos.", packaging: null, refrigeratedDays: 4, frozenDays: 90, ambientDays: 0, servingSize: 30 },
-  { id: "2", code: "R-02", name: "CHIMICHURRI", batchAbbr: "PP0021", category: "COCINA INTERMEDIA", sede: null, ingredients: "Perejil, ajo, oregano, aceite de oliva, vinagre, sal, aji", allergens: null, storage: "Conservar refrigerado (0-4°C)", usage: "Salsa para acompañar carnes a la parrilla.", packaging: null, refrigeratedDays: 8, frozenDays: 60, ambientDays: 0, servingSize: 30 },
-  { id: "3", code: "R-03", name: "SALSA TARTARA", batchAbbr: "PP0056", category: "COCINA INTERMEDIA", sede: null, ingredients: "Mayonesa, pepinillos, alcaparras, cebolla, perejil, limon, sal", allergens: "Huevo", storage: "Conservar refrigerado (0-4°C)", usage: "Salsa para acompañar pescados y mariscos.", packaging: null, refrigeratedDays: 2, frozenDays: 30, ambientDays: 0, servingSize: 30 },
-  { id: "4", code: "R-04", name: "VINAGRETA DE LA CASA", batchAbbr: "PP0057", category: "COCINA INTERMEDIA", sede: null, ingredients: "Aceite vegetal, vinagre, mostaza, miel, sal, pimienta", allergens: "Mostaza", storage: "Conservar refrigerado (0-4°C)", usage: "Aderezo para ensaladas.", packaging: null, refrigeratedDays: 4, frozenDays: 60, ambientDays: 0, servingSize: 30 },
-  { id: "5", code: "R-05", name: "VINAGRETA DE MORA", batchAbbr: "PP0220", category: "COCINA INTERMEDIA", sede: null, ingredients: "Mora, aceite vegetal, vinagre, azucar, sal", allergens: null, storage: "Conservar refrigerado (0-4°C)", usage: "Aderezo para ensaladas.", packaging: null, refrigeratedDays: 15, frozenDays: 90, ambientDays: 0, servingSize: 30 },
-  { id: "6", code: "R-06", name: "SALSA BURGUER", batchAbbr: "PP0206", category: "COCINA INTERMEDIA", sede: null, ingredients: "Mayonesa, ketchup, mostaza, pepinillos, cebolla, especias", allergens: "Huevo, Mostaza", storage: "Conservar refrigerado (0-4°C)", usage: "Salsa para hamburguesas.", packaging: null, refrigeratedDays: 20, frozenDays: 60, ambientDays: 0, servingSize: 30 },
-  { id: "7", code: "R-07", name: "PANDEQUESO", batchAbbr: "PQ01", category: "PANADERIA", sede: null, ingredients: "Harina de maiz, queso costeño, almidon de yuca, huevos, mantequilla, sal", allergens: "Gluten, Lacteos, Huevo", storage: "Conservar refrigerado (0-4°C)", usage: "Listo para hornear. Hornear a 200°C por 15-20 min.", packaging: null, refrigeratedDays: 5, frozenDays: 30, ambientDays: 2, servingSize: 60 },
-  { id: "8", code: "R-08", name: "AREPA DE BOYACA", batchAbbr: "AB01", category: "PANADERIA", sede: null, ingredients: "Maiz pelao, cuajada fresca, mantequilla, azucar, sal", allergens: "Lacteos", storage: "Conservar refrigerado (0-4°C)", usage: "Calentar en sarten o plancha por ambos lados.", packaging: null, refrigeratedDays: 7, frozenDays: 60, ambientDays: 3, servingSize: 120 },
-  { id: "9", code: "R-09", name: "ALMOJABANA", batchAbbr: "AL01", category: "PANADERIA", sede: null, ingredients: "Almidon de yuca, cuajada, harina de maiz, huevos, azucar, sal", allergens: "Lacteos, Huevo, Gluten", storage: "Conservar refrigerado (0-4°C)", usage: "Hornear a 180°C por 20-25 min.", packaging: null, refrigeratedDays: 4, frozenDays: 30, ambientDays: 2, servingSize: 70 },
-  { id: "10", code: "R-10", name: "EMPANADA DE CARNE", batchAbbr: "EM01", category: "FRITOS", sede: null, ingredients: "Masa: harina de maiz, agua, sal, achiote. Relleno: carne molida, papa, cebolla, comino, ajo", allergens: "Gluten", storage: "Conservar congelado (-18°C)", usage: "Freir en aceite caliente (180°C) por 4-5 min.", packaging: null, refrigeratedDays: 3, frozenDays: 45, ambientDays: 1, servingSize: 100 },
-  { id: "11", code: "R-11", name: "BUÑUELO", batchAbbr: "BU01", category: "FRITOS", sede: null, ingredients: "Queso costeño, almidon de yuca, harina de maiz, huevos, azucar, polvo de hornear", allergens: "Lacteos, Huevo, Gluten", storage: "Conservar a temperatura ambiente", usage: "Freir en aceite a 160°C por 6-8 min.", packaging: null, refrigeratedDays: 3, frozenDays: 30, ambientDays: 1, servingSize: 50 },
-  { id: "12", code: "R-12", name: "QUESO CAMPESINO", batchAbbr: "QS01", category: "LACTEOS", sede: null, ingredients: "Leche pasteurizada, cuajo, sal, cloruro de calcio", allergens: "Lacteos", storage: "Conservar refrigerado (2-6°C). No congelar.", usage: "Consumo directo. Ideal para acompañar arepas y pan.", packaging: null, refrigeratedDays: 15, frozenDays: 90, ambientDays: 0, servingSize: 30 },
-  { id: "13", code: "R-13", name: "YOGURT NATURAL", batchAbbr: "YG01", category: "LACTEOS", sede: null, ingredients: "Leche entera pasteurizada, cultivos lacticos", allergens: "Lacteos", storage: "Conservar refrigerado (2-6°C)", usage: "Consumo directo.", packaging: null, refrigeratedDays: 21, frozenDays: 0, ambientDays: 0, servingSize: 200 },
-];
-
 export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
   const { getToken, userData } = useAuth();
-  const [products, setProducts] = useState<Product[]>(DEMO_MODE ? DEMO_PRODUCTS : []);
+  const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
 
   // Form state
@@ -95,7 +77,6 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
 
   // Cargar productos
   useEffect(() => {
-    if (DEMO_MODE) return;
     async function load() {
       const token = await getToken();
       if (!token) return;

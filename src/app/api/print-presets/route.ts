@@ -4,9 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { printPresetSchema } from "@/lib/validations/print-preset";
 import { hasActionPermission } from "@/lib/permissions";
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
+
+  if (DEMO_MODE) {
+    return NextResponse.json(null);
+  }
 
   const preset = await prisma.printPreset.findFirst({
     where: { ...tenantWhere(user) },
@@ -21,6 +27,11 @@ export async function POST(request: NextRequest) {
 
   if (!hasActionPermission(user.role, user.permisos, "configuration", "editar_papel")) {
     return forbidden();
+  }
+
+  if (DEMO_MODE) {
+    const body = await request.json();
+    return NextResponse.json({ id: "demo-preset", ...body }, { status: 200 });
   }
 
   if (!user.instanceId) {

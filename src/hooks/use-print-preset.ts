@@ -8,14 +8,11 @@ import {
   type PrintPresetConfig,
 } from "@/lib/print-style";
 
-const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-
 export function usePrintPreset() {
   const { getToken } = useAuth();
   const [preset, setPreset] = useState<PrintPresetConfig>(DEFAULT_PRINT_PRESET);
 
   useEffect(() => {
-    if (DEMO_MODE) return;
     async function load() {
       const token = await getToken();
       if (!token) return;

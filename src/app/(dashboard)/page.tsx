@@ -35,24 +35,6 @@ interface Product {
   ambientDays: number;
 }
 
-const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-
-const DEMO_PRODUCTS: Product[] = [
-  { id: "1", code: "R-01", batchAbbr: "PP0003", name: "AJI RANCHERITO", category: "COCINA INTERMEDIA", refrigeratedDays: 4, frozenDays: 90, ambientDays: 0 },
-  { id: "2", code: "R-02", batchAbbr: "PP0021", name: "CHIMICHURRI", category: "COCINA INTERMEDIA", refrigeratedDays: 8, frozenDays: 60, ambientDays: 0 },
-  { id: "3", code: "R-03", batchAbbr: "PP0056", name: "SALSA TARTARA", category: "COCINA INTERMEDIA", refrigeratedDays: 2, frozenDays: 30, ambientDays: 0 },
-  { id: "4", code: "R-04", batchAbbr: "PP0057", name: "VINAGRETA DE LA CASA", category: "COCINA INTERMEDIA", refrigeratedDays: 4, frozenDays: 60, ambientDays: 0 },
-  { id: "5", code: "R-05", batchAbbr: "PP0220", name: "VINAGRETA DE MORA", category: "COCINA INTERMEDIA", refrigeratedDays: 15, frozenDays: 90, ambientDays: 0 },
-  { id: "6", code: "R-06", batchAbbr: "PP0206", name: "SALSA BURGUER", category: "COCINA INTERMEDIA", refrigeratedDays: 20, frozenDays: 60, ambientDays: 0 },
-  { id: "7", code: "R-07", batchAbbr: "PQ01", name: "PANDEQUESO", category: "PANADERIA", refrigeratedDays: 5, frozenDays: 30, ambientDays: 2 },
-  { id: "8", code: "R-08", batchAbbr: "AB01", name: "AREPA DE BOYACA", category: "PANADERIA", refrigeratedDays: 7, frozenDays: 60, ambientDays: 3 },
-  { id: "9", code: "R-09", batchAbbr: "AL01", name: "ALMOJABANA", category: "PANADERIA", refrigeratedDays: 4, frozenDays: 30, ambientDays: 2 },
-  { id: "10", code: "R-10", batchAbbr: "EM01", name: "EMPANADA DE CARNE", category: "FRITOS", refrigeratedDays: 3, frozenDays: 45, ambientDays: 1 },
-  { id: "11", code: "R-11", batchAbbr: "BU01", name: "BUÑUELO", category: "FRITOS", refrigeratedDays: 3, frozenDays: 30, ambientDays: 1 },
-  { id: "12", code: "R-12", batchAbbr: "QS01", name: "QUESO CAMPESINO", category: "LACTEOS", refrigeratedDays: 15, frozenDays: 90, ambientDays: 0 },
-  { id: "13", code: "R-13", batchAbbr: "YG01", name: "YOGURT NATURAL", category: "LACTEOS", refrigeratedDays: 21, frozenDays: 0, ambientDays: 0 },
-];
-
 // Mock gamification stats
 const MOCK_STATS = [
   { label: "Productos", value: "78", icon: Package, color: "orange", change: "+3 esta semana" },
@@ -62,9 +44,9 @@ const MOCK_STATS = [
 ];
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>(DEMO_MODE ? DEMO_PRODUCTS : []);
+  const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(!DEMO_MODE);
+  const [loading, setLoading] = useState(true);
   const [dates, setDates] = useState<Record<string, string>>({});
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const { getToken, userData } = useAuth();
@@ -74,7 +56,6 @@ export default function ProductsPage() {
   const canEdit = !!(userData?.role === "ADMIN" || userData?.role === "EDITOR");
 
   const loadProducts = useCallback(async () => {
-    if (DEMO_MODE) return;
     const token = await getToken();
     if (!token) return;
 

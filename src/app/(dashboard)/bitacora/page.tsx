@@ -43,16 +43,6 @@ function formatDateShort(dateStr: string | null): string {
   });
 }
 
-const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-
-const DEMO_ENTRIES: BitacoraEntry[] = [
-  { id: "1", productName: "Pandequeso", category: "Panaderia", coldChain: "Refrigerado", processDate: "2026-02-09T08:00:00Z", expiryRefrigerated: "2026-02-14T08:00:00Z", expiryFrozen: "2026-03-11T08:00:00Z", quantity: "50 und", quantityProduced: "5 kg", packedBy: "Maria Lopez", destination: "ALZATE", batch: "PQ-090226", createdAt: "2026-02-09T08:00:00Z" },
-  { id: "2", productName: "Arepa de Boyaca", category: "Panaderia", coldChain: "Congelado", processDate: "2026-02-09T07:00:00Z", expiryRefrigerated: "2026-02-16T07:00:00Z", expiryFrozen: "2026-04-10T07:00:00Z", quantity: "100 und", quantityProduced: "10 kg", packedBy: "Carlos Perez", destination: "MIRANORTE", batch: "AB-090226", createdAt: "2026-02-09T07:00:00Z" },
-  { id: "3", productName: "Empanada de Carne", category: "Fritos", coldChain: "Refrigerado", processDate: "2026-02-08T10:00:00Z", expiryRefrigerated: "2026-02-11T10:00:00Z", expiryFrozen: "2026-03-25T10:00:00Z", quantity: "200 und", quantityProduced: "15 kg", packedBy: "Ana Garcia", destination: "NM", batch: "EM-080226", createdAt: "2026-02-08T10:00:00Z" },
-  { id: "4", productName: "Queso Campesino", category: "Lacteos", coldChain: "Refrigerado", processDate: "2026-02-08T06:00:00Z", expiryRefrigerated: "2026-02-23T06:00:00Z", expiryFrozen: "2026-05-09T06:00:00Z", quantity: "20 bloques", quantityProduced: "8 kg", packedBy: "Maria Lopez", destination: "ALZATE", batch: "QS-080226", createdAt: "2026-02-08T06:00:00Z" },
-  { id: "5", productName: "Bunuelo", category: "Fritos", coldChain: null, processDate: "2026-02-07T09:00:00Z", expiryRefrigerated: "2026-02-10T09:00:00Z", expiryFrozen: "2026-03-09T09:00:00Z", quantity: "150 und", quantityProduced: "12 kg", packedBy: "Carlos Perez", destination: "MIRANORTE", batch: "BU-070226", createdAt: "2026-02-07T09:00:00Z" },
-];
-
 const EXPORT_HEADERS = [
   "Id",
   "Categoria",
@@ -97,9 +87,9 @@ function downloadBlob(blob: Blob, filename: string) {
 }
 
 export default function BitacoraPage() {
-  const [entries, setEntries] = useState<BitacoraEntry[]>(DEMO_MODE ? DEMO_ENTRIES : []);
-  const [total, setTotal] = useState(DEMO_MODE ? DEMO_ENTRIES.length : 0);
-  const [loading, setLoading] = useState(!DEMO_MODE);
+  const [entries, setEntries] = useState<BitacoraEntry[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const { getToken, userData } = useAuth();
   const t = useTranslations("bitacora");
@@ -113,7 +103,6 @@ export default function BitacoraPage() {
   );
 
   const loadEntries = useCallback(async () => {
-    if (DEMO_MODE) return;
     const token = await getToken();
     if (!token) return;
 
