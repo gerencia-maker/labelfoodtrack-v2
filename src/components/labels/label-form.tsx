@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Save, Loader2, Wand2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import {
-  resolveColdChain,
-  buildExpiryText,
+  calculateExpiry,
   generateBatch,
   buildQuantityLabel,
 } from "@/lib/label-utils";
@@ -98,12 +97,35 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   const [packedBy, setPackedBy] = useState(defaultValues?.packedBy || "");
   const [destination, setDestination] = useState(defaultValues?.destination || "");
   const [autoGenerateBatch, setAutoGenerateBatch] = useState(!defaultValues?.batch);
+  const [coldChainType, setColdChainType] = useState<string>("");
 
   // Producto seleccionado
   const selectedProduct = useMemo(
     () => products.find((p) => p.id === productId) || null,
     [products, productId]
   );
+
+  // Opciones de cadena de frio disponibles segun el producto
+  const coldChainOptions = useMemo(() => {
+    if (!selectedProduct) return [];
+    const opts: { value: string; label: string; days: number }[] = [];
+    if (selectedProduct.refrigeratedDays > 0)
+      opts.push({ value: "refrigerado", label: `Refrigerado (0°C a 4°C) - ${selectedProduct.refrigeratedDays}d`, days: selectedProduct.refrigeratedDays });
+    if (selectedProduct.frozenDays > 0)
+      opts.push({ value: "congelado", label: `Congelado (-18°C a -22°C) - ${selectedProduct.frozenDays}d`, days: selectedProduct.frozenDays });
+    if (selectedProduct.ambientDays > 0)
+      opts.push({ value: "ambiente", label: `Ambiente - ${selectedProduct.ambientDays}d`, days: selectedProduct.ambientDays });
+    return opts;
+  }, [selectedProduct]);
+
+  // Auto-seleccionar cadena de frio cuando cambia el producto
+  useEffect(() => {
+    if (coldChainOptions.length > 0) {
+      setColdChainType(coldChainOptions[0].value);
+    } else {
+      setColdChainType("");
+    }
+  }, [coldChainOptions]);
 
   // Cargar productos e instancia actual
   useEffect(() => {
@@ -168,18 +190,24 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       return;
     }
 
-    const coldChain = resolveColdChain(
-      selectedProduct.refrigeratedDays,
-      selectedProduct.frozenDays,
-      selectedProduct.ambientDays
-    );
+    // Calcular cadena de frio y vencimientos segun seleccion del usuario
+    let coldChain = "--";
+    let expiryRefrigerated = "--";
+    let expiryFrozen = "--";
 
-    const expiry = buildExpiryText(
-      productionDate,
-      selectedProduct.refrigeratedDays,
-      selectedProduct.frozenDays,
-      selectedProduct.ambientDays
-    );
+    if (coldChainType === "congelado") {
+      coldChain = "Congelado (-18 a -22°C)";
+      expiryFrozen = calculateExpiry(productionDate, selectedProduct.frozenDays);
+      if (selectedProduct.refrigeratedDays > 0) {
+        expiryRefrigerated = `Despues de descongelacion: ${selectedProduct.refrigeratedDays} dias`;
+      }
+    } else if (coldChainType === "refrigerado") {
+      coldChain = "Refrigerado (0 a 4°C)";
+      expiryRefrigerated = calculateExpiry(productionDate, selectedProduct.refrigeratedDays);
+    } else if (coldChainType === "ambiente") {
+      coldChain = "Ambiente";
+      expiryRefrigerated = calculateExpiry(productionDate, selectedProduct.ambientDays);
+    }
 
     const netContent = netContentQty ? `${netContentQty} ${netContentUnit}` : "";
     const quantityLabel = buildQuantityLabel(netContent, selectedProduct.servingSize);
@@ -195,8 +223,8 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       productionDate,
       batch,
       coldChain,
-      expiryRefrigerated: expiry.refrigerated,
-      expiryFrozen: expiry.frozen,
+      expiryRefrigerated,
+      expiryFrozen,
       destination,
       packedBy,
       ingredients: selectedProduct.ingredients || "",
@@ -205,7 +233,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       usage: selectedProduct.usage || "",
       qrData,
     });
-  }, [selectedProduct, netContentQty, netContentUnit, productionDate, batch, packedBy, destination, brand, onPreviewChange]);
+  }, [selectedProduct, netContentQty, netContentUnit, productionDate, batch, packedBy, destination, brand, coldChainType, onPreviewChange]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,6 +342,22 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
             />
           </div>
         </div>
+
+        {coldChainOptions.length > 0 && (
+          <div>
+            <Label htmlFor="coldChainType">Cadena de frío *</Label>
+            <Select
+              id="coldChainType"
+              value={coldChainType}
+              onChange={(e) => setColdChainType(e.target.value)}
+              required
+            >
+              {coldChainOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </Select>
+          </div>
+        )}
 
         <div>
           <div className="flex items-center justify-between">
