@@ -59,27 +59,26 @@ export function LabelPreview({ data }: LabelPreviewProps) {
       className="rancherito-card bg-white rounded-2xl overflow-hidden"
       style={{
         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-        fontSize: "11px",
+        fontSize: "13px",
         boxShadow: "0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
         border: "1px solid rgba(0,0,0,0.06)",
-        maxWidth: "700px",
       }}
     >
       {/* Header: Marca + Badge */}
       <div
-        className="text-center px-4 py-3"
+        className="text-center px-5 py-4"
         style={{ borderBottom: "1px solid #e5e7eb" }}
       >
         <h1
           data-fit-text
           className="font-bold uppercase tracking-wider text-slate-900"
-          style={{ fontSize: "1.3rem", letterSpacing: "0.04em" }}
+          style={{ fontSize: "1.5rem", letterSpacing: "0.04em" }}
         >
           {data.brand || "MARCA"}
         </h1>
         <span
-          className="inline-block mt-1 px-2 py-0.5 rounded text-slate-600 uppercase font-medium"
-          style={{ fontSize: "0.6rem", letterSpacing: "0.1em", background: "#f3f4f6" }}
+          className="inline-block mt-1 px-2.5 py-0.5 rounded text-slate-600 uppercase font-medium"
+          style={{ fontSize: "0.7rem", letterSpacing: "0.08em", background: "#f3f4f6" }}
         >
           Uso gastronomico / institucional
         </span>
@@ -87,14 +86,14 @@ export function LabelPreview({ data }: LabelPreviewProps) {
 
       {/* Producto + Contenido neto */}
       <div
-        className="flex items-start justify-between px-4 py-3 gap-3"
+        className="flex items-start justify-between px-5 py-4 gap-4"
         style={{ borderBottom: "1px solid #e5e7eb" }}
       >
         <div className="min-w-0 flex-1">
           <div
             data-fit-text
             className="font-bold text-slate-900 leading-tight uppercase"
-            style={{ fontSize: "1.4rem" }}
+            style={{ fontSize: "1.5rem" }}
           >
             {data.productName || "Nombre del producto"}
           </div>
@@ -102,13 +101,13 @@ export function LabelPreview({ data }: LabelPreviewProps) {
         <div className="text-right shrink-0">
           <div
             className="uppercase font-medium text-slate-400"
-            style={{ fontSize: "0.6rem", letterSpacing: "0.1em" }}
+            style={{ fontSize: "0.7rem", letterSpacing: "0.08em" }}
           >
             Contenido neto
           </div>
           <div
             className="font-bold text-slate-900"
-            style={{ fontSize: "1.3rem" }}
+            style={{ fontSize: "1.5rem" }}
           >
             {data.netContent || "--"}
           </div>
@@ -116,19 +115,19 @@ export function LabelPreview({ data }: LabelPreviewProps) {
       </div>
 
       {/* Lote + Fecha produccion | Vencimientos */}
-      <div className="grid grid-cols-2 gap-3 px-4 py-3" style={{ borderBottom: "1px solid #e5e7eb" }}>
+      <div className="grid grid-cols-2 gap-3 px-5 py-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
         {/* Chips: Lote y Fecha */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <Chip label="Lote" value={data.batch || "--"} />
           <Chip label="Produccion" value={formatDate(data.productionDate)} />
         </div>
 
         {/* Alerts: Vencimientos (solo los que aplican segun cadena seleccionada) */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {hasRefrigerated && (
             <Alert
               type="warm"
-              label={hasFrozen ? "Post-descongelación" : "Vence refrigerado"}
+              label={hasFrozen ? "Post-descongelacion" : "Vence refrigerado"}
               value={data.expiryRefrigerated}
             />
           )}
@@ -146,27 +145,27 @@ export function LabelPreview({ data }: LabelPreviewProps) {
       </div>
 
       {/* Cadena de frio + Destino */}
-      <div className="grid grid-cols-2 gap-3 px-4 py-3" style={{ borderBottom: "1px solid #e5e7eb" }}>
+      <div className="grid grid-cols-2 gap-3 px-5 py-4" style={{ borderBottom: "1px solid #e5e7eb" }}>
         <MetaCard label="Cadena de frio" value={data.coldChain || "--"} />
         <MetaCard label="Destino" value={data.destination || "--"} />
       </div>
 
       {/* Ingredientes + Alergenos */}
       {(data.ingredients || hasAllergens) && (
-        <div className="px-4 py-3 space-y-2" style={{ borderBottom: "1px solid #e5e7eb" }}>
+        <div className="px-5 py-4 space-y-2.5" style={{ borderBottom: "1px solid #e5e7eb" }}>
           {data.ingredients && (
-            <div style={{ fontSize: "0.7rem", lineHeight: 1.4 }}>
+            <div style={{ fontSize: "0.85rem", lineHeight: 1.5 }}>
               <span className="font-semibold text-slate-700">Ingredientes: </span>
               <span className="text-slate-500">{data.ingredients}</span>
             </div>
           )}
           {hasAllergens && (
             <div
-              className="rounded-lg px-3 py-2"
+              className="rounded-lg px-3.5 py-2.5"
               style={{
                 background: "linear-gradient(135deg, #fef9c3 0%, #fef08a 100%)",
                 border: "1px solid #fde047",
-                fontSize: "0.7rem",
+                fontSize: "0.85rem",
               }}
             >
               <span className="font-bold" style={{ color: "#854d0e" }}>
@@ -188,43 +187,43 @@ export function LabelPreview({ data }: LabelPreviewProps) {
         >
           {data.storage && (
             <div
-              className="px-4 py-3"
+              className="px-5 py-4"
               style={{ borderRight: data.usage ? "1px solid #e5e7eb" : "none" }}
             >
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1.5">
                 <div
                   className="flex items-center justify-center rounded-lg shrink-0"
                   style={{
-                    width: "24px",
-                    height: "24px",
+                    width: "26px",
+                    height: "26px",
                     background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
                     color: "#2563eb",
-                    fontSize: "12px",
+                    fontSize: "13px",
                   }}
                 >
                   ❄
                 </div>
                 <span
                   className="font-semibold text-slate-700 uppercase"
-                  style={{ fontSize: "0.6rem", letterSpacing: "0.1em" }}
+                  style={{ fontSize: "0.75rem", letterSpacing: "0.08em" }}
                 >
                   Conservacion
                 </span>
               </div>
-              <div className="text-slate-500" style={{ fontSize: "0.7rem", lineHeight: 1.4 }}>
+              <div className="text-slate-500" style={{ fontSize: "0.85rem", lineHeight: 1.5 }}>
                 {data.storage}
               </div>
             </div>
           )}
           {data.usage && (
-            <div className="px-4 py-3">
+            <div className="px-5 py-4">
               <div
-                className="font-semibold text-slate-700 uppercase mb-1"
-                style={{ fontSize: "0.6rem", letterSpacing: "0.1em" }}
+                className="font-semibold text-slate-700 uppercase mb-1.5"
+                style={{ fontSize: "0.75rem", letterSpacing: "0.08em" }}
               >
                 Modo de uso
               </div>
-              <div className="text-slate-500" style={{ fontSize: "0.7rem", lineHeight: 1.4 }}>
+              <div className="text-slate-500" style={{ fontSize: "0.85rem", lineHeight: 1.5 }}>
                 {data.usage}
               </div>
             </div>
@@ -233,33 +232,33 @@ export function LabelPreview({ data }: LabelPreviewProps) {
       )}
 
       {/* Footer: Empacado por + QR */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-5 py-4">
         <div className="min-w-0 flex-1">
           <div
             className="uppercase font-medium text-slate-400"
-            style={{ fontSize: "0.6rem", letterSpacing: "0.1em" }}
+            style={{ fontSize: "0.7rem", letterSpacing: "0.08em" }}
           >
             Empacado por
           </div>
           <div
             className="font-bold text-slate-900 leading-tight"
-            style={{ fontSize: "0.85rem" }}
+            style={{ fontSize: "1rem" }}
           >
             {data.packedBy || "--"}
           </div>
         </div>
-        <div className="shrink-0 ml-3">
+        <div className="shrink-0 ml-4">
           {data.qrData ? (
             <div
               className="rounded-lg overflow-hidden"
               style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
             >
-              <QRCodeCanvas value={data.qrData} size={80} level="L" />
+              <QRCodeCanvas value={data.qrData} size={90} level="L" />
             </div>
           ) : (
             <div
               className="flex items-center justify-center rounded-lg bg-slate-100 text-slate-400 font-medium"
-              style={{ width: "80px", height: "80px", fontSize: "0.7rem" }}
+              style={{ width: "90px", height: "90px", fontSize: "0.8rem" }}
             >
               QR
             </div>
@@ -274,16 +273,16 @@ export function LabelPreview({ data }: LabelPreviewProps) {
 function Chip({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="rounded-lg px-3 py-2"
+      className="rounded-lg px-3.5 py-2.5"
       style={{ background: "#f9fafb", border: "1px solid #f3f4f6" }}
     >
       <div
         className="uppercase font-medium text-slate-400"
-        style={{ fontSize: "0.55rem", letterSpacing: "0.1em" }}
+        style={{ fontSize: "0.7rem", letterSpacing: "0.08em" }}
       >
         {label}
       </div>
-      <div className="font-bold text-slate-800" style={{ fontSize: "0.85rem" }}>
+      <div className="font-bold text-slate-800" style={{ fontSize: "1rem" }}>
         {value}
       </div>
     </div>
@@ -295,7 +294,7 @@ function Alert({ type, label, value }: { type: "warm" | "cold"; label: string; v
   const isWarm = type === "warm";
   return (
     <div
-      className="rounded-lg px-3 py-2"
+      className="rounded-lg px-3.5 py-2.5"
       style={{
         background: isWarm
           ? "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)"
@@ -306,17 +305,17 @@ function Alert({ type, label, value }: { type: "warm" | "cold"; label: string; v
       <div
         className="uppercase font-medium"
         style={{
-          fontSize: "0.55rem",
-          letterSpacing: "0.1em",
+          fontSize: "0.7rem",
+          letterSpacing: "0.08em",
           color: isWarm ? "#92400e" : "#1e40af",
         }}
       >
-        {isWarm ? "🌡️" : "❄️"} {label}
+        {label}
       </div>
       <div
         className="font-bold"
         style={{
-          fontSize: "0.85rem",
+          fontSize: "1rem",
           color: isWarm ? "#92400e" : "#1e40af",
         }}
       >
@@ -330,16 +329,16 @@ function Alert({ type, label, value }: { type: "warm" | "cold"; label: string; v
 function MetaCard({ label, value }: { label: string; value: string }) {
   return (
     <div
-      className="rounded-lg px-3 py-2"
+      className="rounded-lg px-3.5 py-2.5"
       style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}
     >
       <div
         className="uppercase font-medium text-slate-400"
-        style={{ fontSize: "0.55rem", letterSpacing: "0.1em" }}
+        style={{ fontSize: "0.7rem", letterSpacing: "0.08em" }}
       >
         {label}
       </div>
-      <div className="font-semibold text-slate-800" style={{ fontSize: "0.85rem" }}>
+      <div className="font-semibold text-slate-800" style={{ fontSize: "1rem" }}>
         {value}
       </div>
     </div>
