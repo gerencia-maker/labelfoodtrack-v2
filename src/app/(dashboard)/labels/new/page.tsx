@@ -11,7 +11,7 @@ import { LabelPreview, type LabelPreviewData } from "@/components/labels/label-p
 import { LabelPrint } from "@/components/labels/label-print";
 import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, Tag } from "lucide-react";
 import Link from "next/link";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -29,7 +29,7 @@ export default function NewLabelPage() {
   const defaultDate = searchParams.get("date") || undefined;
 
   const [previewData, setPreviewData] = useState<LabelPreviewData>({
-    brand: "RANCHERITO",
+    brand: "",
     productName: "",
     netContent: "--",
     productionDate: "",
@@ -120,33 +120,43 @@ export default function NewLabelPage() {
     triggerPrint();
   };
 
+  const hasProduct = !!previewData.productName;
+
   return (
     <>
       <div className="space-y-6 print:hidden">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/labels">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="rounded-xl">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t("newLabel")}</h1>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Tag className="h-5 w-5 text-blue-500" />
+                {t("newLabel")}
+              </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">{t("newLabelSubtitle")}</p>
             </div>
           </div>
 
-          <Button variant="outline" onClick={handlePrint} disabled={!previewData.productName}>
+          <Button
+            variant="outline"
+            onClick={handlePrint}
+            disabled={!hasProduct}
+            className="gap-2 rounded-xl"
+          >
             <Printer className="h-4 w-4" />
             {t("print")}
           </Button>
         </div>
 
         {/* Layout: Formulario + Preview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Formulario */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
             <LabelForm
               onPreviewChange={handlePreviewChange}
               onSave={handleSave}
@@ -158,12 +168,17 @@ export default function NewLabelPage() {
           </div>
 
           {/* Preview */}
-          <div className="space-y-4">
-            <div className="sticky top-4">
-              <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">{t("preview")}</h3>
-              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 shadow-sm">
+          <div className="lg:sticky lg:top-4 space-y-3">
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+              {t("preview")}
+            </h3>
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 p-5 shadow-sm">
+              {hasProduct ? (
                 <LabelPreview data={previewData} />
-              </div>
+              ) : (
+                <EmptyPreview brand={previewData.brand} />
+              )}
             </div>
           </div>
         </div>
@@ -182,5 +197,24 @@ export default function NewLabelPage() {
         productName={previewData.productName}
       />
     </>
+  );
+}
+
+function EmptyPreview({ brand }: { brand: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-4">
+        <Tag className="h-7 w-7 text-slate-300 dark:text-slate-500" />
+      </div>
+      {brand && (
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 mb-1">{brand}</p>
+      )}
+      <p className="text-sm font-medium text-slate-400 dark:text-slate-500">
+        Selecciona un producto para
+      </p>
+      <p className="text-sm font-medium text-slate-400 dark:text-slate-500">
+        ver la vista previa de la etiqueta
+      </p>
+    </div>
   );
 }

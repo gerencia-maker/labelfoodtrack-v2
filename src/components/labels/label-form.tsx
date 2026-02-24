@@ -5,7 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2, Wand2 } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  Wand2,
+  Package,
+  Thermometer,
+  Snowflake,
+  Sun,
+  CalendarDays,
+  Scale,
+  Hash,
+  MapPin,
+  UserCheck,
+} from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import {
   calculateExpiry,
@@ -75,15 +88,21 @@ function parseNetContent(value: string): { qty: string; unit: string } {
   return { qty: value, unit: "g" };
 }
 
+const COLD_CHAIN_META: Record<string, { icon: typeof Thermometer; color: string; bg: string; border: string }> = {
+  refrigerado: { icon: Thermometer, color: "text-amber-600", bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/30" },
+  congelado: { icon: Snowflake, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-500/10", border: "border-blue-200 dark:border-blue-500/30" },
+  ambiente: { icon: Sun, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "border-emerald-200 dark:border-emerald-500/30" },
+};
+
 export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
-  const { getToken, userData } = useAuth();
+  const { getToken } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
   const [brand, setBrand] = useState("");
   const [destinations, setDestinations] = useState<string[]>([]);
   const [packers, setPackers] = useState<string[]>([]);
 
-  // Parse netContent default into qty + unit (e.g. "500 g" → "500", "g")
+  // Parse netContent default into qty + unit (e.g. "500 g" -> "500", "g")
   const parsedDefault = parseNetContent(defaultValues?.netContent || "");
 
   // Form state
@@ -108,13 +127,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   // Opciones de cadena de frio disponibles segun el producto
   const coldChainOptions = useMemo(() => {
     if (!selectedProduct) return [];
-    const opts: { value: string; label: string; days: number }[] = [];
+    const opts: { value: string; label: string; shortLabel: string; days: number }[] = [];
     if (selectedProduct.refrigeratedDays > 0)
-      opts.push({ value: "refrigerado", label: `Refrigerado (0°C a 4°C) - ${selectedProduct.refrigeratedDays}d`, days: selectedProduct.refrigeratedDays });
+      opts.push({ value: "refrigerado", label: `Refrigerado (0°C a 4°C)`, shortLabel: "Refrigerado", days: selectedProduct.refrigeratedDays });
     if (selectedProduct.frozenDays > 0)
-      opts.push({ value: "congelado", label: `Congelado (-18°C a -22°C) - ${selectedProduct.frozenDays}d`, days: selectedProduct.frozenDays });
+      opts.push({ value: "congelado", label: `Congelado (-18°C a -22°C)`, shortLabel: "Congelado", days: selectedProduct.frozenDays });
     if (selectedProduct.ambientDays > 0)
-      opts.push({ value: "ambiente", label: `Ambiente - ${selectedProduct.ambientDays}d`, days: selectedProduct.ambientDays });
+      opts.push({ value: "ambiente", label: `Ambiente`, shortLabel: "Ambiente", days: selectedProduct.ambientDays });
     return opts;
   }, [selectedProduct]);
 
@@ -144,8 +163,6 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
 
       if (instRes.ok) {
         const instances = await instRes.json();
-        // Cookie-scoped: API returns the current instance (or all for super-admin)
-        // Use the first one or find by cookie
         const cookieId = document.cookie.match(/lft-instance-id=([^;]+)/)?.[1];
         const current = cookieId
           ? instances.find((i: { id: string }) => i.id === cookieId)
@@ -265,12 +282,12 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Seleccion de producto */}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* ── 1. Producto ── */}
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-900 border-b pb-1">Producto</h3>
+        <SectionHeader icon={Package} title="Producto" />
         <div>
-          <Label htmlFor="productId">Producto *</Label>
+          <Label htmlFor="productId">Selecciona un producto *</Label>
           <Select
             id="productId"
             value={productId}
@@ -287,23 +304,81 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
         </div>
 
         {selectedProduct && (
-          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600 space-y-1">
-            <p><strong>Categoria:</strong> {selectedProduct.category || "N/A"}</p>
-            <p><strong>Conservacion:</strong> Ref. {selectedProduct.refrigeratedDays}d / Cong. {selectedProduct.frozenDays}d / Amb. {selectedProduct.ambientDays}d</p>
-            {selectedProduct.ingredients && (
-              <p className="truncate"><strong>Ingredientes:</strong> {selectedProduct.ingredients}</p>
-            )}
+          <div className="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-800/50 p-3.5 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border border-slate-200/60 dark:border-slate-600/40">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-md bg-white dark:bg-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-600 uppercase tracking-wider">
+                {selectedProduct.category || "N/A"}
+              </span>
+              <span className="text-slate-400 dark:text-slate-500">|</span>
+              <span className="font-medium text-slate-700 dark:text-slate-200">{selectedProduct.name}</span>
+            </div>
+            <div className="flex gap-3 text-[11px]">
+              <span className="inline-flex items-center gap-1">
+                <Thermometer size={11} className="text-amber-500" />
+                Ref. {selectedProduct.refrigeratedDays}d
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Snowflake size={11} className="text-blue-500" />
+                Cong. {selectedProduct.frozenDays}d
+              </span>
+              {selectedProduct.ambientDays > 0 && (
+                <span className="inline-flex items-center gap-1">
+                  <Sun size={11} className="text-emerald-500" />
+                  Amb. {selectedProduct.ambientDays}d
+                </span>
+              )}
+            </div>
           </div>
         )}
       </section>
 
-      {/* Datos de la etiqueta */}
+      {/* ── 2. Cadena de frío ── */}
+      {coldChainOptions.length > 0 && (
+        <section className="space-y-3">
+          <SectionHeader icon={Thermometer} title="Cadena de frío" />
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${coldChainOptions.length}, 1fr)` }}>
+            {coldChainOptions.map((opt) => {
+              const meta = COLD_CHAIN_META[opt.value];
+              const Icon = meta.icon;
+              const isSelected = coldChainType === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setColdChainType(opt.value)}
+                  className={`relative rounded-xl border-2 p-3 text-left transition-all ${
+                    isSelected
+                      ? `${meta.border} ${meta.bg} ring-1 ring-offset-1 ${meta.border}`
+                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon size={16} className={isSelected ? meta.color : "text-slate-400"} />
+                    <span className={`text-xs font-semibold ${isSelected ? meta.color : "text-slate-500 dark:text-slate-400"}`}>
+                      {opt.shortLabel}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{opt.days} dias</p>
+                  {isSelected && (
+                    <div className={`absolute top-2 right-2 h-2 w-2 rounded-full ${meta.color.replace("text-", "bg-")}`} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── 3. Datos de etiqueta ── */}
       <section className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-900 border-b pb-1">Datos de etiqueta</h3>
+        <SectionHeader icon={CalendarDays} title="Datos de etiqueta" />
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="netContentQty">Contenido neto</Label>
+            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5">
+              <Scale size={12} className="text-slate-400" />
+              Contenido neto
+            </Label>
             <div className="flex gap-1.5">
               <Input
                 id="netContentQty"
@@ -332,7 +407,10 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
             </div>
           </div>
           <div>
-            <Label htmlFor="productionDate">Fecha produccion *</Label>
+            <Label htmlFor="productionDate" className="inline-flex items-center gap-1.5">
+              <CalendarDays size={12} className="text-slate-400" />
+              Fecha produccion *
+            </Label>
             <Input
               id="productionDate"
               type="date"
@@ -343,25 +421,12 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
         </div>
 
-        {coldChainOptions.length > 0 && (
-          <div>
-            <Label htmlFor="coldChainType">Cadena de frío *</Label>
-            <Select
-              id="coldChainType"
-              value={coldChainType}
-              onChange={(e) => setColdChainType(e.target.value)}
-              required
-            >
-              {coldChainOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </Select>
-          </div>
-        )}
-
         <div>
           <div className="flex items-center justify-between">
-            <Label htmlFor="batch">Lote</Label>
+            <Label htmlFor="batch" className="inline-flex items-center gap-1.5">
+              <Hash size={12} className="text-slate-400" />
+              Lote
+            </Label>
             {selectedProduct?.batchAbbr && (
               <button
                 type="button"
@@ -371,7 +436,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                     setBatch(generateBatch(selectedProduct.batchAbbr, productionDate));
                   }
                 }}
-                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 font-medium"
               >
                 <Wand2 className="h-3 w-3" />
                 {autoGenerateBatch ? "Manual" : "Auto-generar"}
@@ -387,13 +452,16 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               setAutoGenerateBatch(false);
             }}
             readOnly={autoGenerateBatch}
-            className={autoGenerateBatch ? "bg-slate-50" : ""}
+            className={autoGenerateBatch ? "bg-slate-50 dark:bg-slate-800" : ""}
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="packedBy">Empacado por</Label>
+            <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5">
+              <UserCheck size={12} className="text-slate-400" />
+              Empacado por
+            </Label>
             <Select
               id="packedBy"
               value={packedBy}
@@ -406,7 +474,10 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
             </Select>
           </div>
           <div>
-            <Label htmlFor="destination">Destino</Label>
+            <Label htmlFor="destination" className="inline-flex items-center gap-1.5">
+              <MapPin size={12} className="text-slate-400" />
+              Destino
+            </Label>
             <Select
               id="destination"
               value={destination}
@@ -421,9 +492,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
         </div>
       </section>
 
-      {/* Boton guardar */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
-        <Button type="submit" disabled={saving || !productId}>
+      {/* ── Boton guardar ── */}
+      <div className="pt-2">
+        <Button
+          type="submit"
+          disabled={saving || !productId}
+          className="w-full gap-2 h-11 text-sm font-semibold"
+        >
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -433,5 +508,16 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
         </Button>
       </div>
     </form>
+  );
+}
+
+function SectionHeader({ icon: Icon, title }: { icon: typeof Package; title: string }) {
+  return (
+    <div className="flex items-center gap-2 pb-1">
+      <div className="flex items-center justify-center h-6 w-6 rounded-lg bg-slate-100 dark:bg-slate-700">
+        <Icon size={13} className="text-slate-500 dark:text-slate-400" />
+      </div>
+      <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{title}</h3>
+    </div>
   );
 }
