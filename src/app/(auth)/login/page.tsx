@@ -32,8 +32,23 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       router.push("/");
-    } catch {
-      setError("Credenciales invalidas. Verifica tu correo y contrasena.");
+    } catch (err: unknown) {
+      const firebaseError = err as { code?: string; message?: string };
+      const code = firebaseError.code || "";
+      if (code === "auth/user-not-found" || code === "auth/invalid-credential") {
+        setError("Usuario no encontrado o contrasena incorrecta.");
+      } else if (code === "auth/wrong-password") {
+        setError("Contrasena incorrecta.");
+      } else if (code === "auth/too-many-requests") {
+        setError("Demasiados intentos. Intenta de nuevo mas tarde.");
+      } else if (code === "auth/invalid-email") {
+        setError("Correo electronico invalido.");
+      } else if (code === "auth/api-key-not-valid.-please-pass-a-valid-api-key.") {
+        setError("Error de configuracion: API key invalida. Contacta al administrador.");
+      } else {
+        setError(`Error: ${code || firebaseError.message || "Error desconocido"}`);
+      }
+      console.error("[login] Firebase error:", code, firebaseError.message);
     } finally {
       setLoading(false);
     }
