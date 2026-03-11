@@ -48,14 +48,11 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
   try {
     const authHeader = request.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      console.log("[auth] No Bearer token found");
       return null;
     }
 
     const token = authHeader.split("Bearer ")[1];
-    console.log("[auth] Verifying token (first 20 chars):", token.substring(0, 20) + "...");
     const decoded = await adminAuth.verifyIdToken(token);
-    console.log("[auth] Token verified for uid:", decoded.uid, "email:", decoded.email);
 
     let user = await prisma.user.findUnique({
       where: { firebaseUid: decoded.uid },
