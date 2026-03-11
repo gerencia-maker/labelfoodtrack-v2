@@ -19,10 +19,13 @@ import {
   Snowflake,
   Thermometer,
   Sun,
+  Download,
+  Upload,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 
 interface Product {
   id: string;
@@ -49,7 +52,10 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [dates, setDates] = useState<Record<string, string>>({});
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const { getToken, userData } = useAuth();
+  const { toast } = useToast();
   const t = useTranslations("products");
   const router = useRouter();
 
@@ -105,6 +111,56 @@ export default function ProductsPage() {
     router.push(`/labels/new?${params.toString()}`);
   };
 
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await fetch("/api/products/export?format=xlsx", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `productos_${new Date().toISOString().split("T")[0]}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImportExcel = async (file: File) => {
+    setImporting(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/products/import", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: data.error || "Error al importar", variant: "error" });
+        return;
+      }
+      toast({
+        title: `${data.created} creados, ${data.updated} actualizados${data.skipped > 0 ? `, ${data.skipped} omitidos` : ""}`,
+        variant: "success",
+      });
+      loadProducts(); // reload table
+    } catch {
+      toast({ title: "Error al importar archivo", variant: "error" });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const colCount = canEdit ? 8 : 7;
 
   return (
@@ -151,12 +207,42 @@ export default function ProductsPage() {
           </div>
 
           {canEdit && (
-            <Link href="/products/new">
-              <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md shadow-orange-500/25">
-                <Plus className="h-4 w-4" />
-                {t("new")}
-              </Button>
-            </Link>
+            <>
+              <button
+                onClick={handleExportExcel}
+                disabled={exporting}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-50 transition-colors"
+              >
+                <Download className="h-3.5 w-3.5" />
+                {exporting ? "..." : "Excel"}
+              </button>
+              <label
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 px-3 py-2 text-xs font-medium text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer",
+                  importing && "opacity-50 pointer-events-none"
+                )}
+              >
+                <Upload className="h-3.5 w-3.5" />
+                {importing ? "..." : "Importar"}
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  className="hidden"
+                  disabled={importing}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImportExcel(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <Link href="/products/new">
+                <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md shadow-orange-500/25">
+                  <Plus className="h-4 w-4" />
+                  {t("new")}
+                </Button>
+              </Link>
+            </>
           )}
         </div>
       </div>
