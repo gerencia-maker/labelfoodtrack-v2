@@ -54,7 +54,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
     const token = authHeader.split("Bearer ")[1];
     const decoded = await adminAuth.verifyIdToken(token);
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { firebaseUid: decoded.uid },
       select: {
         id: true,
@@ -69,7 +69,59 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       },
     });
 
-    if (!user || !user.activo || user.status !== "ACTIVE") {
+    // Auto-provision: if user doesn't exist, create them.
+    // First user ever becomes super-admin; subsequent users get VIEWER role.
+    if (!user) {
+      const userCount = await prisma.user.count();
+      const isFresh = userCount === 0;
+
+      user = await prisma.user.create({
+        data: {
+          firebaseUid: decoded.uid,
+          email: decoded.email || "unknown@app.local",
+          name: decoded.name || decoded.email?.split("@")[0] || "Usuario",
+          role: isFresh ? "ADMIN" : "VIEWER",
+          status: "ACTIVE",
+          activo: true,
+          permisos: isFresh
+            ? ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"]
+            : ["dashboard", "products", "labels"],
+          instanceId: null, // super-admin if first, unassigned otherwise
+        },
+        select: {
+          id: true,
+          firebaseUid: true,
+          email: true,
+          name: true,
+          role: true,
+          status: true,
+          permisos: true,
+          activo: true,
+          instanceId: true,
+        },
+      });
+      console.log(`[auth] Auto-provisioned user ${user.email} as ${user.role}`);
+
+      // Create a default instance if none exist
+      if (isFresh) {
+        const instanceCount = await prisma.instance.count();
+        if (instanceCount === 0) {
+          await prisma.instance.create({
+            data: {
+              name: "Mi Empresa",
+              brandName: "Mi Marca",
+              destinations: [],
+              packers: [],
+              plan: "ENTERPRISE",
+              activo: true,
+            },
+          });
+          console.log("[auth] Created default instance 'Mi Empresa'");
+        }
+      }
+    }
+
+    if (!user.activo || user.status !== "ACTIVE") {
       return null;
     }
 
