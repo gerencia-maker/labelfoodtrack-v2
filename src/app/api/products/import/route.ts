@@ -5,38 +5,18 @@ import { hasActionPermission } from "@/lib/permissions";
 import * as XLSX from "xlsx";
 
 // Map Spanish headers → Product model field names
+// Matches the export format exactly
 const HEADER_MAP: Record<string, string> = {
   "Codigo": "code",
   "Abreviatura Lote": "batchAbbr",
-  "Nombre": "name",
+  "Item": "name",
   "Categoria": "category",
-  "Sede": "sede",
-  "Ingredientes": "ingredients",
-  "Alergenos": "allergens",
-  "Conservacion": "storage",
-  "Modo de Uso": "usage",
-  "Envasado": "packaging",
-  "Dias Refrigerado": "refrigeratedDays",
-  "Dias Congelado": "frozenDays",
-  "Dias Ambiente": "ambientDays",
-  "Calorias": "calories",
-  "Energia (kJ)": "energyKj",
-  "Grasa Total": "fat",
-  "Grasa Saturada": "saturatedFat",
-  "Carbohidratos": "carbs",
-  "Azucares": "sugars",
-  "Fibra": "fiber",
-  "Proteina": "protein",
-  "Sodio": "sodium",
-  "Tamano Porcion": "servingSize",
-  "Porciones por Envase": "servingsPerContainer",
+  "Refrigeracion (dias)": "refrigeratedDays",
+  "Congelacion (dias)": "frozenDays",
+  "Temp. Ambiente (dias)": "ambientDays",
 };
 
 const INT_FIELDS = new Set(["refrigeratedDays", "frozenDays", "ambientDays"]);
-const FLOAT_FIELDS = new Set([
-  "calories", "energyKj", "fat", "saturatedFat", "carbs",
-  "sugars", "fiber", "protein", "sodium", "servingSize", "servingsPerContainer",
-]);
 
 function parseRow(raw: Record<string, unknown>): Record<string, unknown> | null {
   const row: Record<string, unknown> = {};
@@ -46,7 +26,7 @@ function parseRow(raw: Record<string, unknown>): Record<string, unknown> | null 
 
     if (field === "code" || field === "name") {
       const str = String(val ?? "").trim();
-      if (!str) return null; // required fields
+      if (!str) return null; // required
       row[field] = str;
       continue;
     }
@@ -54,16 +34,6 @@ function parseRow(raw: Record<string, unknown>): Record<string, unknown> | null 
     if (INT_FIELDS.has(field)) {
       const n = Number(val);
       row[field] = isNaN(n) ? 0 : Math.max(0, Math.round(n));
-      continue;
-    }
-
-    if (FLOAT_FIELDS.has(field)) {
-      if (val === "" || val === null || val === undefined) {
-        row[field] = null;
-      } else {
-        const n = Number(val);
-        row[field] = isNaN(n) ? null : n;
-      }
       continue;
     }
 
@@ -107,8 +77,7 @@ export async function POST(request: NextRequest) {
 
   // Validate headers
   const fileHeaders = Object.keys(rawRows[0]);
-  const requiredHeaders = ["Codigo", "Nombre"];
-  const missing = requiredHeaders.filter((h) => !fileHeaders.includes(h));
+  const missing = ["Codigo", "Item"].filter((h) => !fileHeaders.includes(h));
   if (missing.length > 0) {
     return NextResponse.json(
       { error: `Columnas requeridas faltantes: ${missing.join(", ")}` },
@@ -125,7 +94,7 @@ export async function POST(request: NextRequest) {
     const parsed = parseRow(rawRows[i]);
     if (!parsed) {
       skipped++;
-      errors.push(`Fila ${i + 2}: Codigo o Nombre vacio, omitida`);
+      errors.push(`Fila ${i + 2}: Codigo o Item vacio, omitida`);
       continue;
     }
 
@@ -160,6 +129,6 @@ export async function POST(request: NextRequest) {
     created,
     updated,
     skipped,
-    errors: errors.slice(0, 20), // limit error list
+    errors: errors.slice(0, 20),
   });
 }

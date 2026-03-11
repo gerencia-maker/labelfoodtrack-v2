@@ -13,39 +13,22 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const format = searchParams.get("format") || "csv";
+  const format = searchParams.get("format") || "xlsx";
 
   const products = await prisma.product.findMany({
     where: { ...tenantWhere(user) },
     orderBy: [{ category: "asc" }, { code: "asc" }],
   });
 
-  // Headers match 1:1 with Product model fields (for import/export round-trip)
+  // Columns match the products index table exactly
   const headers = [
     "Codigo",
     "Abreviatura Lote",
-    "Nombre",
+    "Item",
     "Categoria",
-    "Sede",
-    "Ingredientes",
-    "Alergenos",
-    "Conservacion",
-    "Modo de Uso",
-    "Envasado",
-    "Dias Refrigerado",
-    "Dias Congelado",
-    "Dias Ambiente",
-    "Calorias",
-    "Energia (kJ)",
-    "Grasa Total",
-    "Grasa Saturada",
-    "Carbohidratos",
-    "Azucares",
-    "Fibra",
-    "Proteina",
-    "Sodio",
-    "Tamano Porcion",
-    "Porciones por Envase",
+    "Refrigeracion (dias)",
+    "Congelacion (dias)",
+    "Temp. Ambiente (dias)",
   ];
 
   const rows = products.map((p: typeof products[number]) => [
@@ -53,26 +36,9 @@ export async function GET(request: NextRequest) {
     p.batchAbbr || "",
     p.name,
     p.category || "",
-    p.sede || "",
-    p.ingredients || "",
-    p.allergens || "",
-    p.storage || "",
-    p.usage || "",
-    p.packaging || "",
     p.refrigeratedDays,
     p.frozenDays,
     p.ambientDays,
-    p.calories ?? "",
-    p.energyKj ?? "",
-    p.fat ?? "",
-    p.saturatedFat ?? "",
-    p.carbs ?? "",
-    p.sugars ?? "",
-    p.fiber ?? "",
-    p.protein ?? "",
-    p.sodium ?? "",
-    p.servingSize ?? "",
-    p.servingsPerContainer ?? "",
   ]);
 
   const dateStr = new Date().toISOString().split("T")[0];
@@ -80,15 +46,11 @@ export async function GET(request: NextRequest) {
   if (format === "xlsx") {
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
 
-    // Auto-size columns based on content
-    const colWidths = headers.map((h, i) => {
-      const maxLen = Math.max(
-        h.length,
-        ...rows.map((r) => String(r[i]).length)
-      );
-      return { wch: Math.min(maxLen + 2, 40) };
+    // Auto-size columns
+    ws["!cols"] = headers.map((h, i) => {
+      const maxLen = Math.max(h.length, ...rows.map((r) => String(r[i]).length));
+      return { wch: Math.min(maxLen + 2, 45) };
     });
-    ws["!cols"] = colWidths;
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Productos");

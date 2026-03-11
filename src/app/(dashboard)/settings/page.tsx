@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { RequirePermission } from "@/components/require-permission";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
-import { Download, FileSpreadsheet, Printer, Save, Loader2 } from "lucide-react";
+import { Download, FileSpreadsheet, Upload, Printer, Save, Loader2 } from "lucide-react";
 import { UserManagement } from "@/components/settings/user-management";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -14,6 +14,8 @@ export default function SettingsPage() {
   const { userData, getToken } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("settings");
+  const [exportingProducts, setExportingProducts] = useState(false);
+  const [importingProducts, setImportingProducts] = useState(false);
   const [exportingBitacora, setExportingBitacora] = useState(false);
   const [exportingBitacoraXlsx, setExportingBitacoraXlsx] = useState(false);
 
@@ -125,6 +127,34 @@ export default function SettingsPage() {
       URL.revokeObjectURL(url);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImportProducts = async (file: File) => {
+    setImportingProducts(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/products/import", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: data.error || "Error al importar", variant: "error" });
+        return;
+      }
+      toast({
+        title: `${data.created} creados, ${data.updated} actualizados${data.skipped > 0 ? `, ${data.skipped} omitidos` : ""}`,
+        variant: "success",
+      });
+    } catch {
+      toast({ title: "Error al importar archivo", variant: "error" });
+    } finally {
+      setImportingProducts(false);
     }
   };
 
@@ -370,6 +400,44 @@ export default function SettingsPage() {
       <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-5">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">{t("dataExport")}</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400">{t("dataExportHint")}</p>
+
+        {/* Productos */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("exportProductsTitle")}</h4>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() =>
+                handleExport(
+                  "/api/products/export?format=xlsx",
+                  `productos_${new Date().toISOString().split("T")[0]}.xlsx`,
+                  setExportingProducts
+                )
+              }
+              disabled={exportingProducts}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2.5 text-sm font-medium text-emerald-700 dark:text-emerald-300 shadow-sm hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              {exportingProducts ? "Exportando..." : t("exportProductsXlsx")}
+            </button>
+            <label
+              className={`inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 px-4 py-2.5 text-sm font-medium text-blue-700 dark:text-blue-300 shadow-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer ${importingProducts ? "opacity-50 pointer-events-none" : ""}`}
+            >
+              <Upload className="h-4 w-4" />
+              {importingProducts ? "Importando..." : t("importProducts")}
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                disabled={importingProducts}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImportProducts(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+        </div>
 
         {/* Bitacora */}
         <div className="space-y-2">
