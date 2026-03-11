@@ -254,17 +254,17 @@ export default function LabelDetailPage({
 
   return (
     <>
-      <div className="space-y-6 print:hidden">
+      <div className="space-y-4 print:hidden">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/labels">
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{label.productName}</h1>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">{label.productName}</h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {label.batch} — {new Date(label.createdAt).toLocaleDateString("es-CO", {
                   day: "numeric", month: "long", year: "numeric",
@@ -274,39 +274,39 @@ export default function LabelDetailPage({
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handlePrintClick}>
-              <Printer className="h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={handlePrintClick} className="gap-1.5">
+              <Printer className="h-3.5 w-3.5" />
               {t("print")}
             </Button>
             <Link href="/labels/new">
-              <Button variant="outline">
-                <Copy className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Copy className="h-3.5 w-3.5" />
                 Duplicar
               </Button>
             </Link>
             {canDelete && (
               <Button variant="destructive" size="sm" onClick={handleDelete}>
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
             )}
           </div>
         </div>
 
         {/* Content: Preview + Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Preview */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">{t("preview")}</h3>
-            <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-orange-50/50 dark:bg-slate-800/50 p-4 shadow-[var(--shadow-warm-sm)]">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          {/* Preview — 2 cols */}
+          <div className="lg:col-span-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">{t("preview")}</h3>
+            <div className="rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-orange-50/50 dark:bg-slate-900 p-4 shadow-[var(--shadow-warm-sm)]">
               <LabelPreview data={previewData} />
             </div>
           </div>
 
-          {/* Details */}
-          <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-slate-700 pb-2">Detalles</h3>
+          {/* Details — 3 cols */}
+          <div className="lg:col-span-3 rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-5 shadow-[var(--shadow-warm-sm)] space-y-3">
+            <h3 className="text-xs font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-orange-900/30 pb-2 uppercase tracking-wide">Detalles</h3>
 
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
               <Detail label={t("product")} value={`${p?.code || "---"} - ${label.productName}`} />
               <Detail label={t("batch")} value={label.batch} mono />
               <Detail label={t("productionDate")} value={label.productionDate ? new Date(label.productionDate).toLocaleDateString("es-CO") : "--"} />
@@ -319,7 +319,7 @@ export default function LabelDetailPage({
             </div>
 
             {p?.ingredients && (
-              <div className="pt-2 border-t border-orange-100 dark:border-slate-700">
+              <div className="pt-2 border-t border-orange-100 dark:border-orange-900/30">
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Ingredientes</p>
                 <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{p.ingredients}</p>
               </div>

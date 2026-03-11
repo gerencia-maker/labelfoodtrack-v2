@@ -124,7 +124,7 @@ export default function NewLabelPage() {
 
   return (
     <>
-      <div className="space-y-6 print:hidden">
+      <div className="space-y-4 print:hidden">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -134,7 +134,7 @@ export default function NewLabelPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Tag className="h-5 w-5 text-orange-500" />
                 {t("newLabel")}
               </h1>
@@ -146,7 +146,7 @@ export default function NewLabelPage() {
             variant="outline"
             onClick={handlePrint}
             disabled={!hasProduct}
-            className="gap-2 rounded-xl"
+            className="gap-2"
           >
             <Printer className="h-4 w-4" />
             {t("print")}
@@ -154,9 +154,9 @@ export default function NewLabelPage() {
         </div>
 
         {/* Layout: Formulario + Preview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Formulario */}
-          <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-[var(--shadow-warm-sm)]">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
+          {/* Formulario — 3 cols */}
+          <div className="lg:col-span-3 rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-5 shadow-[var(--shadow-warm-sm)]">
             <LabelForm
               onPreviewChange={handlePreviewChange}
               onSave={handleSave}
@@ -167,13 +167,13 @@ export default function NewLabelPage() {
             />
           </div>
 
-          {/* Preview */}
-          <div className="lg:sticky lg:top-4 space-y-3">
-            <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2">
+          {/* Preview — 2 cols */}
+          <div className="lg:col-span-2 lg:sticky lg:top-4 space-y-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2 uppercase tracking-wide">
               <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
               {t("preview")}
             </h3>
-            <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-gradient-to-br from-orange-50/50 to-white dark:from-slate-800/50 dark:to-slate-800 p-5 shadow-[var(--shadow-warm-sm)]">
+            <div className="rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-gradient-to-br from-orange-50/50 to-white dark:from-slate-900 dark:to-slate-900 p-4 shadow-[var(--shadow-warm-sm)]">
               {hasProduct ? (
                 <LabelPreview data={previewData} />
               ) : (
@@ -202,18 +202,15 @@ export default function NewLabelPage() {
 
 function EmptyPreview({ brand }: { brand: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mb-4">
-        <Tag className="h-7 w-7 text-slate-300 dark:text-slate-500" />
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <div className="h-12 w-12 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center mb-3">
+        <Tag className="h-5 w-5 text-orange-300 dark:text-orange-500/50" />
       </div>
       {brand && (
         <p className="text-xs font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 mb-1">{brand}</p>
       )}
-      <p className="text-sm font-medium text-slate-400 dark:text-slate-500">
-        Selecciona un producto para
-      </p>
-      <p className="text-sm font-medium text-slate-400 dark:text-slate-500">
-        ver la vista previa de la etiqueta
+      <p className="text-sm text-slate-400 dark:text-slate-500">
+        Selecciona un producto para ver la vista previa
       </p>
     </div>
   );
