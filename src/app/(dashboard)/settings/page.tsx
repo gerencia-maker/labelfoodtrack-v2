@@ -16,6 +16,8 @@ import {
   User,
   Users,
   ShieldCheck,
+  AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { UserManagement } from "@/components/settings/user-management";
 
@@ -57,6 +59,15 @@ export default function SettingsPage() {
               <Download className="h-4 w-4" />
               {t("dataExport")}
             </TabsTrigger>
+            {userData?.role === "ADMIN" && (
+              <TabsTrigger
+                value="factory-reset"
+                className="text-red-600 data-[state=active]:bg-red-50 data-[state=active]:text-red-700 dark:text-red-400 dark:data-[state=active]:bg-red-900/30 dark:data-[state=active]:text-red-300"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                {t("factoryReset")}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Account Tab */}
@@ -77,6 +88,11 @@ export default function SettingsPage() {
           {/* Export Tab */}
           <TabsContent value="export">
             <ExportTab />
+          </TabsContent>
+
+          {/* Factory Reset Tab */}
+          <TabsContent value="factory-reset">
+            <FactoryResetTab />
           </TabsContent>
         </Tabs>
 
@@ -629,6 +645,233 @@ function ExportTab() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ─── Factory Reset Tab ─── */
+function FactoryResetTab() {
+  const { getToken } = useAuth();
+  const { toast } = useToast();
+  const t = useTranslations("settings");
+
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetModule, setResetModule] = useState("");
+  const [confirmText, setConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const modules = [
+    {
+      key: "products",
+      title: t("resetProducts"),
+      description: t("resetProductsDesc"),
+    },
+    {
+      key: "labels",
+      title: t("resetLabels"),
+      description: t("resetLabelsDesc"),
+    },
+    {
+      key: "bitacora",
+      title: t("resetBitacora"),
+      description: t("resetBitacoraDesc"),
+    },
+  ];
+
+  const getModuleName = (key: string) => {
+    const m = modules.find((mod) => mod.key === key);
+    if (m) return m.title;
+    if (key === "all") return t("resetAllData");
+    return key;
+  };
+
+  const handleOpenReset = (module: string) => {
+    setResetModule(module);
+    setConfirmText("");
+    setResetDialogOpen(true);
+  };
+
+  const handleFactoryReset = async () => {
+    if (confirmText !== "ELIMINAR") {
+      toast({ title: t("resetMustType"), variant: "error" });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      if (DEMO_MODE) {
+        toast({ title: t("resetSuccess"), variant: "success" });
+        setResetDialogOpen(false);
+        return;
+      }
+      const token = await getToken();
+      if (!token) return;
+      const res = await fetch("/api/factory-reset", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({ module: resetModule }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        toast({
+          title: `${t("resetSuccess")} (${data.deleted} registros)`,
+          variant: "success",
+        });
+        setResetDialogOpen(false);
+        setConfirmText("");
+        setResetModule("");
+      } else {
+        const err = await res.json();
+        toast({ title: err.error || "Error", variant: "error" });
+      }
+    } catch {
+      toast({ title: t("resetError"), variant: "error" });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-xl border-2 border-red-200 dark:border-red-800/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-6">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <h3 className="text-lg font-bold text-red-600">{t("factoryReset")}</h3>
+        </div>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {t("factoryResetDesc")}
+        </p>
+
+        {/* Warning banner */}
+        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-lg">
+          <p className="text-red-800 dark:text-red-300 font-bold text-sm">
+            {t("resetWarning")}
+          </p>
+          <p className="text-red-700 dark:text-red-400 text-sm mt-1">
+            {t("factoryResetDesc")}
+          </p>
+        </div>
+
+        {/* Delete All */}
+        <div className="border-2 border-red-300 dark:border-red-700 rounded-xl p-5 bg-red-50/50 dark:bg-red-900/10">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h4 className="font-bold text-red-900 dark:text-red-300 text-lg mb-1">
+                {t("resetAllData")}
+              </h4>
+              <p className="text-red-700 dark:text-red-400 text-sm">
+                {t("resetAllDataDesc")}
+              </p>
+            </div>
+            <button
+              onClick={() => handleOpenReset("all")}
+              className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 transition-colors shrink-0"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t("resetAllData")}
+            </button>
+          </div>
+        </div>
+
+        {/* Delete by module */}
+        <div>
+          <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-3">
+            {t("resetByModule")}
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {modules.map((mod) => (
+              <div
+                key={mod.key}
+                className="border border-orange-200 dark:border-orange-800/50 rounded-lg p-4 hover:border-orange-400 dark:hover:border-orange-600 transition-colors"
+              >
+                <div className="mb-3">
+                  <h5 className="font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                    {mod.title}
+                  </h5>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    {mod.description}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleOpenReset(mod.key)}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 dark:border-red-700 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  Eliminar
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Confirmation dialog */}
+      {resetDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <h3 className="text-lg font-bold text-red-600">
+                {t("resetConfirmTitle")}
+              </h3>
+            </div>
+
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {t("resetConfirmDesc")}
+            </p>
+
+            <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-3 rounded">
+              <p className="font-bold text-red-900 dark:text-red-300 text-sm">
+                {getModuleName(resetModule)}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                {t("resetTypeConfirm")}
+              </label>
+              <input
+                type="text"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder="ELIMINAR"
+                disabled={isDeleting}
+                className="w-full rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setResetDialogOpen(false);
+                  setConfirmText("");
+                  setResetModule("");
+                }}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleFactoryReset}
+                disabled={confirmText !== "ELIMINAR" || isDeleting}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                {isDeleting ? "Eliminando..." : "Eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
