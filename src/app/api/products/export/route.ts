@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
+import { DEMO_PRODUCTS_BY_INSTANCE } from "@/lib/demo-data";
 import * as XLSX from "xlsx";
+
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
@@ -15,15 +18,21 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const format = searchParams.get("format") || "xlsx";
 
-  const where = { ...tenantWhere(user) };
-  console.log("[products/export] user.instanceId:", user.instanceId, "where:", where);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let products: any[];
 
-  const products = await prisma.product.findMany({
-    where,
-    orderBy: [{ category: "asc" }, { code: "asc" }],
-  });
-
-  console.log("[products/export] found", products.length, "products");
+  if (DEMO_MODE) {
+    if (user.instanceId && DEMO_PRODUCTS_BY_INSTANCE[user.instanceId]) {
+      products = DEMO_PRODUCTS_BY_INSTANCE[user.instanceId];
+    } else {
+      products = Object.values(DEMO_PRODUCTS_BY_INSTANCE).flat();
+    }
+  } else {
+    products = await prisma.product.findMany({
+      where: { ...tenantWhere(user) },
+      orderBy: [{ category: "asc" }, { code: "asc" }],
+    });
+  }
 
   // Columns match the products index table exactly
   const headers = [
@@ -36,14 +45,14 @@ export async function GET(request: NextRequest) {
     "Temp. Ambiente (dias)",
   ];
 
-  const rows = products.map((p: typeof products[number]) => [
+  const rows = products.map((p) => [
     p.code,
     p.batchAbbr || "",
     p.name,
     p.category || "",
-    p.refrigeratedDays,
-    p.frozenDays,
-    p.ambientDays,
+    p.refrigeratedDays ?? 0,
+    p.frozenDays ?? 0,
+    p.ambientDays ?? 0,
   ]);
 
   const dateStr = new Date().toISOString().split("T")[0];
