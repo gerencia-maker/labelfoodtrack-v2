@@ -17,9 +17,10 @@ export async function GET(request: NextRequest) {
 
   const products = await prisma.product.findMany({
     where: { ...tenantWhere(user) },
-    orderBy: { code: "asc" },
+    orderBy: [{ category: "asc" }, { code: "asc" }],
   });
 
+  // Headers match 1:1 with Product model fields (for import/export round-trip)
   const headers = [
     "Codigo",
     "Abreviatura Lote",
@@ -35,8 +36,12 @@ export async function GET(request: NextRequest) {
     "Dias Congelado",
     "Dias Ambiente",
     "Calorias",
+    "Energia (kJ)",
     "Grasa Total",
+    "Grasa Saturada",
     "Carbohidratos",
+    "Azucares",
+    "Fibra",
     "Proteina",
     "Sodio",
     "Tamano Porcion",
@@ -58,8 +63,12 @@ export async function GET(request: NextRequest) {
     p.frozenDays,
     p.ambientDays,
     p.calories ?? "",
+    p.energyKj ?? "",
     p.fat ?? "",
+    p.saturatedFat ?? "",
     p.carbs ?? "",
+    p.sugars ?? "",
+    p.fiber ?? "",
     p.protein ?? "",
     p.sodium ?? "",
     p.servingSize ?? "",
@@ -70,6 +79,17 @@ export async function GET(request: NextRequest) {
 
   if (format === "xlsx") {
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+    // Auto-size columns based on content
+    const colWidths = headers.map((h, i) => {
+      const maxLen = Math.max(
+        h.length,
+        ...rows.map((r) => String(r[i]).length)
+      );
+      return { wch: Math.min(maxLen + 2, 40) };
+    });
+    ws["!cols"] = colWidths;
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Productos");
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });

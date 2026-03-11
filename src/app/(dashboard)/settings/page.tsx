@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { RequirePermission } from "@/components/require-permission";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
-import { Download, FileSpreadsheet, Printer, Save, Loader2 } from "lucide-react";
+import { Download, FileSpreadsheet, Upload, Printer, Save, Loader2 } from "lucide-react";
 import { UserManagement } from "@/components/settings/user-management";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [exportingBitacora, setExportingBitacora] = useState(false);
   const [exportingProductsXlsx, setExportingProductsXlsx] = useState(false);
   const [exportingBitacoraXlsx, setExportingBitacoraXlsx] = useState(false);
+  const [importingProducts, setImportingProducts] = useState(false);
 
   // Paper config state
   const [paperLoading, setPaperLoading] = useState(true);
@@ -127,6 +128,34 @@ export default function SettingsPage() {
       URL.revokeObjectURL(url);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImportProducts = async (file: File) => {
+    setImportingProducts(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/products/import", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: data.error || "Error al importar", variant: "error" });
+        return;
+      }
+      toast({
+        title: `Importacion completada: ${data.created} creados, ${data.updated} actualizados${data.skipped > 0 ? `, ${data.skipped} omitidos` : ""}`,
+        variant: "success",
+      });
+    } catch {
+      toast({ title: "Error al importar archivo", variant: "error" });
+    } finally {
+      setImportingProducts(false);
     }
   };
 
@@ -405,6 +434,23 @@ export default function SettingsPage() {
               <FileSpreadsheet className="h-4 w-4" />
               {exportingProductsXlsx ? "Exportando..." : "Excel"}
             </button>
+            <label
+              className={`inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 px-4 py-2.5 text-sm font-medium text-blue-700 dark:text-blue-300 shadow-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer ${importingProducts ? "opacity-50 pointer-events-none" : ""}`}
+            >
+              <Upload className="h-4 w-4" />
+              {importingProducts ? "Importando..." : t("importProducts")}
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                disabled={importingProducts}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImportProducts(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
           </div>
         </div>
 
