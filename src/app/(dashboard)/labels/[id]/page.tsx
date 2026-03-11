@@ -254,26 +254,23 @@ export default function LabelDetailPage({
 
   return (
     <>
-      <div className="space-y-4 print:hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+      <div className="print:hidden">
+        {/* ── Sticky top bar (v1 style) ── */}
+        <div className="sticky top-0 z-20 -mx-6 -mt-6 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
           <div className="flex items-center gap-3">
             <Link href="/labels">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="sm" className="gap-1.5 text-slate-600 dark:text-slate-400">
                 <ArrowLeft className="h-4 w-4" />
+                {t("backToLabels")}
               </Button>
             </Link>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">{label.productName}</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {label.batch} — {new Date(label.createdAt).toLocaleDateString("es-CO", {
-                  day: "numeric", month: "long", year: "numeric",
-                })}
-              </p>
+            <div className="hidden sm:block">
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{label.productName}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">{label.batch}</p>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePrintClick} className="gap-1.5">
               <Printer className="h-3.5 w-3.5" />
               {t("print")}
@@ -292,46 +289,42 @@ export default function LabelDetailPage({
           </div>
         </div>
 
-        {/* Content: Preview + Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {/* Preview — 2 cols */}
-          <div className="lg:col-span-2">
-            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">{t("preview")}</h3>
-            <div className="rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-orange-50/50 dark:bg-slate-900 p-4 shadow-[var(--shadow-warm-sm)]">
-              <LabelPreview data={previewData} />
-            </div>
+        {/* ── Label preview (HERO — centered, like v1) ── */}
+        <div className="flex justify-center mb-4">
+          <div className="w-full max-w-[700px]">
+            <LabelPreview data={previewData} />
+          </div>
+        </div>
+
+        {/* ── Details panel (below preview) ── */}
+        <div className="mx-auto max-w-[700px] rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-5 shadow-[var(--shadow-warm-sm)] space-y-3">
+          <h3 className="text-xs font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-orange-900/30 pb-2 uppercase tracking-wide">Detalles</h3>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
+            <Detail label={t("product")} value={`${p?.code || "---"} - ${label.productName}`} />
+            <Detail label={t("batch")} value={label.batch} mono />
+            <Detail label={t("productionDate")} value={label.productionDate ? new Date(label.productionDate).toLocaleDateString("es-CO") : "--"} />
+            <Detail label={t("netContent")} value={label.netContent} />
+            <Detail label={t("coldChain")} value={previewData.coldChain} />
+            <Detail label={t("expiryRef")} value={previewData.expiryRefrigerated} />
+            <Detail label={t("expiryCong")} value={previewData.expiryFrozen} />
+            <Detail label={t("packedBy")} value={label.packedBy} />
+            <Detail label={t("destination")} value={label.destination} badge />
           </div>
 
-          {/* Details — 3 cols */}
-          <div className="lg:col-span-3 rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-5 shadow-[var(--shadow-warm-sm)] space-y-3">
-            <h3 className="text-xs font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-orange-900/30 pb-2 uppercase tracking-wide">Detalles</h3>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-              <Detail label={t("product")} value={`${p?.code || "---"} - ${label.productName}`} />
-              <Detail label={t("batch")} value={label.batch} mono />
-              <Detail label={t("productionDate")} value={label.productionDate ? new Date(label.productionDate).toLocaleDateString("es-CO") : "--"} />
-              <Detail label={t("netContent")} value={label.netContent} />
-              <Detail label={t("coldChain")} value={previewData.coldChain} />
-              <Detail label={t("expiryRef")} value={previewData.expiryRefrigerated} />
-              <Detail label={t("expiryCong")} value={previewData.expiryFrozen} />
-              <Detail label={t("packedBy")} value={label.packedBy} />
-              <Detail label={t("destination")} value={label.destination} badge />
+          {p?.ingredients && (
+            <div className="pt-2 border-t border-orange-100 dark:border-orange-900/30">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Ingredientes</p>
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{p.ingredients}</p>
             </div>
+          )}
 
-            {p?.ingredients && (
-              <div className="pt-2 border-t border-orange-100 dark:border-orange-900/30">
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Ingredientes</p>
-                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{p.ingredients}</p>
-              </div>
-            )}
-
-            {p?.allergens && (
-              <div>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Alergenos</p>
-                <p className="text-xs text-red-600 dark:text-red-400 font-medium">{p.allergens}</p>
-              </div>
-            )}
-          </div>
+          {p?.allergens && (
+            <div>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Alergenos</p>
+              <p className="text-xs text-red-600 dark:text-red-400 font-medium">{p.allergens}</p>
+            </div>
+          )}
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import { LabelPreview, type LabelPreviewData } from "@/components/labels/label-p
 import { LabelPrint } from "@/components/labels/label-print";
 import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Tag } from "lucide-react";
+import { ArrowLeft, Printer, Save, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -46,21 +46,19 @@ export default function NewLabelPage() {
     qrData: "",
   });
 
-  // Print flow modal state
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [pendingSaveData, setPendingSaveData] = useState<LabelSaveData | null>(null);
+  const [formCollapsed, setFormCollapsed] = useState(false);
 
   const handlePreviewChange = useCallback((data: LabelPreviewData) => {
     setPreviewData(data);
   }, []);
 
-  // When form calls onSave, we intercept to show the quantity modal first
   const handleSave = async (data: LabelSaveData) => {
     setPendingSaveData(data);
     setShowPrintModal(true);
   };
 
-  // After user enters quantity and confirms in the modal
   const handlePrintConfirm = async (quantity: string) => {
     if (!pendingSaveData) return;
 
@@ -75,7 +73,6 @@ export default function NewLabelPage() {
 
     if (!token) return;
 
-    // 1. Save label
     const labelRes = await fetch("/api/labels", {
       method: "POST",
       headers: {
@@ -91,7 +88,6 @@ export default function NewLabelPage() {
       return;
     }
 
-    // 2. Create bitacora entry with quantity
     await fetch("/api/bitacora", {
       method: "POST",
       headers: {
@@ -111,8 +107,6 @@ export default function NewLabelPage() {
 
     toast({ title: t("saved"), variant: "success" });
     setShowPrintModal(false);
-
-    // 3. Print
     setTimeout(() => triggerPrint(), 300);
   };
 
@@ -124,72 +118,88 @@ export default function NewLabelPage() {
 
   return (
     <>
-      <div className="space-y-4 print:hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/labels">
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Tag className="h-5 w-5 text-orange-500" />
-                {t("newLabel")}
-              </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{t("newLabelSubtitle")}</p>
-            </div>
-          </div>
+      <div className="print:hidden">
+        {/* ── Sticky top bar (v1 style) ── */}
+        <div className="sticky top-0 z-20 -mx-6 -mt-6 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
+          <Link href="/labels">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-slate-600 dark:text-slate-400">
+              <ArrowLeft className="h-4 w-4" />
+              {t("backToLabels")}
+            </Button>
+          </Link>
 
-          <Button
-            variant="outline"
-            onClick={handlePrint}
-            disabled={!hasProduct}
-            className="gap-2"
-          >
-            <Printer className="h-4 w-4" />
-            {t("print")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrint}
+              disabled={!hasProduct}
+              className="gap-1.5"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              {t("print")}
+            </Button>
+          </div>
         </div>
 
-        {/* Layout: Formulario + Preview */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
-          {/* Formulario — 3 cols */}
-          <div className="lg:col-span-3 rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-5 shadow-[var(--shadow-warm-sm)]">
-            <LabelForm
-              onPreviewChange={handlePreviewChange}
-              onSave={handleSave}
-              defaultValues={{
-                productId: defaultProductId,
-                productionDate: defaultDate,
-              }}
-            />
-          </div>
-
-          {/* Preview — 2 cols */}
-          <div className="lg:col-span-2 lg:sticky lg:top-4 space-y-2">
-            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2 uppercase tracking-wide">
-              <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-              {t("preview")}
-            </h3>
-            <div className="rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-gradient-to-br from-orange-50/50 to-white dark:from-slate-900 dark:to-slate-900 p-4 shadow-[var(--shadow-warm-sm)]">
-              {hasProduct ? (
-                <LabelPreview data={previewData} />
-              ) : (
-                <EmptyPreview brand={previewData.brand} />
+        {/* ── Collapsible form panel ── */}
+        <div className="mb-4">
+          <button
+            onClick={() => setFormCollapsed(!formCollapsed)}
+            className="flex w-full items-center justify-between rounded-t-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-5 py-3 text-left transition-colors hover:bg-orange-50/50 dark:hover:bg-orange-500/5"
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-500/10">
+                <Save className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                {hasProduct ? previewData.productName : "Configurar etiqueta"}
+              </span>
+              {hasProduct && (
+                <span className="text-xs text-slate-400 dark:text-slate-500">
+                  — {previewData.batch} · {previewData.destination || "Sin destino"}
+                </span>
               )}
             </div>
+            {formCollapsed ? (
+              <ChevronDown className="h-4 w-4 text-slate-400" />
+            ) : (
+              <ChevronUp className="h-4 w-4 text-slate-400" />
+            )}
+          </button>
+
+          {!formCollapsed && (
+            <div className="rounded-b-2xl border border-t-0 border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-5 shadow-[var(--shadow-warm-sm)]">
+              <LabelForm
+                onPreviewChange={handlePreviewChange}
+                onSave={handleSave}
+                defaultValues={{
+                  productId: defaultProductId,
+                  productionDate: defaultDate,
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* ── Label preview (HERO — full width, centered, like v1) ── */}
+        <div className="flex justify-center">
+          <div className="w-full max-w-[700px]">
+            {hasProduct ? (
+              <LabelPreview data={previewData} />
+            ) : (
+              <EmptyPreview brand={previewData.brand} />
+            )}
           </div>
         </div>
       </div>
 
-      {/* Componente de impresion (oculto en pantalla) */}
+      {/* Print component (hidden on screen) */}
       <div ref={printRef}>
         <LabelPrint data={previewData} />
       </div>
 
-      {/* Modal cantidad producida */}
+      {/* Print quantity modal */}
       <PrintFlowModal
         open={showPrintModal}
         onClose={() => setShowPrintModal(false)}
@@ -202,15 +212,18 @@ export default function NewLabelPage() {
 
 function EmptyPreview({ brand }: { brand: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <div className="h-12 w-12 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center mb-3">
-        <Tag className="h-5 w-5 text-orange-300 dark:text-orange-500/50" />
+    <div className="rounded-2xl border border-dashed border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-12 text-center shadow-[var(--shadow-warm-sm)]">
+      <div className="mx-auto h-16 w-16 rounded-2xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center mb-4">
+        <Save className="h-7 w-7 text-orange-300 dark:text-orange-500/50" />
       </div>
       {brand && (
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-300 dark:text-slate-600 mb-1">{brand}</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-orange-300 dark:text-orange-500/40 mb-2">{brand}</p>
       )}
-      <p className="text-sm text-slate-400 dark:text-slate-500">
-        Selecciona un producto para ver la vista previa
+      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        Selecciona un producto arriba para ver la vista previa
+      </p>
+      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+        La etiqueta se genera automaticamente con los datos del producto
       </p>
     </div>
   );

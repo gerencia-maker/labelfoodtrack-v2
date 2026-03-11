@@ -111,7 +111,8 @@
     "expiryCong": "Vence congelado",
     "storage": "Conservacion",
     "usage": "Modo de uso",
-    "count": "{count} etiquetas"
+    "count": "{count} etiquetas",
+    "backToLabels": "Volver a etiquetas"
   },
   "bitacora": {
     "title": "Bitacora",

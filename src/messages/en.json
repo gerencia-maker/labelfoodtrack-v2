@@ -111,7 +111,8 @@
     "expiryCong": "Frozen expiry",
     "storage": "Storage",
     "usage": "Usage",
-    "count": "{count} labels"
+    "count": "{count} labels",
+    "backToLabels": "Back to labels"
   },
   "bitacora": {
     "title": "Log",
