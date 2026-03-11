@@ -149,7 +149,8 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       isSuperAdmin: isSuper,
     };
   } catch (err) {
-    console.error("[auth] verifyAuth error:", err instanceof Error ? err.message : err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[auth] verifyAuth error:", msg);
     return null;
   }
 }
