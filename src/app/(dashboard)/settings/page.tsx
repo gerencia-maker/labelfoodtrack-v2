@@ -113,11 +113,18 @@ export default function SettingsPage() {
     setLoading(true);
     try {
       const token = await getToken();
-      if (!token) return;
+      if (!token) {
+        toast({ title: "No autenticado", variant: "error" });
+        return;
+      }
       const res = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        toast({ title: err?.error || `Error ${res.status}`, variant: "error" });
+        return;
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -125,6 +132,9 @@ export default function SettingsPage() {
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
+      toast({ title: "Archivo descargado", variant: "success" });
+    } catch {
+      toast({ title: "Error al descargar", variant: "error" });
     } finally {
       setLoading(false);
     }
