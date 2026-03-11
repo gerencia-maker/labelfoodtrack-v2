@@ -119,6 +119,7 @@ export default function SettingsPage() {
       }
       const res = await fetch(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
@@ -150,6 +151,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/products/import", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
         body: formData,
       });
       const data = await res.json();

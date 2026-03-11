@@ -15,10 +15,15 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const format = searchParams.get("format") || "xlsx";
 
+  const where = { ...tenantWhere(user) };
+  console.log("[products/export] user.instanceId:", user.instanceId, "where:", where);
+
   const products = await prisma.product.findMany({
-    where: { ...tenantWhere(user) },
+    where,
     orderBy: [{ category: "asc" }, { code: "asc" }],
   });
+
+  console.log("[products/export] found", products.length, "products");
 
   // Columns match the products index table exactly
   const headers = [
