@@ -14,6 +14,7 @@ import {
   Shield,
   ShieldCheck,
   Eye,
+  EyeOff,
   Power,
   ChevronDown,
   ChevronRight,
@@ -99,6 +100,7 @@ export function UserManagement() {
   const [formRole, setFormRole] = useState<string>("VIEWER");
   const [formPermisos, setFormPermisos] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
   const canManage = hasActionPermission("configuration", "gestionar_usuarios");
@@ -133,6 +135,7 @@ export function UserManagement() {
     setFormName("");
     setFormEmail("");
     setFormPassword("");
+    setShowPassword(false);
     setFormRole("VIEWER");
     setFormPermisos([]);
     setExpandedModules(new Set());
@@ -144,6 +147,7 @@ export function UserManagement() {
     setFormName(user.name);
     setFormEmail(user.email);
     setFormPassword("");
+    setShowPassword(false);
     setFormRole(user.role);
     setFormPermisos([...user.permisos]);
     setExpandedModules(new Set());
@@ -468,13 +472,22 @@ export function UserManagement() {
               {!editingUser && (
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t("password")}</label>
-                  <input
-                    type="password"
-                    value={formPassword}
-                    onChange={(e) => setFormPassword(e.target.value)}
-                    placeholder={t("passwordPlaceholder")}
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={formPassword}
+                      onChange={(e) => setFormPassword(e.target.value)}
+                      placeholder={t("passwordPlaceholder")}
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   <p className="text-[10px] text-slate-400 mt-1">{t("passwordHint")}</p>
                 </div>
               )}

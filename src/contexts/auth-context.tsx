@@ -6,6 +6,9 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
+  updatePassword as firebaseUpdatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
   type User as FirebaseUser,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase-client";
@@ -32,6 +35,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   getToken: () => Promise<string | null>;
   hasPermission: (permission: PermisoCodigo) => boolean;
   hasActionPermission: (module: string, action: string) => boolean;
@@ -124,6 +128,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sendPasswordResetEmail(auth, email);
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    if (DEMO_MODE) return;
+    if (!firebaseUser || !firebaseUser.email) throw new Error("No authenticated user");
+    const credential = EmailAuthProvider.credential(firebaseUser.email, currentPassword);
+    await reauthenticateWithCredential(firebaseUser, credential);
+    await firebaseUpdatePassword(firebaseUser, newPassword);
+  };
+
   const getToken = async () => {
     if (DEMO_MODE) return "demo-token";
     if (!firebaseUser) return null;
@@ -157,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signOut,
         resetPassword,
+        changePassword,
         getToken,
         hasPermission,
         hasActionPermission,

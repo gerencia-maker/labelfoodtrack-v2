@@ -18,6 +18,9 @@ import {
   ShieldCheck,
   AlertTriangle,
   Trash2,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { UserManagement } from "@/components/settings/user-management";
 
@@ -107,8 +110,47 @@ export default function SettingsPage() {
 
 /* ─── Account Tab ─── */
 function AccountTab() {
-  const { userData } = useAuth();
+  const { userData, changePassword } = useAuth();
+  const { toast } = useToast();
   const t = useTranslations("settings");
+
+  const [currentPwd, setCurrentPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [confirmPwd, setConfirmPwd] = useState("");
+  const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+  const [changingPwd, setChangingPwd] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (newPwd.length < 6) {
+      toast({ title: t("passwordTooShort"), variant: "error" });
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      toast({ title: t("passwordMismatch"), variant: "error" });
+      return;
+    }
+    setChangingPwd(true);
+    try {
+      await changePassword(currentPwd, newPwd);
+      toast({ title: t("passwordChanged"), variant: "success" });
+      setCurrentPwd("");
+      setNewPwd("");
+      setConfirmPwd("");
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code || "";
+      if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
+        toast({ title: t("currentPasswordWrong"), variant: "error" });
+      } else if (code === "auth/weak-password") {
+        toast({ title: t("passwordTooShort"), variant: "error" });
+      } else {
+        toast({ title: t("passwordChangeError"), variant: "error" });
+      }
+    } finally {
+      setChangingPwd(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -144,6 +186,106 @@ function AccountTab() {
               {userData?.instanceId || "--"}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Change Password */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">
+          <Lock className="h-5 w-5 text-slate-500" />
+          {t("changePassword")}
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {t("changePasswordHint")}
+        </p>
+
+        <div className="max-w-sm space-y-3">
+          {/* Current password */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+              {t("currentPassword")}
+            </label>
+            <div className="relative">
+              <input
+                type={showCurrentPwd ? "text" : "password"}
+                value={currentPwd}
+                onChange={(e) => setCurrentPwd(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPwd(!showCurrentPwd)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showCurrentPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* New password */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+              {t("newPassword")}
+            </label>
+            <div className="relative">
+              <input
+                type={showNewPwd ? "text" : "password"}
+                value={newPwd}
+                onChange={(e) => setNewPwd(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPwd(!showNewPwd)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showNewPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1">{t("passwordHint")}</p>
+          </div>
+
+          {/* Confirm new password */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+              {t("confirmPassword")}
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPwd ? "text" : "password"}
+                value={confirmPwd}
+                onChange={(e) => setConfirmPwd(e.target.value)}
+                className={`w-full rounded-lg border bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500 ${
+                  confirmPwd && confirmPwd !== newPwd
+                    ? "border-red-300 dark:border-red-700"
+                    : "border-slate-200 dark:border-slate-700"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                {showConfirmPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {confirmPwd && confirmPwd !== newPwd && (
+              <p className="text-[10px] text-red-500 mt-1">{t("passwordMismatch")}</p>
+            )}
+          </div>
+
+          <button
+            onClick={handleChangePassword}
+            disabled={changingPwd || !currentPwd || newPwd.length < 6 || newPwd !== confirmPwd}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {changingPwd ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Lock className="h-4 w-4" />
+            )}
+            {t("changePasswordBtn")}
+          </button>
         </div>
       </div>
 
