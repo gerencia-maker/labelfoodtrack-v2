@@ -17,11 +17,23 @@ export async function GET(request: NextRequest) {
     },
   };
 
-  // Test 1: Database connection
+  // Test 1: Database connection + list users
   try {
-    const userCount = await prisma.user.count();
+    const users = await prisma.user.findMany({
+      select: { email: true, firebaseUid: true, role: true, status: true, instanceId: true },
+    });
     const instanceCount = await prisma.instance.count();
-    results.database = { status: "ok", userCount, instanceCount };
+    results.database = {
+      status: "ok",
+      instanceCount,
+      users: users.map((u) => ({
+        email: u.email,
+        firebaseUid: u.firebaseUid.substring(0, 10) + "...",
+        role: u.role,
+        status: u.status,
+        instanceId: u.instanceId ? u.instanceId.substring(0, 8) + "..." : null,
+      })),
+    };
   } catch (err) {
     results.database = {
       status: "error",
