@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { RequirePermission } from "@/components/require-permission";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
-import { Download, Printer, Save, Loader2 } from "lucide-react";
+import { Download, FileSpreadsheet, Printer, Save, Loader2 } from "lucide-react";
 import { UserManagement } from "@/components/settings/user-management";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -16,6 +16,8 @@ export default function SettingsPage() {
   const t = useTranslations("settings");
   const [exportingProducts, setExportingProducts] = useState(false);
   const [exportingBitacora, setExportingBitacora] = useState(false);
+  const [exportingProductsXlsx, setExportingProductsXlsx] = useState(false);
+  const [exportingBitacoraXlsx, setExportingBitacoraXlsx] = useState(false);
 
   // Paper config state
   const [paperLoading, setPaperLoading] = useState(true);
@@ -367,38 +369,78 @@ export default function SettingsPage() {
       {/* User Management (visible only for users with gestionar_usuarios permission) */}
       <UserManagement />
 
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-5">
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">{t("dataExport")}</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400">{t("dataExportHint")}</p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={() =>
-              handleExport(
-                "/api/products/export?format=csv",
-                `productos_${new Date().toISOString().split("T")[0]}.csv`,
-                setExportingProducts
-              )
-            }
-            disabled={exportingProducts}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            {exportingProducts ? "Exportando..." : t("exportProducts")}
-          </button>
-          <button
-            onClick={() =>
-              handleExport(
-                "/api/bitacora/export?format=csv",
-                `bitacora_${new Date().toISOString().split("T")[0]}.csv`,
-                setExportingBitacora
-              )
-            }
-            disabled={exportingBitacora}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            {exportingBitacora ? "Exportando..." : t("exportBitacora")}
-          </button>
+
+        {/* Productos */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("exportProductsTitle")}</h4>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() =>
+                handleExport(
+                  "/api/products/export?format=csv",
+                  `productos_${new Date().toISOString().split("T")[0]}.csv`,
+                  setExportingProducts
+                )
+              }
+              disabled={exportingProducts}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              {exportingProducts ? "Exportando..." : "CSV"}
+            </button>
+            <button
+              onClick={() =>
+                handleExport(
+                  "/api/products/export?format=xlsx",
+                  `productos_${new Date().toISOString().split("T")[0]}.xlsx`,
+                  setExportingProductsXlsx
+                )
+              }
+              disabled={exportingProductsXlsx}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2.5 text-sm font-medium text-emerald-700 dark:text-emerald-300 shadow-sm hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              {exportingProductsXlsx ? "Exportando..." : "Excel"}
+            </button>
+          </div>
+        </div>
+
+        {/* Bitacora */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("exportBitacoraTitle")}</h4>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() =>
+                handleExport(
+                  "/api/bitacora/export?format=csv",
+                  `bitacora_${new Date().toISOString().split("T")[0]}.csv`,
+                  setExportingBitacora
+                )
+              }
+              disabled={exportingBitacora}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              {exportingBitacora ? "Exportando..." : "CSV"}
+            </button>
+            <button
+              onClick={() =>
+                handleExport(
+                  "/api/bitacora/export?format=xlsx",
+                  `bitacora_${new Date().toISOString().split("T")[0]}.xlsx`,
+                  setExportingBitacoraXlsx
+                )
+              }
+              disabled={exportingBitacoraXlsx}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2.5 text-sm font-medium text-emerald-700 dark:text-emerald-300 shadow-sm hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              {exportingBitacoraXlsx ? "Exportando..." : "Excel"}
+            </button>
+          </div>
         </div>
       </div>
 
