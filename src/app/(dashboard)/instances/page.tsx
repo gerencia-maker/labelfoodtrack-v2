@@ -267,7 +267,7 @@ function InstancesContent() {
 
       {/* Form (create/edit) */}
       {showForm && (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+        <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-[var(--shadow-warm-sm)]">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
               {editingId ? t("editInstance") : t("new")}
@@ -297,11 +297,11 @@ function InstancesContent() {
                   "flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed transition-colors overflow-hidden",
                   form.logoUrl
                     ? "border-transparent"
-                    : "border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 bg-slate-50 dark:bg-slate-900"
+                    : "border-slate-300 dark:border-slate-600 hover:border-orange-400 dark:hover:border-orange-500 bg-orange-50/50 dark:bg-slate-900"
                 )}
               >
                 {uploading ? (
-                  <Loader2 size={24} className="animate-spin text-blue-500" />
+                  <Loader2 size={24} className="animate-spin text-orange-500" />
                 ) : form.logoUrl ? (
                   <img
                     src={form.logoUrl}
@@ -459,12 +459,12 @@ function InstancesContent() {
                   {form.packers.map((p) => (
                     <span
                       key={p}
-                      className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-500/20 px-2.5 py-0.5 text-xs font-medium text-orange-700 dark:text-orange-300"
                     >
                       {p}
                       <button
                         onClick={() => removePacker(p)}
-                        className="ml-0.5 text-blue-400 hover:text-red-500"
+                        className="ml-0.5 text-orange-400 hover:text-red-500"
                       >
                         <X size={10} />
                       </button>
@@ -497,10 +497,10 @@ function InstancesContent() {
           </Button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-[var(--shadow-warm-sm)]">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+              <tr className="border-b border-orange-100 dark:border-slate-700 bg-orange-50/50 dark:bg-slate-800/50">
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   {t("name")}
                 </th>
@@ -520,7 +520,7 @@ function InstancesContent() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {instances.map((inst) => (
-                <tr key={inst.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                <tr key={inst.id} className="hover:bg-orange-50/50 dark:hover:bg-orange-500/5 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {inst.logoUrl ? (
@@ -583,7 +583,7 @@ function InstancesContent() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => openEdit(inst)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-blue-500 transition-colors"
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-500 transition-colors"
                         title={tc("edit")}
                       >
                         <Pencil size={14} />

@@ -88,7 +88,7 @@ export default function LabelsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
         </div>
       ) : labels.length === 0 ? (
         <div className="text-center py-20">
@@ -109,7 +109,7 @@ export default function LabelsPage() {
             <Link
               key={label.id}
               href={`/labels/${label.id}`}
-              className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
+              className="block rounded-2xl border border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-4 shadow-[var(--shadow-warm-sm)] hover:shadow-[var(--shadow-warm-md)] hover:border-orange-200 hover:scale-[1.01] transition-all cursor-pointer"
             >
               <div className="flex items-start justify-between">
                 <div className="min-w-0 flex-1">

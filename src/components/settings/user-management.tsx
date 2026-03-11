@@ -47,7 +47,7 @@ const ROLE_ICONS = {
 };
 const ROLE_COLORS = {
   ADMIN: "bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400",
-  EDITOR: "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400",
+  EDITOR: "bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400",
   VIEWER: "bg-slate-100 dark:bg-slate-600/30 text-slate-600 dark:text-slate-400",
 };
 
@@ -292,15 +292,15 @@ export function UserManagement() {
   const isSelf = (userId: string) => userData?.id === userId;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700/50 pb-2">
+    <div className="rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
+      <div className="flex items-center justify-between border-b border-orange-100 dark:border-slate-700/50 pb-2">
         <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
           <Users className="h-5 w-5 text-slate-500" />
           {t("users")}
         </h3>
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-600 transition-colors"
         >
           <Plus className="h-3.5 w-3.5" />
           {t("addUser")}
@@ -321,7 +321,7 @@ export function UserManagement() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700/50 text-left text-xs text-slate-500 dark:text-slate-400">
+              <tr className="border-b border-orange-100 dark:border-slate-700/50 text-left text-xs text-slate-500 dark:text-slate-400">
                 <th className="pb-2 font-medium">{t("name")}</th>
                 <th className="pb-2 font-medium">{t("email")}</th>
                 <th className="pb-2 font-medium">{t("userRole")}</th>
@@ -340,7 +340,7 @@ export function UserManagement() {
                       <span className="flex items-center gap-1.5">
                         {u.name}
                         {self && (
-                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400">
                             {t("you")}
                           </span>
                         )}
@@ -431,7 +431,7 @@ export function UserManagement() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-lg mx-4 rounded-xl bg-white dark:bg-slate-800 shadow-xl max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between p-4 border-b border-orange-100 dark:border-slate-700">
               <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                 {editingUser ? t("editUser") : t("addUser")}
               </h4>
@@ -449,7 +449,7 @@ export function UserManagement() {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder={t("namePlaceholder")}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
                 />
               </div>
 
@@ -462,7 +462,7 @@ export function UserManagement() {
                   onChange={(e) => setFormEmail(e.target.value)}
                   disabled={!!editingUser}
                   placeholder={t("emailPlaceholder")}
-                  className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30 ${
                     editingUser ? "opacity-60 cursor-not-allowed" : ""
                   }`}
                 />
@@ -478,7 +478,7 @@ export function UserManagement() {
                       value={formPassword}
                       onChange={(e) => setFormPassword(e.target.value)}
                       placeholder={t("passwordPlaceholder")}
-                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
                     />
                     <button
                       type="button"
@@ -498,7 +498,7 @@ export function UserManagement() {
                 <select
                   value={formRole}
                   onChange={(e) => setFormRole(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
                 >
                   {ROLE_OPTIONS.map((r) => (
                     <option key={r} value={r}>
@@ -519,8 +519,8 @@ export function UserManagement() {
               )}
 
               {formRole === "VIEWER" && (
-                <div className="rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 p-3">
-                  <p className="text-xs font-medium text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
+                <div className="rounded-lg bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 p-3">
+                  <p className="text-xs font-medium text-orange-700 dark:text-orange-400 flex items-center gap-1.5">
                     <Eye className="h-3.5 w-3.5" />
                     {t("viewerReadOnly")}
                   </p>
@@ -536,7 +536,7 @@ export function UserManagement() {
                       <button
                         type="button"
                         onClick={selectAllPermisos}
-                        className="text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
+                        className="text-[10px] text-orange-600 dark:text-orange-400 hover:underline"
                       >
                         {t("selectAll")}
                       </button>
@@ -572,7 +572,7 @@ export function UserManagement() {
                                   <label
                                     className={`flex-1 inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors ${
                                       isChecked
-                                        ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                                        ? "bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400"
                                         : "bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400"
                                     }`}
                                   >
@@ -584,14 +584,14 @@ export function UserManagement() {
                                     />
                                     <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[9px] ${
                                       isChecked
-                                        ? "bg-blue-600 border-blue-600 text-white"
+                                        ? "bg-orange-500 border-orange-500 text-white"
                                         : "border-slate-300 dark:border-slate-600"
                                     }`}>
                                       {isChecked && "✓"}
                                     </span>
                                     {PERM_LABELS[perm] || perm}
                                     {hasActions && isChecked && activeSubCount > 0 && (
-                                      <span className="text-[9px] bg-blue-200 dark:bg-blue-500/30 px-1 rounded">
+                                      <span className="text-[9px] bg-orange-200 dark:bg-orange-500/30 px-1 rounded">
                                         {activeSubCount}/{subActions.length}
                                       </span>
                                     )}
@@ -622,7 +622,7 @@ export function UserManagement() {
                                           key={key}
                                           className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] cursor-pointer transition-colors ${
                                             subChecked
-                                              ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                              ? "bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400"
                                               : "bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-500"
                                           }`}
                                         >
@@ -634,7 +634,7 @@ export function UserManagement() {
                                           />
                                           <span className={`w-3 h-3 rounded-sm border flex items-center justify-center text-[8px] ${
                                             subChecked
-                                              ? "bg-blue-500 border-blue-500 text-white"
+                                              ? "bg-orange-500 border-orange-500 text-white"
                                               : "border-slate-300 dark:border-slate-600"
                                           }`}>
                                             {subChecked && "✓"}
@@ -656,7 +656,7 @@ export function UserManagement() {
               )}
             </div>
 
-            <div className="flex justify-end gap-2 p-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex justify-end gap-2 p-4 border-t border-orange-100 dark:border-slate-700">
               <button
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
@@ -666,7 +666,7 @@ export function UserManagement() {
               <button
                 onClick={handleSave}
                 disabled={saving || !formName || (!editingUser && (!formEmail || formPassword.length < 6))}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                 {t("saveUser")}

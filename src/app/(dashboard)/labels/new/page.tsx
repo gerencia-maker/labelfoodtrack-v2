@@ -135,7 +135,7 @@ export default function NewLabelPage() {
             </Link>
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Tag className="h-5 w-5 text-blue-500" />
+                <Tag className="h-5 w-5 text-orange-500" />
                 {t("newLabel")}
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">{t("newLabelSubtitle")}</p>
@@ -156,7 +156,7 @@ export default function NewLabelPage() {
         {/* Layout: Formulario + Preview */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Formulario */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
+          <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-[var(--shadow-warm-sm)]">
             <LabelForm
               onPreviewChange={handlePreviewChange}
               onSave={handleSave}
@@ -173,7 +173,7 @@ export default function NewLabelPage() {
               <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
               {t("preview")}
             </h3>
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 p-5 shadow-sm">
+            <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-gradient-to-br from-orange-50/50 to-white dark:from-slate-800/50 dark:to-slate-800 p-5 shadow-[var(--shadow-warm-sm)]">
               {hasProduct ? (
                 <LabelPreview data={previewData} />
               ) : (

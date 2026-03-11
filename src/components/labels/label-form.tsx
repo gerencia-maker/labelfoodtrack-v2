@@ -304,7 +304,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
         </div>
 
         {selectedProduct && (
-          <div className="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-800/50 p-3.5 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border border-slate-200/60 dark:border-slate-600/40">
+          <div className="rounded-xl bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-slate-700/50 dark:to-slate-800/50 p-3.5 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border border-orange-200/60 dark:border-slate-600/40">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center rounded-md bg-white dark:bg-slate-700 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-600 uppercase tracking-wider">
                 {selectedProduct.category || "N/A"}
@@ -436,7 +436,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                     setBatch(generateBatch(selectedProduct.batchAbbr, productionDate));
                   }
                 }}
-                className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 font-medium"
+                className="text-xs text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 flex items-center gap-1 font-medium"
               >
                 <Wand2 className="h-3 w-3" />
                 {autoGenerateBatch ? "Manual" : "Auto-generar"}
@@ -514,8 +514,8 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
 function SectionHeader({ icon: Icon, title }: { icon: typeof Package; title: string }) {
   return (
     <div className="flex items-center gap-2 pb-1">
-      <div className="flex items-center justify-center h-6 w-6 rounded-lg bg-slate-100 dark:bg-slate-700">
-        <Icon size={13} className="text-slate-500 dark:text-slate-400" />
+      <div className="flex items-center justify-center h-6 w-6 rounded-lg bg-orange-100 dark:bg-slate-700">
+        <Icon size={13} className="text-orange-600 dark:text-slate-400" />
       </div>
       <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">{title}</h3>
     </div>

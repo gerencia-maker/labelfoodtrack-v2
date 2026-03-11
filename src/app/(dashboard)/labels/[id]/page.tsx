@@ -224,7 +224,7 @@ export default function LabelDetailPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
       </div>
     );
   }
@@ -297,14 +297,14 @@ export default function LabelDetailPage({
           {/* Preview */}
           <div>
             <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">{t("preview")}</h3>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 shadow-sm">
+            <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-orange-50/50 dark:bg-slate-800/50 p-4 shadow-[var(--shadow-warm-sm)]">
               <LabelPreview data={previewData} />
             </div>
           </div>
 
           {/* Details */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm space-y-4">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">Detalles</h3>
+          <div className="rounded-2xl border border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-slate-700 pb-2">Detalles</h3>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Detail label={t("product")} value={`${p?.code || "---"} - ${label.productName}`} />
@@ -319,7 +319,7 @@ export default function LabelDetailPage({
             </div>
 
             {p?.ingredients && (
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+              <div className="pt-2 border-t border-orange-100 dark:border-slate-700">
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Ingredientes</p>
                 <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{p.ingredients}</p>
               </div>

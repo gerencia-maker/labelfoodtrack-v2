@@ -22,7 +22,7 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-[#0b1120]">
+      <div className="flex min-h-screen items-center justify-center bg-[#FFFBF7] dark:bg-[#0F0A03]">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
       </div>
     );
@@ -31,9 +31,9 @@ export default function DashboardLayout({
   if (!userData) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0b1120]">
+    <div className="flex h-screen overflow-hidden bg-[#FFFBF7] dark:bg-[#0F0A03]">
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Topbar />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>

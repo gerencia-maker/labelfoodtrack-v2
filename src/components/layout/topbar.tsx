@@ -35,7 +35,7 @@ export function Topbar() {
   };
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 px-6 backdrop-blur-sm">
+    <header className="flex h-16 items-center justify-between border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 md:px-6">
       <div className="flex items-center gap-3">
         {userData?.instance?.logoUrl && (
           <img
@@ -63,7 +63,7 @@ export function Topbar() {
         {/* Dark mode toggle */}
         <button
           onClick={toggleDark}
-          className="rounded-lg p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-orange-400 transition-colors"
+          className="rounded-lg p-2 text-slate-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400 transition-colors"
           title="Dark mode"
         >
           {dark ? <Sun size={16} className="text-orange-400" /> : <Moon size={16} />}
@@ -72,7 +72,7 @@ export function Topbar() {
         {/* Language toggle */}
         <button
           onClick={() => setLocale(locale === "es" ? "en" : "es")}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400 transition-colors"
           title="Cambiar idioma"
         >
           <Globe size={14} />

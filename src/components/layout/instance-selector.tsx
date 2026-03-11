@@ -96,11 +96,11 @@ export function InstanceSelector() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg py-1">
+          <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-800 shadow-lg py-1">
             <button
               onClick={() => selectInstance("")}
               className={cn(
-                "flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors",
+                "flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors",
                 !selectedId && "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400"
               )}
             >
@@ -115,7 +115,7 @@ export function InstanceSelector() {
                 key={inst.id}
                 onClick={() => selectInstance(inst.id)}
                 className={cn(
-                  "flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors",
+                  "flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors",
                   selectedId === inst.id && "bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400"
                 )}
               >

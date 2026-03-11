@@ -61,7 +61,7 @@ export default function NewProductPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-orange-200 bg-white p-6 shadow-[var(--shadow-warm-sm)]">
         <ProductForm onSubmit={handleSubmit} />
       </div>
     </div>

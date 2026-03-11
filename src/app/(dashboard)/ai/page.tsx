@@ -226,7 +226,7 @@ export default function AIPage() {
     <RequirePermission permission="ai_features">
     <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200 dark:border-slate-700/50">
+      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-orange-200 dark:border-slate-700/50">
         <FoodBotAvatar size="md" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export default function AIPage() {
             <div className="shrink-0 mt-1">
               <FoodBotAvatar size="sm" />
             </div>
-            <div className="rounded-2xl rounded-bl-md bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 px-4 py-3 shadow-sm">
+            <div className="rounded-2xl rounded-bl-md bg-white dark:bg-slate-800/80 border border-orange-200 dark:border-slate-700/50 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
               <div className="flex items-center gap-1.5">
                 <span
                   className="h-2 w-2 rounded-full bg-slate-400 dark:bg-slate-500 animate-bounce"
@@ -361,7 +361,7 @@ export default function AIPage() {
       </div>
 
       {/* Input area */}
-      <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700/50">
+      <div className="mt-4 pt-3 border-t border-orange-200 dark:border-slate-700/50">
         <div className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
@@ -372,7 +372,7 @@ export default function AIPage() {
               placeholder={t("placeholder")}
               disabled={loading}
               rows={1}
-              className="w-full resize-none rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-orange-400 dark:focus:border-orange-500/50 focus:outline-none focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-500/20 disabled:opacity-50 transition-colors"
+              className="w-full resize-none rounded-xl border border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-orange-400 dark:focus:border-orange-500/50 focus:outline-none focus:ring-2 focus:ring-orange-500/30 dark:focus:ring-orange-500/20 disabled:opacity-50 transition-colors"
               style={{ maxHeight: 120 }}
             />
           </div>

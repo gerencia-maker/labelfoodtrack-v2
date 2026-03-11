@@ -154,8 +154,8 @@ function AccountTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">
+      <div className="rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-slate-700/50 pb-2">
           {t("account")}
         </h3>
 
@@ -190,8 +190,8 @@ function AccountTab() {
       </div>
 
       {/* Change Password */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
-        <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">
+      <div className="rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-slate-700/50 pb-2">
           <Lock className="h-5 w-5 text-slate-500" />
           {t("changePassword")}
         </h3>
@@ -210,7 +210,7 @@ function AccountTab() {
                 type={showCurrentPwd ? "text" : "password"}
                 value={currentPwd}
                 onChange={(e) => setCurrentPwd(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
               />
               <button
                 type="button"
@@ -232,7 +232,7 @@ function AccountTab() {
                 type={showNewPwd ? "text" : "password"}
                 value={newPwd}
                 onChange={(e) => setNewPwd(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
               />
               <button
                 type="button"
@@ -255,7 +255,7 @@ function AccountTab() {
                 type={showConfirmPwd ? "text" : "password"}
                 value={confirmPwd}
                 onChange={(e) => setConfirmPwd(e.target.value)}
-                className={`w-full rounded-lg border bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full rounded-lg border bg-white dark:bg-slate-900 px-3 py-2 pr-10 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30 ${
                   confirmPwd && confirmPwd !== newPwd
                     ? "border-red-300 dark:border-red-700"
                     : "border-slate-200 dark:border-slate-700"
@@ -277,7 +277,7 @@ function AccountTab() {
           <button
             onClick={handleChangePassword}
             disabled={changingPwd || !currentPwd || newPwd.length < 6 || newPwd !== confirmPwd}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {changingPwd ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -289,8 +289,8 @@ function AccountTab() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
-        <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">
+      <div className="rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
+        <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-slate-700/50 pb-2">
           <ShieldCheck className="h-5 w-5 text-slate-500" />
           {t("permissions")}
         </h3>
@@ -305,7 +305,7 @@ function AccountTab() {
               (userData?.permisos || []).map((perm) => (
                 <span
                   key={perm}
-                  className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                  className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400"
                 >
                   {perm}
                 </span>
@@ -418,8 +418,8 @@ function PaperConfigTab() {
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-4">
-      <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">
+    <div className="rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
+      <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-slate-700/50 pb-2">
         <Printer className="h-5 w-5 text-slate-500" />
         {t("paperConfig")}
       </h3>
@@ -429,7 +429,7 @@ function PaperConfigTab() {
 
       {paperLoading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
         </div>
       ) : (
         <div className="space-y-4">
@@ -443,7 +443,7 @@ function PaperConfigTab() {
                 type="text"
                 value={presetName}
                 onChange={(e) => setPresetName(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
               />
             </div>
             <div>
@@ -453,7 +453,7 @@ function PaperConfigTab() {
               <select
                 value={stockType}
                 onChange={(e) => setStockType(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
               >
                 <option value="Die-Cut Labels">Die-Cut Labels</option>
                 <option value="Continuous Roll">Continuous Roll</option>
@@ -475,7 +475,7 @@ function PaperConfigTab() {
                 max="500"
                 value={widthMm}
                 onChange={(e) => setWidthMm(Number(e.target.value) || 0)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
               />
             </div>
             <div>
@@ -489,7 +489,7 @@ function PaperConfigTab() {
                 max="500"
                 value={heightMm}
                 onChange={(e) => setHeightMm(Number(e.target.value) || 0)}
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
               />
             </div>
           </div>
@@ -511,7 +511,7 @@ function PaperConfigTab() {
                   max="50"
                   value={marginTop}
                   onChange={(e) => setMarginTop(Number(e.target.value) || 0)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
                 />
               </div>
               <div>
@@ -525,7 +525,7 @@ function PaperConfigTab() {
                   max="50"
                   value={marginRight}
                   onChange={(e) => setMarginRight(Number(e.target.value) || 0)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
                 />
               </div>
               <div>
@@ -541,7 +541,7 @@ function PaperConfigTab() {
                   onChange={(e) =>
                     setMarginBottom(Number(e.target.value) || 0)
                   }
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
                 />
               </div>
               <div>
@@ -555,7 +555,7 @@ function PaperConfigTab() {
                   max="50"
                   value={marginLeft}
                   onChange={(e) => setMarginLeft(Number(e.target.value) || 0)}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
                 />
               </div>
             </div>
@@ -572,7 +572,7 @@ function PaperConfigTab() {
                 onChange={(e) =>
                   setOrientation(e.target.value as "portrait" | "landscape")
                 }
-                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
               >
                 <option value="landscape">{t("landscape")}</option>
                 <option value="portrait">{t("portrait")}</option>
@@ -592,11 +592,11 @@ function PaperConfigTab() {
           </div>
 
           {/* Save Button */}
-          <div className="flex justify-end pt-2 border-t border-slate-200 dark:border-slate-700/50">
+          <div className="flex justify-end pt-2 border-t border-orange-100 dark:border-slate-700/50">
             <button
               onClick={handleSavePaper}
               disabled={paperSaving || !presetName}
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {paperSaving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -696,8 +696,8 @@ function ExportTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-sm space-y-5">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2">
+      <div className="rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-[var(--shadow-warm-sm)] space-y-5">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-slate-700/50 pb-2">
           {t("dataExport")}
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -705,7 +705,7 @@ function ExportTab() {
         </p>
 
         {/* Productos */}
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700/50 p-4 space-y-3">
+        <div className="rounded-lg border border-orange-200 dark:border-slate-700/50 p-4 space-y-3">
           <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             {t("exportProductsTitle")}
           </h4>
@@ -728,7 +728,7 @@ function ExportTab() {
               {exportingProducts ? "Exportando..." : t("exportProductsXlsx")}
             </button>
             <label
-              className={`inline-flex items-center justify-center gap-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 px-4 py-2.5 text-sm font-medium text-blue-700 dark:text-blue-300 shadow-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer ${importingProducts ? "opacity-50 pointer-events-none" : ""}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-lg border border-orange-200 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/30 px-4 py-2.5 text-sm font-medium text-orange-700 dark:text-orange-300 shadow-sm hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors cursor-pointer ${importingProducts ? "opacity-50 pointer-events-none" : ""}`}
             >
               <Upload className="h-4 w-4" />
               {importingProducts ? "Importando..." : t("importProducts")}
@@ -748,7 +748,7 @@ function ExportTab() {
         </div>
 
         {/* Bitacora */}
-        <div className="rounded-lg border border-slate-200 dark:border-slate-700/50 p-4 space-y-3">
+        <div className="rounded-lg border border-orange-200 dark:border-slate-700/50 p-4 space-y-3">
           <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             {t("exportBitacoraTitle")}
           </h4>
@@ -765,7 +765,7 @@ function ExportTab() {
                 )
               }
               disabled={exportingBitacora}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm hover:bg-orange-50/50 dark:hover:bg-orange-500/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Download className="h-4 w-4" />
               {exportingBitacora ? "Exportando..." : "CSV"}
@@ -1049,7 +1049,7 @@ function PaperPreview({
         style={{ width: w, height: h }}
       >
         <div
-          className="absolute border border-dashed border-blue-400 dark:border-blue-500 rounded-sm bg-blue-50/50 dark:bg-blue-500/10"
+          className="absolute border border-dashed border-orange-400 dark:border-orange-500 rounded-sm bg-orange-50/50 dark:bg-orange-500/10"
           style={{
             left: innerX,
             top: innerY,

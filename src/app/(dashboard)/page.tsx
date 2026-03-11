@@ -13,9 +13,6 @@ import {
   LayoutGrid,
   List,
   Package,
-  Flame,
-  Trophy,
-  TrendingUp,
   Snowflake,
   Thermometer,
   Sun,
@@ -34,14 +31,6 @@ interface Product {
   frozenDays: number;
   ambientDays: number;
 }
-
-// Mock gamification stats
-const MOCK_STATS = [
-  { label: "Productos", value: "78", icon: Package, color: "orange", change: "+3 esta semana" },
-  { label: "Etiquetas hoy", value: "24", icon: Tag, color: "blue", change: "+12% vs ayer" },
-  { label: "Racha activa", value: "7 dias", icon: Flame, color: "red", change: "Record: 14d" },
-  { label: "Puntos mes", value: "2,450", icon: Trophy, color: "yellow", change: "Top 5%" },
-];
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -108,14 +97,7 @@ export default function ProductsPage() {
   const colCount = canEdit ? 8 : 7;
 
   return (
-    <div className="space-y-5">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {MOCK_STATS.map((stat) => (
-          <StatsCard key={stat.label} stat={stat} />
-        ))}
-      </div>
-
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -125,7 +107,7 @@ export default function ProductsPage() {
 
         <div className="flex gap-2">
           {/* View toggle */}
-          <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="flex rounded-xl border border-orange-200 dark:border-orange-900/30 overflow-hidden">
             <button
               onClick={() => setViewMode("table")}
               className={cn(
@@ -198,7 +180,7 @@ export default function ProductsPage() {
         </div>
       ) : (
         /* Table View */
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 shadow-sm">
+        <div className="overflow-x-auto rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 shadow-[var(--shadow-warm-sm)]">
           {/* Title bar */}
           <div className="bg-gradient-to-r from-orange-600 to-red-500 px-4 py-3">
             <h2 className="text-center text-lg font-bold text-white tracking-wide uppercase">
@@ -260,34 +242,6 @@ export default function ProductsPage() {
   );
 }
 
-/* ---- Stats Card ---- */
-function StatsCard({ stat }: { stat: { label: string; value: string; icon: React.ElementType; color: string; change: string } }) {
-  const colorMap: Record<string, string> = {
-    orange: "from-orange-500 to-red-500 shadow-orange-500/20",
-    blue: "from-blue-500 to-cyan-500 shadow-blue-500/20",
-    red: "from-red-500 to-pink-500 shadow-red-500/20",
-    yellow: "from-yellow-500 to-orange-500 shadow-yellow-500/20",
-  };
-
-  return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{stat.label}</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
-        </div>
-        <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl shadow-md", `bg-gradient-to-br ${colorMap[stat.color]}`)}>
-          <stat.icon size={20} className="text-white" />
-        </div>
-      </div>
-      <div className="mt-2 flex items-center gap-1 text-[11px]">
-        <TrendingUp size={12} className="text-emerald-500" />
-        <span className="text-slate-500 dark:text-slate-400">{stat.change}</span>
-      </div>
-    </div>
-  );
-}
-
 /* ---- Product Card ---- */
 function ProductCard({
   product,
@@ -305,7 +259,7 @@ function ProductCard({
   const maxDays = Math.max(product.refrigeratedDays, product.frozenDays, product.ambientDays, 1);
 
   return (
-    <div className="group rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-4 shadow-sm hover:shadow-md hover:border-orange-300 dark:hover:border-orange-500/30 transition-all">
+    <div className="group rounded-2xl border border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-4 shadow-[var(--shadow-warm-sm)] hover:shadow-[var(--shadow-warm-md)] hover:border-orange-200 hover:scale-[1.01] transition-all">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="min-w-0 flex-1">

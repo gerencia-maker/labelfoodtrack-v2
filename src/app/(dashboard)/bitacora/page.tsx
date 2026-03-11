@@ -203,7 +203,7 @@ export default function BitacoraPage() {
             variant="outline"
             onClick={handleExportXLS}
             disabled={entries.length === 0}
-            className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+            className="border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-orange-50/50 dark:hover:bg-orange-500/10"
           >
             <FileSpreadsheet className="h-4 w-4" />
             {t("exportXLS")}
@@ -212,7 +212,7 @@ export default function BitacoraPage() {
             variant="outline"
             onClick={handleExportPDF}
             disabled={entries.length === 0}
-            className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+            className="border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-orange-50/50 dark:hover:bg-orange-500/10"
           >
             <FileText className="h-4 w-4" />
             {t("exportPDF")}
@@ -227,7 +227,7 @@ export default function BitacoraPage() {
             placeholder={t("product") + ", " + t("batch") + ", " + t("destination")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="pl-10 bg-white dark:bg-slate-800 border-orange-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-orange-500/30"
           />
         </div>
       )}
@@ -245,10 +245,10 @@ export default function BitacoraPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 shadow-sm">
+        <div className="overflow-x-auto rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 shadow-[var(--shadow-warm-sm)]">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-700/30">
+              <tr className="border-b border-orange-100 dark:border-slate-700/50 bg-orange-50/50 dark:bg-slate-700/30">
                 <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("product")}</th>
                 <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("category")}</th>
                 <th className="px-3 py-2.5 text-left font-semibold text-slate-600 dark:text-slate-300">{t("coldChain")}</th>
@@ -277,7 +277,7 @@ export default function BitacoraPage() {
                   <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{entry.category || "--"}</td>
                   <td className="px-3 py-2">
                     {entry.coldChain ? (
-                      <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-400">
+                      <span className="inline-flex items-center rounded-full bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 px-1.5 py-0.5 text-[10px] font-medium text-orange-700 dark:text-orange-400">
                         {entry.coldChain}
                       </span>
                     ) : (
