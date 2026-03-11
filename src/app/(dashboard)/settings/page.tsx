@@ -699,11 +699,6 @@ function FactoryResetTab() {
 
     setIsDeleting(true);
     try {
-      if (DEMO_MODE) {
-        toast({ title: t("resetSuccess"), variant: "success" });
-        setResetDialogOpen(false);
-        return;
-      }
       const token = await getToken();
       if (!token) return;
       const res = await fetch("/api/factory-reset", {
@@ -724,6 +719,8 @@ function FactoryResetTab() {
         setResetDialogOpen(false);
         setConfirmText("");
         setResetModule("");
+        // Reload to reflect changes
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         const err = await res.json();
         toast({ title: err.error || "Error", variant: "error" });

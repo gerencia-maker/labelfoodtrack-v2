@@ -3,6 +3,8 @@ import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/permissions";
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
@@ -14,6 +16,17 @@ export async function POST(request: NextRequest) {
     return forbidden();
   }
 
+  const { module } = await request.json();
+
+  if (DEMO_MODE) {
+    return NextResponse.json({
+      success: true,
+      deleted: 0,
+      demo: true,
+      message: "Modo demo: los datos de ejemplo no se pueden eliminar",
+    });
+  }
+
   const where = tenantWhere(user);
   if (!where.instanceId) {
     return NextResponse.json(
@@ -21,8 +34,6 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-
-  const { module } = await request.json();
 
   try {
     let deleted = 0;
