@@ -36,10 +36,24 @@ export function Topbar() {
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 px-6 backdrop-blur-sm">
-      <div>
-        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-          {userData?.name ?? ""}
-        </h2>
+      <div className="flex items-center gap-3">
+        {userData?.instance?.logoUrl && (
+          <img
+            src={userData.instance.logoUrl}
+            alt={userData.instance.name}
+            className="h-9 max-w-[120px] md:max-w-[160px] rounded-lg object-contain"
+          />
+        )}
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {userData?.instance?.name || userData?.name || ""}
+          </h2>
+          {userData?.instance?.brandName && userData.instance.brandName !== userData.instance.name && (
+            <p className="text-[10px] text-slate-400 dark:text-slate-500">
+              {userData.instance.brandName}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-3">

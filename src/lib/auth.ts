@@ -10,6 +10,14 @@ import { prisma } from "./prisma";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
+export interface AuthInstance {
+  id: string;
+  name: string;
+  brandName: string | null;
+  logoUrl: string | null;
+  plan: string;
+}
+
 export interface AuthUser {
   id: string;
   firebaseUid: string;
@@ -18,6 +26,7 @@ export interface AuthUser {
   role: string;
   permisos: string[];
   instanceId: string | null;
+  instance?: AuthInstance | null;
   /** True when user has no instanceId in DB (before cookie scoping) */
   isSuperAdmin: boolean;
 }
@@ -174,6 +183,16 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       }
     }
 
+    // Fetch instance data for the effective instance
+    let instance: AuthInstance | null = null;
+    if (effectiveInstanceId) {
+      const inst = await prisma.instance.findUnique({
+        where: { id: effectiveInstanceId },
+        select: { id: true, name: true, brandName: true, logoUrl: true, plan: true },
+      });
+      instance = inst;
+    }
+
     return {
       id: user.id,
       firebaseUid: user.firebaseUid,
@@ -182,6 +201,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       role: user.role,
       permisos: user.permisos,
       instanceId: effectiveInstanceId,
+      instance,
       isSuperAdmin: isSuper,
     };
   } catch (err) {

@@ -18,6 +18,14 @@ import {
   type PermisoCodigo,
 } from "@/lib/permissions";
 
+interface InstanceData {
+  id: string;
+  name: string;
+  brandName: string | null;
+  logoUrl: string | null;
+  plan: string;
+}
+
 interface UserData {
   id: string;
   firebaseUid: string;
@@ -26,6 +34,7 @@ interface UserData {
   role: string;
   permisos: string[];
   instanceId: string | null;
+  instance?: InstanceData | null;
 }
 
 interface AuthContextType {
