@@ -247,12 +247,30 @@
     "resetError": "Error al eliminar datos"
   },
   "auth": {
-    "login": "Iniciar sesion",
+    "login": "Iniciar Sesion",
     "logout": "Cerrar sesion",
     "email": "Correo electronico",
+    "emailPlaceholder": "correo@ejemplo.com",
     "password": "Contrasena",
     "forgotPassword": "Olvidaste tu contrasena?",
     "resetSent": "Se envio el enlace de restablecimiento",
-    "loginError": "Credenciales incorrectas"
+    "loginError": "Credenciales incorrectas",
+    "welcome": "Bienvenido",
+    "welcomeDesc": "Ingresa a tu panel de etiquetado",
+    "heroSubtitle": "Panel de etiquetado inteligente",
+    "feature1": "Etiquetado automatico de productos",
+    "feature2": "Trazabilidad y bitacora de produccion",
+    "feature3": "Gestion multi-empresa y multi-sede",
+    "loggingIn": "Ingresando...",
+    "wrongCredentials": "Usuario no encontrado o contrasena incorrecta",
+    "wrongPassword": "Contrasena incorrecta",
+    "tooManyRequests": "Demasiados intentos. Intenta mas tarde",
+    "invalidEmail": "Correo electronico invalido",
+    "apiKeyError": "Error de configuracion. Contacta al administrador",
+    "enterEmailFirst": "Ingresa tu correo electronico primero",
+    "resetEmailSent": "Se envio un correo para restablecer tu contrasena",
+    "resetError": "Error al enviar correo de restablecimiento",
+    "sendResetEmail": "Enviar correo de restablecimiento",
+    "cancel": "Cancelar"
   }
 }
