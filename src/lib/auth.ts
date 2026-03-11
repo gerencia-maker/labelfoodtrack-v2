@@ -72,7 +72,46 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       },
     });
 
-    // Auto-provision: if user doesn't exist, create them.
+    // Auto-provision: if user doesn't exist by firebaseUid, check by email.
+    // Migrated users may have old Firestore UIDs — link them to the new Firebase UID.
+    if (!user && decoded.email) {
+      const existingByEmail = await prisma.user.findUnique({
+        where: { email: decoded.email },
+        select: {
+          id: true,
+          firebaseUid: true,
+          email: true,
+          name: true,
+          role: true,
+          status: true,
+          permisos: true,
+          activo: true,
+          instanceId: true,
+        },
+      });
+
+      if (existingByEmail) {
+        // Link existing user to the new Firebase UID
+        user = await prisma.user.update({
+          where: { id: existingByEmail.id },
+          data: { firebaseUid: decoded.uid },
+          select: {
+            id: true,
+            firebaseUid: true,
+            email: true,
+            name: true,
+            role: true,
+            status: true,
+            permisos: true,
+            activo: true,
+            instanceId: true,
+          },
+        });
+        console.log(`[auth] Linked existing user ${user.email} to Firebase UID ${decoded.uid}`);
+      }
+    }
+
+    // If still no user, create a new one.
     // First user ever becomes super-admin; subsequent users get VIEWER role.
     if (!user) {
       const userCount = await prisma.user.count();
