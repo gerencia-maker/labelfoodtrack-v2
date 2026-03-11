@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
+import { adminAuth, isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission } from "@/lib/permissions";
 
@@ -55,39 +56,71 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { email, name, role, permisos } = body;
+  const { email, password, name, role, permisos } = body;
 
   if (!email || !name) {
     return NextResponse.json({ error: "Email y nombre son requeridos" }, { status: 400 });
   }
 
-  // Check if user already exists
+  if (!password || password.length < 6) {
+    return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 });
+  }
+
+  // Check if user already exists in DB
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     return NextResponse.json({ error: "Ya existe un usuario con ese email" }, { status: 409 });
   }
 
-  const newUser = await prisma.user.create({
-    data: {
-      firebaseUid: `pending-${Date.now()}`,
-      email,
-      name,
-      role: role || "VIEWER",
-      permisos: permisos || [],
-      instanceId: user.instanceId,
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      status: true,
-      permisos: true,
-      activo: true,
-      instanceId: true,
-      createdAt: true,
-    },
-  });
+  try {
+    if (!isFirebaseAdminConfigured) {
+      return NextResponse.json({ error: "Firebase Admin no configurado" }, { status: 500 });
+    }
 
-  return NextResponse.json(newUser, { status: 201 });
+    // 1. Create Firebase Auth user
+    const firebaseUser = await adminAuth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+
+    try {
+      // 2. Create Prisma user with real Firebase UID
+      const newUser = await prisma.user.create({
+        data: {
+          firebaseUid: firebaseUser.uid,
+          email,
+          name,
+          role: role || "VIEWER",
+          permisos: permisos || [],
+          instanceId: user.instanceId,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          status: true,
+          permisos: true,
+          activo: true,
+          instanceId: true,
+          createdAt: true,
+        },
+      });
+
+      return NextResponse.json(newUser, { status: 201 });
+    } catch (dbError) {
+      // Rollback: delete Firebase user if Prisma create fails
+      await adminAuth.deleteUser(firebaseUser.uid);
+      throw dbError;
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error al crear usuario";
+    // Firebase-specific error messages
+    if (message.includes("email-already-exists")) {
+      return NextResponse.json({ error: "El email ya existe en Firebase Auth" }, { status: 409 });
+    }
+    console.error("[users/POST] Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

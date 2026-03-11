@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, checkTenantAccess } from "@/lib/auth";
+import { adminAuth, isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission } from "@/lib/permissions";
 
@@ -18,7 +19,7 @@ export async function PUT(
 
   const target = await prisma.user.findUnique({
     where: { id },
-    select: { id: true, instanceId: true },
+    select: { id: true, firebaseUid: true, instanceId: true, activo: true },
   });
 
   if (!target) {
@@ -54,6 +55,15 @@ export async function PUT(
     },
   });
 
+  // Sync activo status to Firebase (enable/disable user)
+  if (activo !== undefined && activo !== target.activo && isFirebaseAdminConfigured) {
+    try {
+      await adminAuth.updateUser(target.firebaseUid, { disabled: !activo });
+    } catch (err) {
+      console.error("[users/PUT] Firebase sync error:", err instanceof Error ? err.message : err);
+    }
+  }
+
   return NextResponse.json(updated);
 }
 
@@ -70,14 +80,13 @@ export async function DELETE(
 
   const { id } = await params;
 
-  // Prevent self-deactivation
   if (id === user.id) {
-    return NextResponse.json({ error: "No puede desactivar su propia cuenta" }, { status: 400 });
+    return NextResponse.json({ error: "No puedes eliminarte a ti mismo" }, { status: 400 });
   }
 
   const target = await prisma.user.findUnique({
     where: { id },
-    select: { id: true, instanceId: true },
+    select: { id: true, firebaseUid: true, instanceId: true },
   });
 
   if (!target) {
@@ -88,11 +97,17 @@ export async function DELETE(
     return forbidden();
   }
 
-  // Soft-delete: deactivate instead of hard delete
-  await prisma.user.update({
-    where: { id },
-    data: { activo: false, status: "INACTIVE" },
-  });
+  // Delete from Firebase Auth
+  if (isFirebaseAdminConfigured && !target.firebaseUid.startsWith("pending-")) {
+    try {
+      await adminAuth.deleteUser(target.firebaseUid);
+    } catch (err) {
+      console.error("[users/DELETE] Firebase error:", err instanceof Error ? err.message : err);
+    }
+  }
+
+  // Hard delete from DB
+  await prisma.user.delete({ where: { id } });
 
   return NextResponse.json({ success: true });
 }
