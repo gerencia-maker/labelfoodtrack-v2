@@ -24,7 +24,7 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { name, brandName, plan, activo, destinations, packers } = body;
+  const { name, brandName, logoUrl, plan, activo, destinations, packers } = body;
 
   if (DEMO_MODE) {
     const updated = updateDemoInstance(id, { name, brandName, plan, activo, destinations, packers });
@@ -45,6 +45,7 @@ export async function PUT(
       data: {
         ...(name !== undefined && { name }),
         ...(brandName !== undefined && { brandName }),
+        ...(logoUrl !== undefined && { logoUrl }),
         ...(plan !== undefined && { plan }),
         ...(activo !== undefined && { activo }),
         ...(destinations !== undefined && { destinations }),

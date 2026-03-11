@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslations } from "next-intl";
 import { RequirePermission } from "@/components/require-permission";
@@ -15,6 +15,9 @@ import {
   Users,
   MapPin,
   Crown,
+  Upload,
+  Image as ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +25,7 @@ interface InstanceData {
   id: string;
   name: string;
   brandName: string | null;
+  logoUrl: string | null;
   plan: string;
   activo: boolean;
   destinations: string[];
@@ -32,6 +36,7 @@ interface InstanceData {
 interface FormData {
   name: string;
   brandName: string;
+  logoUrl: string;
   plan: string;
   destinations: string[];
   packers: string[];
@@ -40,6 +45,7 @@ interface FormData {
 const EMPTY_FORM: FormData = {
   name: "",
   brandName: "",
+  logoUrl: "",
   plan: "BASIC",
   destinations: [],
   packers: [],
@@ -67,6 +73,8 @@ function InstancesContent() {
   const [newDest, setNewDest] = useState("");
   const [newPacker, setNewPacker] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadInstances = useCallback(async () => {
     try {
@@ -100,6 +108,7 @@ function InstancesContent() {
     setForm({
       name: inst.name,
       brandName: inst.brandName || "",
+      logoUrl: inst.logoUrl || "",
       plan: inst.plan,
       destinations: [...inst.destinations],
       packers: [...(inst.packers || [])],
@@ -112,6 +121,7 @@ function InstancesContent() {
     setEditingId(null);
     setForm(EMPTY_FORM);
     setNewDest("");
+    setNewPacker("");
   };
 
   const addDestination = () => {
@@ -138,6 +148,35 @@ function InstancesContent() {
     setForm({ ...form, packers: form.packers.filter((x) => x !== p) });
   };
 
+  const handleLogoUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > 5 * 1024 * 1024) return;
+
+    setUploading(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+
+      const formData = new globalThis.FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (res.ok) {
+        const { url } = await res.json();
+        setForm((prev) => ({ ...prev, logoUrl: url }));
+      }
+    } catch {
+      // silent
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!form.name.trim()) return;
     setSaving(true);
@@ -158,6 +197,7 @@ function InstancesContent() {
         body: JSON.stringify({
           name: form.name.trim(),
           brandName: form.brandName.trim() || null,
+          logoUrl: form.logoUrl.trim() || null,
           plan: form.plan,
           destinations: form.destinations,
           packers: form.packers,
@@ -235,6 +275,88 @@ function InstancesContent() {
             <button onClick={closeForm} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
               <X size={20} />
             </button>
+          </div>
+
+          {/* Logo upload */}
+          <div className="mb-4">
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              {t("logo")}
+            </label>
+            <div className="flex items-start gap-4">
+              {/* Preview */}
+              <div
+                onClick={() => !uploading && fileInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const file = e.dataTransfer.files[0];
+                  if (file) handleLogoUpload(file);
+                }}
+                className={cn(
+                  "flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center rounded-xl border-2 border-dashed transition-colors overflow-hidden",
+                  form.logoUrl
+                    ? "border-transparent"
+                    : "border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 bg-slate-50 dark:bg-slate-900"
+                )}
+              >
+                {uploading ? (
+                  <Loader2 size={24} className="animate-spin text-blue-500" />
+                ) : form.logoUrl ? (
+                  <img
+                    src={form.logoUrl}
+                    alt="Logo"
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-1 text-slate-400">
+                    <ImageIcon size={20} />
+                    <span className="text-[10px]">{t("uploadLogo")}</span>
+                  </div>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleLogoUpload(file);
+                  e.target.value = "";
+                }}
+              />
+
+              <div className="flex-1 space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={form.logoUrl}
+                    onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
+                    placeholder="https://..."
+                    className="flex-1 text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    <Upload size={14} />
+                  </Button>
+                </div>
+                {form.logoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, logoUrl: "" })}
+                    className="text-xs text-red-500 hover:underline"
+                  >
+                    {t("removeLogo")}
+                  </button>
+                )}
+                <p className="text-[10px] text-slate-400">{t("logoHint")}</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -316,7 +438,7 @@ function InstancesContent() {
             </div>
 
             {/* Packers (Empacado por) */}
-            <div>
+            <div className="sm:col-span-2">
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 {t("packers")}
               </label>
@@ -401,14 +523,24 @@ function InstancesContent() {
                 <tr key={inst.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "flex h-9 w-9 items-center justify-center rounded-lg text-white",
-                        inst.activo
-                          ? "bg-gradient-to-br from-orange-400 to-red-500"
-                          : "bg-slate-300 dark:bg-slate-600"
-                      )}>
-                        <Building2 size={16} />
-                      </div>
+                      {inst.logoUrl ? (
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                          <img
+                            src={inst.logoUrl}
+                            alt={inst.name}
+                            className="h-full w-full object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className={cn(
+                          "flex h-9 w-9 items-center justify-center rounded-lg text-white",
+                          inst.activo
+                            ? "bg-gradient-to-br from-orange-400 to-red-500"
+                            : "bg-slate-300 dark:bg-slate-600"
+                        )}>
+                          <Building2 size={16} />
+                        </div>
+                      )}
                       <div>
                         <p className="font-medium text-slate-900 dark:text-white text-sm">{inst.name}</p>
                         {inst.brandName && (

@@ -9,6 +9,7 @@ interface InstanceOption {
   id: string;
   name: string;
   brandName: string | null;
+  logoUrl: string | null;
   plan: string;
   activo: boolean;
 }
@@ -79,7 +80,9 @@ export function InstanceSelector() {
         )}
         disabled={loading}
       >
-        {selected ? (
+        {selected?.logoUrl ? (
+          <img src={selected.logoUrl} alt="" className="h-4 w-4 rounded object-contain" />
+        ) : selected ? (
           <Building2 size={14} />
         ) : (
           <Globe size={14} />
@@ -116,7 +119,11 @@ export function InstanceSelector() {
                   selectedId === inst.id && "bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400"
                 )}
               >
-                <Building2 size={14} className="shrink-0" />
+                {inst.logoUrl ? (
+                  <img src={inst.logoUrl} alt="" className="h-4 w-4 shrink-0 rounded object-contain" />
+                ) : (
+                  <Building2 size={14} className="shrink-0" />
+                )}
                 <div className="min-w-0 flex-1 text-left">
                   <p className="truncate font-medium">{inst.name}</p>
                   {inst.brandName && (

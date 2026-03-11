@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, brandName, plan, destinations, packers } = body;
+  const { name, brandName, logoUrl, plan, destinations, packers } = body;
 
   if (!name) {
     return NextResponse.json({ error: "Nombre es requerido" }, { status: 400 });
@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         brandName: brandName || null,
+        logoUrl: logoUrl || null,
         plan: plan || "BASIC",
         destinations: destinations || [],
         packers: packers || [],

@@ -11,6 +11,7 @@ model Instance {
   id           String   @id @default(cuid())
   name         String
   brandName    String?
+  logoUrl      String?
   sheetId      String?
   sheetGid     String?
   destinations String[]

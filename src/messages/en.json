@@ -44,7 +44,11 @@
     "addDestination": "Add destination",
     "editInstance": "Edit instance",
     "packers": "Packed by",
-    "saveInstance": "Save"
+    "saveInstance": "Save",
+    "logo": "Logo",
+    "uploadLogo": "Upload logo",
+    "removeLogo": "Remove logo",
+    "logoHint": "Drag an image or paste a URL. Max 5MB."
   },
   "products": {
     "title": "Labeling Index",

@@ -44,7 +44,11 @@
     "addDestination": "Agregar destino",
     "editInstance": "Editar instancia",
     "packers": "Empacado por",
-    "saveInstance": "Guardar"
+    "saveInstance": "Guardar",
+    "logo": "Logo",
+    "uploadLogo": "Subir logo",
+    "removeLogo": "Eliminar logo",
+    "logoHint": "Arrastra una imagen o pega una URL. Max 5MB."
   },
   "products": {
     "title": "Indice de rotulacion",
