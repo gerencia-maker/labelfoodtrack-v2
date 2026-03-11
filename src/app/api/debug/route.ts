@@ -1,24 +1,54 @@
-import { NextResponse } from "next/server";
-import { isFirebaseAdminConfigured } from "@/lib/firebase-admin";
+import { NextRequest, NextResponse } from "next/server";
+import { isFirebaseAdminConfigured, adminAuth } from "@/lib/firebase-admin";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Temporary debug endpoint — remove after auth is working.
- * Returns server-side config status (no secrets exposed).
+ * Tests each component: config, Firebase Admin, DB connection.
  */
-export async function GET() {
-  const saLength = process.env.FIREBASE_SERVICE_ACCOUNT?.length || 0;
-  const saFirst10 = process.env.FIREBASE_SERVICE_ACCOUNT?.substring(0, 10) || "(empty)";
-
-  return NextResponse.json({
-    status: "ok",
+export async function GET(request: NextRequest) {
+  const results: Record<string, unknown> = {
     timestamp: new Date().toISOString(),
     config: {
       isFirebaseAdminConfigured,
       DEMO_MODE: process.env.NEXT_PUBLIC_DEMO_MODE || "(not set)",
-      FIREBASE_SERVICE_ACCOUNT_length: saLength,
-      FIREBASE_SERVICE_ACCOUNT_preview: saFirst10,
+      FIREBASE_SERVICE_ACCOUNT_length: process.env.FIREBASE_SERVICE_ACCOUNT?.length || 0,
       DATABASE_URL_set: !!process.env.DATABASE_URL,
-      NODE_ENV: process.env.NODE_ENV,
     },
-  });
+  };
+
+  // Test 1: Database connection
+  try {
+    const userCount = await prisma.user.count();
+    const instanceCount = await prisma.instance.count();
+    results.database = { status: "ok", userCount, instanceCount };
+  } catch (err) {
+    results.database = {
+      status: "error",
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
+
+  // Test 2: Firebase Admin token verification (if Bearer token provided)
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.split("Bearer ")[1];
+    try {
+      const decoded = await adminAuth.verifyIdToken(token);
+      results.firebaseVerify = {
+        status: "ok",
+        uid: decoded.uid,
+        email: decoded.email,
+      };
+    } catch (err) {
+      results.firebaseVerify = {
+        status: "error",
+        message: err instanceof Error ? err.message : String(err),
+      };
+    }
+  } else {
+    results.firebaseVerify = { status: "skipped", reason: "no Bearer token" };
+  }
+
+  return NextResponse.json(results);
 }
