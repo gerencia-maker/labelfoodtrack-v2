@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
 interface Product {
@@ -41,13 +42,14 @@ export default function ProductsPage() {
   const { getToken, userData } = useAuth();
   const t = useTranslations("products");
   const router = useRouter();
+  const { toast } = useToast();
 
   const canEdit = !!(userData?.role === "ADMIN" || userData?.role === "EDITOR");
   const today = new Date().toISOString().split("T")[0];
 
   const handleDateChange = (productId: string, value: string) => {
     if (value && value < today) {
-      alert("No se permite insertar fechas anteriores a la fecha actual");
+      toast({ title: "No se permite insertar fechas anteriores a la fecha actual", variant: "error" });
       return;
     }
     setDates((prev) => ({ ...prev, [productId]: value }));
