@@ -202,6 +202,15 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     loadUbicaciones();
   }, [getToken, isSuperAdmin]);
 
+  // Opciones para "Empacado por"
+  const packedByOptions = useMemo(() => {
+    if (isSuperAdmin && allUbicaciones.length > 0) return allUbicaciones;
+    const opts = [...packers];
+    const userUbic = userData?.ubicacion;
+    if (userUbic && !opts.includes(userUbic)) opts.unshift(userUbic);
+    return opts;
+  }, [isSuperAdmin, allUbicaciones, packers, userData?.ubicacion]);
+
   // Fallback: set brand and packedBy from auth context
   useEffect(() => {
     if (!brand && userData?.instance) {
@@ -523,19 +532,9 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               className="flex h-10 w-full rounded-xl border border-orange-200 bg-white px-3 py-2 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
             >
               <option value="">Seleccionar...</option>
-              {isSuperAdmin && allUbicaciones.length > 0
-                ? allUbicaciones.map((u) => (
-                    <option key={u} value={u}>{u}</option>
-                  ))
-                : (() => {
-                    const opts = [...packers];
-                    const userUbic = userData?.ubicacion;
-                    if (userUbic && !opts.includes(userUbic)) opts.unshift(userUbic);
-                    return opts.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ));
-                  })()
-              }
+              {packedByOptions.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
             </select>
           </div>
           <div>
