@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -147,17 +147,16 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     }
   }, [coldChainOptions]);
 
-  // Cargar productos, instancia actual, y ubicaciones (super admin)
-  const dataLoadedRef = useRef(false);
-  const loadData = useCallback(async () => {
-    if (dataLoadedRef.current) return;
-    const token = await getToken();
-    if (!token) return;
-    dataLoadedRef.current = true;
+  // Cargar productos e instancia actual
+  const productsLoadedRef = useRef(false);
+  useEffect(() => {
+    async function loadBase() {
+      if (productsLoadedRef.current) return;
+      const token = await getToken();
+      if (!token) return;
+      productsLoadedRef.current = true;
 
-    const headers = { Authorization: `Bearer ${token}` };
-
-    try {
+      const headers = { Authorization: `Bearer ${token}` };
       const [prodRes, instRes] = await Promise.all([
         fetch("/api/products", { headers }),
         fetch("/api/instances", { headers }),
@@ -177,26 +176,31 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           setPackers(current.packers || []);
         }
       }
-
-      if (isSuperAdmin) {
-        const usersRes = await fetch("/api/users", { headers });
-        if (usersRes.ok) {
-          const users: { ubicacion?: string | null }[] = await usersRes.json();
-          const ubics = [...new Set(
-            users.map((u) => u.ubicacion).filter((u): u is string => !!u)
-          )].sort();
-          setAllUbicaciones(ubics);
-        }
-      }
-    } catch (e) {
-      console.error("[LabelForm] load error:", e);
-      dataLoadedRef.current = false; // allow retry on error
     }
-  }, [getToken, userData?.instanceId, isSuperAdmin]);
+    loadBase();
+  }, [getToken, userData?.instanceId]);
 
+  // Super admin: cargar ubicaciones de todos los usuarios
+  const ubicacionesLoadedRef = useRef(false);
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!isSuperAdmin || ubicacionesLoadedRef.current) return;
+    async function loadUbicaciones() {
+      const token = await getToken();
+      if (!token) return;
+      ubicacionesLoadedRef.current = true;
+      const res = await fetch("/api/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const users: { ubicacion?: string | null }[] = await res.json();
+        const ubics = [...new Set(
+          users.map((u) => u.ubicacion).filter((u): u is string => !!u)
+        )].sort();
+        setAllUbicaciones(ubics);
+      }
+    }
+    loadUbicaciones();
+  }, [getToken, isSuperAdmin]);
 
   // Fallback: set brand and packedBy from auth context
   useEffect(() => {
@@ -523,9 +527,14 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 ? allUbicaciones.map((u) => (
                     <option key={u} value={u}>{u}</option>
                   ))
-                : packers.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))
+                : (() => {
+                    const opts = [...packers];
+                    const userUbic = userData?.ubicacion;
+                    if (userUbic && !opts.includes(userUbic)) opts.unshift(userUbic);
+                    return opts.map((p) => (
+                      <option key={p} value={p}>{p}</option>
+                    ));
+                  })()
               }
             </select>
           </div>
