@@ -5,14 +5,17 @@ import type { LabelPreviewData } from "./label-preview";
 
 interface LabelPrintProps {
   data: LabelPreviewData;
+  /** When true, renders a screen-visible preview (not hidden) */
+  screenPreview?: boolean;
 }
 
 /**
  * Componente de impresion: tabla matricial 3 columnas con QR inline.
  * Portado de v1 app.js buildPrintMatrixHtml() (lineas 5185-5249).
  * Se muestra solo al imprimir (hidden en pantalla, block en print via CSS).
+ * Con screenPreview=true se muestra en pantalla como preview real.
  */
-export function LabelPrint({ data }: LabelPrintProps) {
+export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
   const formatDate = (dateStr: string) => {
     if (!dateStr || dateStr === "--") return "--";
     try {
@@ -29,8 +32,8 @@ export function LabelPrint({ data }: LabelPrintProps) {
   const qrRowSpan = 5 + (hasRefrigerated ? 1 : 0) + (hasFrozen ? 1 : 0);
 
   return (
-    <div id="printMatrixContainer">
-      <div id="printMatrixLabel">
+    <div id={screenPreview ? undefined : "printMatrixContainer"} className={screenPreview ? "screen-print-preview" : undefined}>
+      <div id={screenPreview ? undefined : "printMatrixLabel"} className={screenPreview ? "screen-matrix-label" : undefined}>
         <table>
           <thead>
             <tr>

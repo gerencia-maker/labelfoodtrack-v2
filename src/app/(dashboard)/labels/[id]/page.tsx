@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
 import { usePrintPreset } from "@/hooks/use-print-preset";
-import { LabelPreview, type LabelPreviewData } from "@/components/labels/label-preview";
+import { type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
 import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
@@ -289,10 +289,10 @@ export default function LabelDetailPage({
           </div>
         </div>
 
-        {/* ── Label preview (HERO — centered, like v1) ── */}
+        {/* ── Real print label preview (HERO — centered) ── */}
         <div className="flex justify-center mb-4">
-          <div className="w-full max-w-[700px]">
-            <LabelPreview data={previewData} />
+          <div className="w-full max-w-[900px]">
+            <LabelPrint data={previewData} screenPreview />
           </div>
         </div>
 

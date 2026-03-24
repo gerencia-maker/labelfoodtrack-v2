@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
 import { usePrintPreset } from "@/hooks/use-print-preset";
 import { LabelForm, type LabelSaveData } from "@/components/labels/label-form";
-import { LabelPreview, type LabelPreviewData } from "@/components/labels/label-preview";
+import { type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
 import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
@@ -182,11 +182,11 @@ export default function NewLabelPage() {
           )}
         </div>
 
-        {/* ── Label preview (HERO — full width, centered, like v1) ── */}
+        {/* ── Real print label preview (HERO — full width) ── */}
         <div className="flex justify-center">
-          <div className="w-full max-w-[700px]">
+          <div className="w-full max-w-[900px]">
             {hasProduct ? (
-              <LabelPreview data={previewData} />
+              <LabelPrint data={previewData} screenPreview />
             ) : (
               <EmptyPreview brand={previewData.brand} />
             )}

@@ -71,6 +71,99 @@ html.dark ::-webkit-scrollbar-thumb {
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
 .animate-fade-in { animation: fade-in 0.3s ease-out; }
 
+/* ===== Screen Print Preview (visible on screen) ===== */
+.screen-print-preview {
+  display: block;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.screen-matrix-label {
+  width: 100%;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  color: #000;
+  background: #fff;
+}
+
+.screen-matrix-label table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid #000;
+  table-layout: fixed;
+}
+
+.screen-matrix-label th {
+  border: none;
+  border-bottom: 2px solid #000;
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  background: #fff;
+  color: #000;
+  letter-spacing: 0.04em;
+}
+
+.screen-matrix-label td {
+  border-bottom: 1px solid #000;
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: middle;
+  background: #fff;
+  color: #000;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.screen-matrix-label td:first-child {
+  width: 30%;
+  font-weight: 600;
+  border-right: 1px solid #000;
+}
+
+.screen-matrix-label td:nth-child(2) {
+  width: 48%;
+  border-right: 1px solid #000;
+}
+
+.screen-matrix-label td:nth-child(3) {
+  width: 22%;
+}
+
+.screen-matrix-label tr:last-child td {
+  border-bottom: none;
+}
+
+.screen-matrix-label .multiline-row td {
+  vertical-align: top;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.screen-matrix-label .qr-cell {
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 12px !important;
+  width: 22% !important;
+}
+
+.screen-matrix-label .qr-cell canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 90px !important;
+  max-height: 90px !important;
+}
+
+@media print {
+  .screen-print-preview {
+    display: none !important;
+  }
+}
+
 /* ===== Print Matrix Label - Screen styles (hidden) ===== */
 #printMatrixContainer {
   display: none !important;
