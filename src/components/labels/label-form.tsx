@@ -202,14 +202,17 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     loadUbicaciones();
   }, [getToken, isSuperAdmin]);
 
-  // Opciones para "Empacado por"
+  // Opciones para "Empacado por": merge all sources, deduplicate
   const packedByOptions = useMemo(() => {
-    if (isSuperAdmin && allUbicaciones.length > 0) return allUbicaciones;
-    const opts = [...packers];
-    const userUbic = userData?.ubicacion;
-    if (userUbic && !opts.includes(userUbic)) opts.unshift(userUbic);
-    return opts;
-  }, [isSuperAdmin, allUbicaciones, packers, userData?.ubicacion]);
+    const all = new Set<string>();
+    // User's own ubicacion first
+    if (userData?.ubicacion) all.add(userData.ubicacion);
+    // Super admin: all user ubicaciones
+    allUbicaciones.forEach((u) => all.add(u));
+    // Instance packers
+    packers.forEach((p) => all.add(p));
+    return [...all];
+  }, [allUbicaciones, packers, userData?.ubicacion]);
 
   // Fallback: set brand and packedBy from auth context
   useEffect(() => {
