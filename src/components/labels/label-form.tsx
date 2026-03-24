@@ -519,7 +519,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           <div>
             <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5">
               <UserCheck size={12} className="text-slate-400" />
-              Empacado por
+              Empacado por ({packers.length}|{allUbicaciones.length})
             </Label>
             <Select
               id="packedBy"
@@ -540,7 +540,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           <div>
             <Label htmlFor="destination" className="inline-flex items-center gap-1.5">
               <MapPin size={12} className="text-slate-400" />
-              Destino
+              Destino ({destinations.length})
             </Label>
             <Select
               id="destination"
