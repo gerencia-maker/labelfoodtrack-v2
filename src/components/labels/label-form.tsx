@@ -95,12 +95,13 @@ const COLD_CHAIN_META: Record<string, { icon: typeof Thermometer; color: string;
 };
 
 export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
-  const { getToken, userData } = useAuth();
+  const { getToken, userData, isSuperAdmin } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
   const [brand, setBrand] = useState("");
   const [destinations, setDestinations] = useState<string[]>([]);
   const [packers, setPackers] = useState<string[]>([]);
+  const [allUbicaciones, setAllUbicaciones] = useState<string[]>([]);
 
   // Parse netContent default into qty + unit (e.g. "500 g" -> "500", "g")
   const parsedDefault = parseNetContent(defaultValues?.netContent || "");
@@ -152,10 +153,14 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       const token = await getToken();
       if (!token) return;
 
-      const [prodRes, instRes] = await Promise.all([
+      const fetches: Promise<Response>[] = [
         fetch("/api/products", { headers: { Authorization: `Bearer ${token}` } }),
         fetch("/api/instances", { headers: { Authorization: `Bearer ${token}` } }),
-      ]);
+      ];
+      if (isSuperAdmin) {
+        fetches.push(fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } }));
+      }
+      const [prodRes, instRes, usersRes] = await Promise.all(fetches);
 
       if (prodRes.ok) {
         setProducts(await prodRes.json());
@@ -175,9 +180,16 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           setBrand(userData.instance.brandName || userData.instance.name || "");
         }
       }
+
+      // Super admin: load all user ubicaciones
+      if (usersRes?.ok) {
+        const users: { ubicacion?: string | null }[] = await usersRes.json();
+        const ubics = [...new Set(users.map((u) => u.ubicacion).filter((u): u is string => !!u))].sort();
+        setAllUbicaciones(ubics);
+      }
     }
     load();
-  }, [getToken, userData]);
+  }, [getToken, userData, isSuperAdmin]);
 
   // Fallback: set brand from auth context if not loaded from API
   useEffect(() => {
@@ -496,9 +508,14 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               onChange={(e) => setPackedBy(e.target.value)}
             >
               <option value="">Seleccionar...</option>
-              {packers.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
+              {isSuperAdmin && allUbicaciones.length > 0
+                ? allUbicaciones.map((u) => (
+                    <option key={u} value={u}>{u}</option>
+                  ))
+                : packers.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))
+              }
             </Select>
           </div>
           <div>
