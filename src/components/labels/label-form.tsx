@@ -113,7 +113,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     defaultValues?.productionDate || new Date().toISOString().split("T")[0]
   );
   const [batch, setBatch] = useState(defaultValues?.batch || "");
-  const [packedBy, setPackedBy] = useState(defaultValues?.packedBy || "");
+  const [packedBy, setPackedBy] = useState(defaultValues?.packedBy || userData?.ubicacion || "");
   const [destination, setDestination] = useState(defaultValues?.destination || "");
   const [autoGenerateBatch, setAutoGenerateBatch] = useState(!defaultValues?.batch);
   const [coldChainType, setColdChainType] = useState<string>("");

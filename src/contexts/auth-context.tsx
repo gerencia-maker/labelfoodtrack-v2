@@ -33,6 +33,7 @@ interface UserData {
   name: string;
   role: string;
   permisos: string[];
+  ubicacion?: string | null;
   instanceId: string | null;
   instance?: InstanceData | null;
 }

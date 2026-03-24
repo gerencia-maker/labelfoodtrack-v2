@@ -38,8 +38,9 @@ model User {
   licenseEndDate DateTime?
 
   // Dynamic permissions array (module + sub-action codes)
-  permisos String[] @default([])
-  activo   Boolean  @default(true)
+  permisos  String[] @default([])
+  ubicacion String?
+  activo    Boolean  @default(true)
 
   // Nullable instanceId: null = super-admin (global access)
   instanceId String?

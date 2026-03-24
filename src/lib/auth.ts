@@ -25,6 +25,7 @@ export interface AuthUser {
   name: string;
   role: string;
   permisos: string[];
+  ubicacion?: string | null;
   instanceId: string | null;
   instance?: AuthInstance | null;
   /** True when user has no instanceId in DB (before cookie scoping) */
@@ -73,6 +74,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
         role: true,
         status: true,
         permisos: true,
+        ubicacion: true,
         activo: true,
         instanceId: true,
       },
@@ -91,6 +93,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
           role: true,
           status: true,
           permisos: true,
+          ubicacion: true,
           activo: true,
           instanceId: true,
         },
@@ -109,6 +112,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
             role: true,
             status: true,
             permisos: true,
+            ubicacion: true,
             activo: true,
             instanceId: true,
           },
@@ -144,6 +148,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
           role: true,
           status: true,
           permisos: true,
+          ubicacion: true,
           activo: true,
           instanceId: true,
         },
@@ -200,6 +205,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       name: user.name,
       role: user.role,
       permisos: user.permisos,
+      ubicacion: user.ubicacion,
       instanceId: effectiveInstanceId,
       instance,
       isSuperAdmin: isSuper,

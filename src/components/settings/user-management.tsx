@@ -34,6 +34,7 @@ interface UserRow {
   role: string;
   status: string;
   permisos: string[];
+  ubicacion?: string | null;
   activo: boolean;
   instanceId: string | null;
   createdAt: string;
@@ -99,6 +100,7 @@ export function UserManagement() {
   const [formPassword, setFormPassword] = useState("");
   const [formRole, setFormRole] = useState<string>("VIEWER");
   const [formPermisos, setFormPermisos] = useState<string[]>([]);
+  const [formUbicacion, setFormUbicacion] = useState("");
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
@@ -135,6 +137,7 @@ export function UserManagement() {
     setFormName("");
     setFormEmail("");
     setFormPassword("");
+    setFormUbicacion("");
     setShowPassword(false);
     setFormRole("VIEWER");
     setFormPermisos([]);
@@ -147,6 +150,7 @@ export function UserManagement() {
     setFormName(user.name);
     setFormEmail(user.email);
     setFormPassword("");
+    setFormUbicacion(user.ubicacion || "");
     setShowPassword(false);
     setFormRole(user.role);
     setFormPermisos([...user.permisos]);
@@ -178,6 +182,7 @@ export function UserManagement() {
             name: formName,
             role: formRole,
             permisos: formRole === "EDITOR" ? formPermisos : [],
+            ubicacion: formUbicacion,
           }),
         });
         if (res.ok) {
@@ -201,6 +206,7 @@ export function UserManagement() {
             name: formName,
             role: formRole,
             permisos: formRole === "EDITOR" ? formPermisos : [],
+            ubicacion: formUbicacion,
           }),
         });
         if (res.ok) {
@@ -451,6 +457,19 @@ export function UserManagement() {
                   placeholder={t("namePlaceholder")}
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
                 />
+              </div>
+
+              {/* Ubicacion */}
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ubicacion</label>
+                <input
+                  type="text"
+                  value={formUbicacion}
+                  onChange={(e) => setFormUbicacion(e.target.value)}
+                  placeholder="Ej: Cocina central, Planta 2..."
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">Se usa como valor por defecto en &quot;Empacado por&quot; al crear etiquetas</p>
               </div>
 
               {/* Email */}

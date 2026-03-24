@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
         role: true,
         status: true,
         permisos: true,
+        ubicacion: true,
         activo: true,
         instanceId: true,
         createdAt: true,
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { email, password, name, role, permisos } = body;
+  const { email, password, name, role, permisos, ubicacion } = body;
 
   if (!email || !name) {
     return NextResponse.json({ error: "Email y nombre son requeridos" }, { status: 400 });
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
           name,
           role: role || "VIEWER",
           permisos: permisos || [],
+          ubicacion: ubicacion || null,
           instanceId: user.instanceId,
         },
         select: {
@@ -102,6 +104,7 @@ export async function POST(request: NextRequest) {
           role: true,
           status: true,
           permisos: true,
+          ubicacion: true,
           activo: true,
           instanceId: true,
           createdAt: true,

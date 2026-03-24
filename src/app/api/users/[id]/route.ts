@@ -31,7 +31,7 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { name, role, permisos, status, activo } = body;
+  const { name, role, permisos, status, activo, ubicacion } = body;
 
   const updated = await prisma.user.update({
     where: { id },
@@ -39,6 +39,7 @@ export async function PUT(
       ...(name !== undefined && { name }),
       ...(role !== undefined && { role }),
       ...(permisos !== undefined && { permisos }),
+      ...(ubicacion !== undefined && { ubicacion: ubicacion || null }),
       ...(status !== undefined && { status }),
       ...(activo !== undefined && { activo }),
     },
@@ -49,6 +50,7 @@ export async function PUT(
       role: true,
       status: true,
       permisos: true,
+      ubicacion: true,
       activo: true,
       instanceId: true,
       createdAt: true,
