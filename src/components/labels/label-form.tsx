@@ -463,51 +463,36 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       <section className="space-y-3">
         <SectionHeader icon={CalendarDays} title="Datos de etiqueta" />
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5">
-              <Scale size={12} className="text-slate-400" />
-              Contenido neto
-            </Label>
-            <div className="flex gap-1.5">
-              <Input
-                id="netContentQty"
-                type="number"
-                min="0"
-                step="any"
-                placeholder="500"
-                value={netContentQty}
-                onChange={(e) => setNetContentQty(e.target.value)}
-                className="flex-1"
-              />
-              <Select
-                id="netContentUnit"
-                value={netContentUnit}
-                onChange={(e) => setNetContentUnit(e.target.value)}
-                className="w-24"
-              >
-                {NET_CONTENT_UNITS.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.options.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.value}</option>
-                    ))}
-                  </optgroup>
-                ))}
-              </Select>
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="productionDate" className="inline-flex items-center gap-1.5">
-              <CalendarDays size={12} className="text-slate-400" />
-              Fecha produccion *
-            </Label>
+        <div>
+          <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5">
+            <Scale size={12} className="text-slate-400" />
+            Contenido neto
+          </Label>
+          <div className="flex gap-1.5">
             <Input
-              id="productionDate"
-              type="date"
-              value={productionDate}
-              onChange={(e) => setProductionDate(e.target.value)}
-              required
+              id="netContentQty"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="500"
+              value={netContentQty}
+              onChange={(e) => setNetContentQty(e.target.value)}
+              className="flex-1"
             />
+            <Select
+              id="netContentUnit"
+              value={netContentUnit}
+              onChange={(e) => setNetContentUnit(e.target.value)}
+              className="w-24"
+            >
+              {NET_CONTENT_UNITS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.value}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </Select>
           </div>
         </div>
 
