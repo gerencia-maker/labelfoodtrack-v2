@@ -12,6 +12,7 @@ model Instance {
   name         String
   brandName    String?
   logoUrl      String?
+  chatbotId    String?  @unique
   sheetId      String?
   sheetGid     String?
   destinations String[]
