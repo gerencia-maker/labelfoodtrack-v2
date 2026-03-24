@@ -101,7 +101,10 @@ const DEMO_LABELS: Record<string, LabelDetail> = {
 
 function buildExpiryDate(prodDate: string, days: number): string {
   if (!prodDate || days <= 0) return "--";
-  const d = new Date(prodDate);
+  // Handle both "YYYY-MM-DD" and full ISO "2026-03-23T00:00:00.000Z"
+  const raw = prodDate.includes("T") ? prodDate : prodDate + "T00:00:00";
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return "--";
   d.setDate(d.getDate() + days);
   return d.toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -246,22 +249,40 @@ export default function LabelDetailPage({
   }
 
   const p = label.product;
+  const coldChain = p ? resolveColdChain(p.refrigeratedDays, p.frozenDays, p.ambientDays) : "--";
+  const expiryRefrigerated = p && label.productionDate ? buildExpiryDate(label.productionDate, p.refrigeratedDays) : "--";
+  const expiryFrozen = p && label.productionDate ? buildExpiryDate(label.productionDate, p.frozenDays) : "--";
+
+  // Generate QR data on the fly if not stored
+  const qrData = label.qrData || (label.batch ? JSON.stringify({
+    producto: label.productName,
+    marca: label.brand || "",
+    lote: label.batch,
+    contenido: label.netContent || "",
+    produccion: label.productionDate || "",
+    cadenaFrio: coldChain,
+    venceRefrigerado: expiryRefrigerated !== "--" ? expiryRefrigerated : undefined,
+    venceCongelado: expiryFrozen !== "--" ? expiryFrozen : undefined,
+    envasadoPor: label.packedBy || undefined,
+    destino: label.destination || undefined,
+  }) : "");
+
   const previewData: LabelPreviewData = {
     brand: label.brand || "RANCHERITO",
     productName: label.productName,
     netContent: label.netContent || "--",
     productionDate: label.productionDate || "",
     batch: label.batch || "--",
-    coldChain: p ? resolveColdChain(p.refrigeratedDays, p.frozenDays, p.ambientDays) : "--",
-    expiryRefrigerated: p && label.productionDate ? buildExpiryDate(label.productionDate, p.refrigeratedDays) : "--",
-    expiryFrozen: p && label.productionDate ? buildExpiryDate(label.productionDate, p.frozenDays) : "--",
+    coldChain,
+    expiryRefrigerated,
+    expiryFrozen,
     destination: label.destination || "",
     packedBy: label.packedBy || "",
     ingredients: p?.ingredients || "",
     allergens: p?.allergens || "",
     storage: p?.storage || "",
     usage: p?.usage || "",
-    qrData: label.qrData || "",
+    qrData,
   };
 
   return (

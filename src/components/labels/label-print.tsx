@@ -19,7 +19,11 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
   const formatDate = (dateStr: string) => {
     if (!dateStr || dateStr === "--") return "--";
     try {
-      return new Date(dateStr + "T00:00:00").toLocaleDateString("es-CO");
+      // Handle both "YYYY-MM-DD" and full ISO "2026-03-23T00:00:00.000Z"
+      const raw = dateStr.includes("T") ? dateStr : dateStr + "T00:00:00";
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString("es-CO");
     } catch {
       return dateStr;
     }
