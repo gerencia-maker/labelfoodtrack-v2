@@ -193,11 +193,19 @@ export default function LabelDetailPage({
     const token = await getToken();
     if (!token) return;
 
-    // Compute cold chain from product data
+    // Compute cold chain and ISO expiry dates from product data
     const p = label.product;
     const coldChain = p
       ? resolveColdChain(p.refrigeratedDays, p.frozenDays, p.ambientDays)
       : null;
+
+    const computeExpiryISO = (days: number): string | null => {
+      if (!label.productionDate || days <= 0) return null;
+      const d = new Date(label.productionDate + "T00:00:00");
+      if (isNaN(d.getTime())) return null;
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split("T")[0];
+    };
 
     // Create bitacora entry with quantity
     await fetch("/api/bitacora", {
@@ -208,12 +216,16 @@ export default function LabelDetailPage({
       },
       body: JSON.stringify({
         productName: label.productName,
+        category: p?.category || null,
         processDate: label.productionDate,
         quantityProduced: quantity,
+        quantity: label.netContent || null,
         packedBy: label.packedBy,
         destination: label.destination,
         batch: label.batch,
         coldChain: coldChain !== "--" ? coldChain : null,
+        expiryRefrigerated: p ? computeExpiryISO(p.refrigeratedDays) : null,
+        expiryFrozen: p ? computeExpiryISO(p.frozenDays) : null,
       }),
     });
 

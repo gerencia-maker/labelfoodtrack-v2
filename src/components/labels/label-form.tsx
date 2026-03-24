@@ -56,12 +56,16 @@ export interface LabelSaveData {
   productId: string;
   productName: string;
   brand: string;
+  category: string;
   netContent: string;
   origin: string;
   productionDate: string;
   batch: string;
   packedBy: string;
   destination: string;
+  coldChain: string;
+  expiryRefrigerated: string | null;
+  expiryFrozen: string | null;
   qrData: string;
 }
 
@@ -317,16 +321,47 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           })
         : "";
 
+      // Compute ISO expiry dates for bitácora storage
+      const computeExpiryISO = (days: number): string | null => {
+        if (!productionDate || days <= 0) return null;
+        const d = new Date(productionDate + "T00:00:00");
+        if (isNaN(d.getTime())) return null;
+        d.setDate(d.getDate() + days);
+        return d.toISOString().split("T")[0];
+      };
+
+      let coldChain = "";
+      let expiryRefrigerated: string | null = null;
+      let expiryFrozen: string | null = null;
+
+      if (coldChainType === "congelado") {
+        coldChain = "Congelado (-18 a -22°C)";
+        expiryFrozen = computeExpiryISO(selectedProduct.frozenDays);
+        if (selectedProduct.refrigeratedDays > 0) {
+          expiryRefrigerated = computeExpiryISO(selectedProduct.refrigeratedDays);
+        }
+      } else if (coldChainType === "refrigerado") {
+        coldChain = "Refrigerado (0 a 4°C)";
+        expiryRefrigerated = computeExpiryISO(selectedProduct.refrigeratedDays);
+      } else if (coldChainType === "ambiente") {
+        coldChain = "Ambiente";
+        expiryRefrigerated = computeExpiryISO(selectedProduct.ambientDays);
+      }
+
       await onSave({
         productId: selectedProduct.id,
         productName: selectedProduct.name,
         brand,
+        category: selectedProduct.category || "",
         netContent,
         origin: "",
         productionDate,
         batch,
         packedBy,
         destination,
+        coldChain,
+        expiryRefrigerated,
+        expiryFrozen,
         qrData,
       });
     } finally {
