@@ -95,7 +95,7 @@ const COLD_CHAIN_META: Record<string, { icon: typeof Thermometer; color: string;
 };
 
 export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
-  const { getToken } = useAuth();
+  const { getToken, userData } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
   const [brand, setBrand] = useState("");
@@ -168,14 +168,23 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           ? instances.find((i: { id: string }) => i.id === cookieId)
           : instances[0];
         if (current) {
-          setBrand(current.brandName || current.name || "");
+          setBrand(current.brandName || current.name || userData?.instance?.name || "");
           setDestinations(current.destinations || []);
           setPackers(current.packers || []);
+        } else if (userData?.instance) {
+          setBrand(userData.instance.brandName || userData.instance.name || "");
         }
       }
     }
     load();
-  }, [getToken]);
+  }, [getToken, userData]);
+
+  // Fallback: set brand from auth context if not loaded from API
+  useEffect(() => {
+    if (!brand && userData?.instance) {
+      setBrand(userData.instance.brandName || userData.instance.name || "");
+    }
+  }, [brand, userData]);
 
   // Generar lote automaticamente
   useEffect(() => {
