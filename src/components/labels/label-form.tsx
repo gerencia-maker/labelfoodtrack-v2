@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -148,74 +148,65 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   }, [coldChainOptions]);
 
   // Cargar productos, instancia actual, y ubicaciones (super admin)
-  useEffect(() => {
-    async function load() {
-      const token = await getToken();
-      if (!token) return;
+  const dataLoadedRef = useRef(false);
+  const loadData = useCallback(async () => {
+    if (dataLoadedRef.current) return;
+    const token = await getToken();
+    if (!token) return;
+    dataLoadedRef.current = true;
 
-      const headers = { Authorization: `Bearer ${token}` };
+    const headers = { Authorization: `Bearer ${token}` };
 
-      // 1. Products
-      try {
-        const res = await fetch("/api/products", { headers });
-        if (res.ok) setProducts(await res.json());
-      } catch (e) {
-        console.error("[LabelForm] products fetch error:", e);
-      }
+    try {
+      const [prodRes, instRes] = await Promise.all([
+        fetch("/api/products", { headers }),
+        fetch("/api/instances", { headers }),
+      ]);
 
-      // 2. Instance data (destinations, packers, brand)
-      try {
-        const res = await fetch("/api/instances", { headers });
-        if (res.ok) {
-          const instances = await res.json();
-          console.log("[LabelForm] instances loaded:", instances.length, "effectiveId:", userData?.instanceId);
-          const effectiveId = userData?.instanceId;
-          const current = effectiveId
-            ? instances.find((i: { id: string }) => i.id === effectiveId) || instances[0]
-            : instances[0];
-          if (current) {
-            console.log("[LabelForm] current instance:", current.name, "destinations:", current.destinations, "packers:", current.packers);
-            setBrand(current.brandName || current.name || "");
-            setDestinations(current.destinations || []);
-            setPackers(current.packers || []);
-          } else {
-            console.warn("[LabelForm] no matching instance found");
-          }
-        } else {
-          console.error("[LabelForm] instances API error:", res.status);
+      if (prodRes.ok) setProducts(await prodRes.json());
+
+      if (instRes.ok) {
+        const instances = await instRes.json();
+        const effectiveId = userData?.instanceId;
+        const current = effectiveId
+          ? instances.find((i: { id: string }) => i.id === effectiveId) || instances[0]
+          : instances[0];
+        if (current) {
+          setBrand(current.brandName || current.name || "");
+          setDestinations(current.destinations || []);
+          setPackers(current.packers || []);
         }
-      } catch (e) {
-        console.error("[LabelForm] instances fetch error:", e);
       }
 
-      // 3. Super admin: user ubicaciones
       if (isSuperAdmin) {
-        try {
-          const res = await fetch("/api/users", { headers });
-          if (res.ok) {
-            const users: { ubicacion?: string | null }[] = await res.json();
-            const ubics = [...new Set(
-              users.map((u) => u.ubicacion).filter((u): u is string => !!u)
-            )].sort();
-            console.log("[LabelForm] ubicaciones loaded:", ubics);
-            setAllUbicaciones(ubics);
-          } else {
-            console.error("[LabelForm] users API error:", res.status);
-          }
-        } catch (e) {
-          console.error("[LabelForm] users fetch error:", e);
+        const usersRes = await fetch("/api/users", { headers });
+        if (usersRes.ok) {
+          const users: { ubicacion?: string | null }[] = await usersRes.json();
+          const ubics = [...new Set(
+            users.map((u) => u.ubicacion).filter((u): u is string => !!u)
+          )].sort();
+          setAllUbicaciones(ubics);
         }
       }
+    } catch (e) {
+      console.error("[LabelForm] load error:", e);
+      dataLoadedRef.current = false; // allow retry on error
     }
-    load();
-  }, [getToken, userData, isSuperAdmin]);
+  }, [getToken, userData?.instanceId, isSuperAdmin]);
 
-  // Fallback: set brand from auth context if not loaded from API
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Fallback: set brand and packedBy from auth context
   useEffect(() => {
     if (!brand && userData?.instance) {
       setBrand(userData.instance.brandName || userData.instance.name || "");
     }
-  }, [brand, userData]);
+    if (!packedBy && userData?.ubicacion) {
+      setPackedBy(userData.ubicacion);
+    }
+  }, [brand, packedBy, userData]);
 
   // Generar lote automaticamente
   useEffect(() => {
@@ -519,7 +510,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           <div>
             <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5">
               <UserCheck size={12} className="text-slate-400" />
-              Empacado por ({packers.length}|{allUbicaciones.length})
+              Empacado por
             </Label>
             <Select
               id="packedBy"
@@ -540,7 +531,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           <div>
             <Label htmlFor="destination" className="inline-flex items-center gap-1.5">
               <MapPin size={12} className="text-slate-400" />
-              Destino ({destinations.length})
+              Destino
             </Label>
             <Select
               id="destination"

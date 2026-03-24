@@ -147,11 +147,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseUpdatePassword(firebaseUser, newPassword);
   };
 
-  const getToken = async () => {
+  const getToken = useCallback(async () => {
     if (DEMO_MODE) return "demo-token";
     if (!firebaseUser) return null;
     return firebaseUser.getIdToken();
-  };
+  }, [firebaseUser]);
 
   const hasPermission = useCallback(
     (permission: PermisoCodigo) => {
