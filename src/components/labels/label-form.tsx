@@ -310,6 +310,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* ── 1. Producto ── */}
+      {!defaultValues?.productId && (
       <section className="space-y-3">
         <SectionHeader icon={Package} title="Producto" />
         <div>
@@ -357,6 +358,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
         )}
       </section>
+      )}
 
       {/* ── 2. Cadena de frío ── */}
       {coldChainOptions.length > 0 && (
