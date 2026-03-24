@@ -512,10 +512,11 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               <UserCheck size={12} className="text-slate-400" />
               Empacado por
             </Label>
-            <Select
+            <select
               id="packedBy"
               value={packedBy}
               onChange={(e) => setPackedBy(e.target.value)}
+              className="flex h-10 w-full rounded-xl border border-orange-200 bg-white px-3 py-2 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
             >
               <option value="">Seleccionar...</option>
               {isSuperAdmin && allUbicaciones.length > 0
@@ -526,7 +527,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                     <option key={p} value={p}>{p}</option>
                   ))
               }
-            </Select>
+            </select>
           </div>
           <div>
             <Label htmlFor="destination" className="inline-flex items-center gap-1.5">
@@ -537,10 +538,9 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               id="destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-orange-200 bg-white px-3 py-2 text-sm"
+              className="flex h-10 w-full rounded-xl border border-orange-200 bg-white px-3 py-2 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
             >
               <option value="">Seleccionar...</option>
-              <option value="HARDCODED">TEST HARDCODED</option>
               {destinations.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
