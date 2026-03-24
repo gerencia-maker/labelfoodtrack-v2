@@ -165,7 +165,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
         const instances = await instRes.json();
         const cookieId = document.cookie.match(/lft-instance-id=([^;]+)/)?.[1];
         const current = cookieId
-          ? instances.find((i: { id: string }) => i.id === cookieId)
+          ? instances.find((i: { id: string }) => i.id === cookieId) || instances[0]
           : instances[0];
         if (current) {
           setBrand(current.brandName || current.name || userData?.instance?.name || "");
