@@ -229,9 +229,19 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     const netContent = netContentQty ? `${netContentQty} ${netContentUnit}` : "";
     const quantityLabel = buildQuantityLabel(netContent, selectedProduct.servingSize);
 
-    const qrData = batch
-      ? `https://labelfoodtrack.com/t/${encodeURIComponent(batch)}`
-      : "";
+    const qrPayload = JSON.stringify({
+      producto: selectedProduct.name,
+      marca: brand,
+      lote: batch,
+      contenido: quantityLabel,
+      produccion: productionDate,
+      cadenaFrio: coldChain,
+      venceRefrigerado: expiryRefrigerated || undefined,
+      venceCongelado: expiryFrozen || undefined,
+      envasadoPor: packedBy || undefined,
+      destino: destination || undefined,
+    });
+    const qrData = batch ? qrPayload : "";
 
     onPreviewChange({
       brand,
@@ -258,11 +268,18 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
 
     setSaving(true);
     try {
-      const qrData = batch
-        ? `https://labelfoodtrack.com/t/${encodeURIComponent(batch)}`
-        : "";
-
       const netContent = netContentQty ? `${netContentQty} ${netContentUnit}` : "";
+      const qrData = batch
+        ? JSON.stringify({
+            producto: selectedProduct.name,
+            marca: brand,
+            lote: batch,
+            contenido: netContent,
+            produccion: productionDate,
+            envasadoPor: packedBy || undefined,
+            destino: destination || undefined,
+          })
+        : "";
 
       await onSave({
         productId: selectedProduct.id,
