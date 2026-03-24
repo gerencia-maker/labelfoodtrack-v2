@@ -147,44 +147,48 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     }
   }, [coldChainOptions]);
 
-  // Cargar productos e instancia actual
+  // Cargar productos, instancia actual, y ubicaciones (super admin)
   useEffect(() => {
     async function load() {
       const token = await getToken();
       if (!token) return;
 
-      const fetches: Promise<Response>[] = [
-        fetch("/api/products", { headers: { Authorization: `Bearer ${token}` } }),
-        fetch("/api/instances", { headers: { Authorization: `Bearer ${token}` } }),
-      ];
-      if (isSuperAdmin) {
-        fetches.push(fetch("/api/users", { headers: { Authorization: `Bearer ${token}` } }));
-      }
-      const [prodRes, instRes, usersRes] = await Promise.all(fetches);
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Fetch products + instances + users (super admin) in parallel
+      const [prodRes, instRes, usersRes] = await Promise.all([
+        fetch("/api/products", { headers }),
+        fetch("/api/instances", { headers }),
+        isSuperAdmin
+          ? fetch("/api/users", { headers })
+          : Promise.resolve(null),
+      ]);
 
       if (prodRes.ok) {
         setProducts(await prodRes.json());
       }
 
+      // Load instance data (destinations, packers, brand)
       if (instRes.ok) {
         const instances = await instRes.json();
-        const cookieId = document.cookie.match(/lft-instance-id=([^;]+)/)?.[1];
-        const current = cookieId
-          ? instances.find((i: { id: string }) => i.id === cookieId) || instances[0]
+        // Match by userData.instanceId (effective) or cookie or first
+        const effectiveId = userData?.instanceId;
+        const current = effectiveId
+          ? instances.find((i: { id: string }) => i.id === effectiveId) || instances[0]
           : instances[0];
         if (current) {
-          setBrand(current.brandName || current.name || userData?.instance?.name || "");
+          setBrand(current.brandName || current.name || "");
           setDestinations(current.destinations || []);
           setPackers(current.packers || []);
-        } else if (userData?.instance) {
-          setBrand(userData.instance.brandName || userData.instance.name || "");
         }
       }
 
-      // Super admin: load all user ubicaciones
-      if (usersRes?.ok) {
+      // Super admin: extract unique ubicaciones from all users
+      if (usersRes && usersRes.ok) {
         const users: { ubicacion?: string | null }[] = await usersRes.json();
-        const ubics = [...new Set(users.map((u) => u.ubicacion).filter((u): u is string => !!u))].sort();
+        const ubics = [...new Set(
+          users.map((u) => u.ubicacion).filter((u): u is string => !!u)
+        )].sort();
         setAllUbicaciones(ubics);
       }
     }
