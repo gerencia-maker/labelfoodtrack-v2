@@ -249,12 +249,13 @@ html.dark ::-webkit-scrollbar-thumb {
 }
 
 #printMatrixLabel .qr-cell canvas {
-  width: 100% !important;
+  width: auto !important;
   height: auto !important;
-  max-width: 60px !important;
-  max-height: 60px !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
   display: block !important;
   margin: 0 auto !important;
+  image-rendering: pixelated;
 }
 
 /* ===== Print media query - copied from v1 ===== */
@@ -405,11 +406,12 @@ html.dark ::-webkit-scrollbar-thumb {
   }
 
   #printMatrixLabel .qr-cell canvas {
-    width: 100% !important;
+    width: auto !important;
     height: auto !important;
-    max-width: 50px !important;
-    max-height: 50px !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
     display: block !important;
     margin: 0 auto !important;
+    image-rendering: pixelated;
   }
 }

@@ -51,7 +51,7 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
                 {data.qrData ? (
                   <QRCodeCanvas
                     value={data.qrData}
-                    size={screenPreview ? 140 : 60}
+                    size={screenPreview ? 140 : 200}
                     level="H"
                     includeMargin={false}
                   />
