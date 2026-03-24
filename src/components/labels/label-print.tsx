@@ -48,7 +48,12 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
               <td>{data.productName || "--"}</td>
               <td rowSpan={qrRowSpan} className="qr-cell">
                 {data.qrData ? (
-                  <QRCodeCanvas value={data.qrData} size={60} level="L" />
+                  <QRCodeCanvas
+                    value={data.qrData}
+                    size={screenPreview ? 140 : 60}
+                    level="H"
+                    includeMargin={false}
+                  />
                 ) : (
                   <span style={{ fontSize: "5pt", color: "#999" }}>QR</span>
                 )}

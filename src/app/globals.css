@@ -147,15 +147,18 @@ html.dark ::-webkit-scrollbar-thumb {
 .screen-matrix-label .qr-cell {
   text-align: center !important;
   vertical-align: middle !important;
-  padding: 12px !important;
+  padding: 16px !important;
   width: 22% !important;
+  border-right: none !important;
 }
 
 .screen-matrix-label .qr-cell canvas {
-  width: 100% !important;
+  display: block !important;
+  margin: 0 auto !important;
+  width: auto !important;
   height: auto !important;
-  max-width: 90px !important;
-  max-height: 90px !important;
+  max-width: 100% !important;
+  image-rendering: pixelated;
 }
 
 @media print {
