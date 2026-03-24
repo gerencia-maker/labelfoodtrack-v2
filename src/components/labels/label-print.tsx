@@ -32,8 +32,16 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
   const hasRefrigerated = data.expiryRefrigerated && data.expiryRefrigerated !== "--";
   const hasFrozen = data.expiryFrozen && data.expiryFrozen !== "--";
 
-  // Count body rows that have the QR rowSpan
-  const qrRowSpan = 5 + (hasRefrigerated ? 1 : 0) + (hasFrozen ? 1 : 0);
+  // Extra rows inside QR area: ingredients, allergens, storage, usage
+  const extraRows = [
+    data.ingredients ? 1 : 0,
+    data.allergens ? 1 : 0,
+    data.storage ? 1 : 0,
+    data.usage ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
+
+  // Count body rows that share the QR column (everything before Destino/Lote)
+  const qrRowSpan = 5 + (hasRefrigerated ? 1 : 0) + (hasFrozen ? 1 : 0) + extraRows;
 
   return (
     <div id={screenPreview ? undefined : "printMatrixContainer"} className={screenPreview ? "screen-print-preview" : undefined}>
@@ -92,6 +100,30 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
               <td>Envasado por:</td>
               <td>{data.packedBy || "--"}</td>
             </tr>
+            {data.ingredients && (
+              <tr className="multiline-row">
+                <td>Ingredientes:</td>
+                <td>{data.ingredients}</td>
+              </tr>
+            )}
+            {data.allergens && (
+              <tr className="multiline-row">
+                <td>Alérgenos:</td>
+                <td>{data.allergens}</td>
+              </tr>
+            )}
+            {data.storage && (
+              <tr className="multiline-row">
+                <td>Conservación:</td>
+                <td>{data.storage}</td>
+              </tr>
+            )}
+            {data.usage && (
+              <tr className="multiline-row">
+                <td>Uso:</td>
+                <td>{data.usage}</td>
+              </tr>
+            )}
             <tr>
               <td>Destino:</td>
               <td colSpan={2}>{data.destination || "--"}</td>
@@ -100,30 +132,6 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
               <td>Lote:</td>
               <td colSpan={2}>{data.batch || "--"}</td>
             </tr>
-            {data.ingredients && (
-              <tr className="multiline-row">
-                <td>Ingredientes:</td>
-                <td colSpan={2}>{data.ingredients}</td>
-              </tr>
-            )}
-            {data.allergens && (
-              <tr className="multiline-row">
-                <td>Alérgenos:</td>
-                <td colSpan={2}>{data.allergens}</td>
-              </tr>
-            )}
-            {data.storage && (
-              <tr className="multiline-row">
-                <td>Conservación:</td>
-                <td colSpan={2}>{data.storage}</td>
-              </tr>
-            )}
-            {data.usage && (
-              <tr className="multiline-row">
-                <td>Uso:</td>
-                <td colSpan={2}>{data.usage}</td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
