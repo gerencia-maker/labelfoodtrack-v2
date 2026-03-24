@@ -128,6 +128,8 @@ html.dark ::-webkit-scrollbar-thumb {
 .screen-matrix-label td:nth-child(2) {
   width: 48%;
   border-right: 1px solid #000;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .screen-matrix-label td:nth-child(3) {
@@ -223,6 +225,8 @@ html.dark ::-webkit-scrollbar-thumb {
 #printMatrixLabel td:nth-child(2) {
   width: 48%;
   border-right: 1px solid #000;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 #printMatrixLabel td:nth-child(3) {
