@@ -533,16 +533,18 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               <MapPin size={12} className="text-slate-400" />
               Destino
             </Label>
-            <Select
+            <select
               id="destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
+              className="flex h-10 w-full rounded-xl border border-orange-200 bg-white px-3 py-2 text-sm"
             >
               <option value="">Seleccionar...</option>
+              <option value="HARDCODED">TEST HARDCODED</option>
               {destinations.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
-            </Select>
+            </select>
           </div>
         </div>
       </section>
