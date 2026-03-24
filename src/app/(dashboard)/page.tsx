@@ -43,6 +43,15 @@ export default function ProductsPage() {
   const router = useRouter();
 
   const canEdit = !!(userData?.role === "ADMIN" || userData?.role === "EDITOR");
+  const today = new Date().toISOString().split("T")[0];
+
+  const handleDateChange = (productId: string, value: string) => {
+    if (value && value < today) {
+      alert("No se permite insertar fechas anteriores a la fecha actual");
+      return;
+    }
+    setDates((prev) => ({ ...prev, [productId]: value }));
+  };
 
   const loadProducts = useCallback(async () => {
     const token = await getToken();
@@ -172,7 +181,8 @@ export default function ProductsPage() {
                 product={product}
                 canEdit={canEdit}
                 date={dates[product.id] || ""}
-                onDateChange={(val) => setDates((prev) => ({ ...prev, [product.id]: val }))}
+                onDateChange={(val) => handleDateChange(product.id, val)}
+                minDate={today}
                 onProductClick={() => handleProductClick(product)}
               />
             ))
@@ -225,7 +235,8 @@ export default function ProductsPage() {
                     colCount={colCount}
                     canEdit={canEdit}
                     dates={dates}
-                    onDateChange={(id, val) => setDates((prev) => ({ ...prev, [id]: val }))}
+                    onDateChange={handleDateChange}
+                    minDate={today}
                     onProductClick={handleProductClick}
                   />
                 ))
@@ -248,12 +259,14 @@ function ProductCard({
   canEdit,
   date,
   onDateChange,
+  minDate,
   onProductClick,
 }: {
   product: Product;
   canEdit: boolean;
   date: string;
   onDateChange: (val: string) => void;
+  minDate: string;
   onProductClick: () => void;
 }) {
   const maxDays = Math.max(product.refrigeratedDays, product.frozenDays, product.ambientDays, 1);
@@ -324,6 +337,7 @@ function ProductCard({
       <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50">
         <input
           type="date"
+          min={minDate}
           value={date}
           onChange={(e) => onDateChange(e.target.value)}
           className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:border-orange-300 dark:hover:border-orange-500/50 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-200 dark:focus:ring-orange-500/20 transition-colors"
@@ -379,6 +393,7 @@ function CategoryGroup({
   canEdit,
   dates,
   onDateChange,
+  minDate,
   onProductClick,
 }: {
   category: string;
@@ -387,6 +402,7 @@ function CategoryGroup({
   canEdit: boolean;
   dates: Record<string, string>;
   onDateChange: (id: string, val: string) => void;
+  minDate: string;
   onProductClick: (product: Product) => void;
 }) {
   return (
@@ -425,6 +441,7 @@ function CategoryGroup({
           <td className="px-3 py-1.5 text-center">
             <input
               type="date"
+              min={minDate}
               value={dates[product.id] || ""}
               onChange={(e) => onDateChange(product.id, e.target.value)}
               className="w-full max-w-[140px] rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-600 dark:text-slate-300 hover:border-orange-300 dark:hover:border-orange-500/50 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-200 dark:focus:ring-orange-500/20 transition-colors"
