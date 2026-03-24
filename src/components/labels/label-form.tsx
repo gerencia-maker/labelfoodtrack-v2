@@ -155,41 +155,56 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
 
       const headers = { Authorization: `Bearer ${token}` };
 
-      // Fetch products + instances + users (super admin) in parallel
-      const [prodRes, instRes, usersRes] = await Promise.all([
-        fetch("/api/products", { headers }),
-        fetch("/api/instances", { headers }),
-        isSuperAdmin
-          ? fetch("/api/users", { headers })
-          : Promise.resolve(null),
-      ]);
-
-      if (prodRes.ok) {
-        setProducts(await prodRes.json());
+      // 1. Products
+      try {
+        const res = await fetch("/api/products", { headers });
+        if (res.ok) setProducts(await res.json());
+      } catch (e) {
+        console.error("[LabelForm] products fetch error:", e);
       }
 
-      // Load instance data (destinations, packers, brand)
-      if (instRes.ok) {
-        const instances = await instRes.json();
-        // Match by userData.instanceId (effective) or cookie or first
-        const effectiveId = userData?.instanceId;
-        const current = effectiveId
-          ? instances.find((i: { id: string }) => i.id === effectiveId) || instances[0]
-          : instances[0];
-        if (current) {
-          setBrand(current.brandName || current.name || "");
-          setDestinations(current.destinations || []);
-          setPackers(current.packers || []);
+      // 2. Instance data (destinations, packers, brand)
+      try {
+        const res = await fetch("/api/instances", { headers });
+        if (res.ok) {
+          const instances = await res.json();
+          console.log("[LabelForm] instances loaded:", instances.length, "effectiveId:", userData?.instanceId);
+          const effectiveId = userData?.instanceId;
+          const current = effectiveId
+            ? instances.find((i: { id: string }) => i.id === effectiveId) || instances[0]
+            : instances[0];
+          if (current) {
+            console.log("[LabelForm] current instance:", current.name, "destinations:", current.destinations, "packers:", current.packers);
+            setBrand(current.brandName || current.name || "");
+            setDestinations(current.destinations || []);
+            setPackers(current.packers || []);
+          } else {
+            console.warn("[LabelForm] no matching instance found");
+          }
+        } else {
+          console.error("[LabelForm] instances API error:", res.status);
         }
+      } catch (e) {
+        console.error("[LabelForm] instances fetch error:", e);
       }
 
-      // Super admin: extract unique ubicaciones from all users
-      if (usersRes && usersRes.ok) {
-        const users: { ubicacion?: string | null }[] = await usersRes.json();
-        const ubics = [...new Set(
-          users.map((u) => u.ubicacion).filter((u): u is string => !!u)
-        )].sort();
-        setAllUbicaciones(ubics);
+      // 3. Super admin: user ubicaciones
+      if (isSuperAdmin) {
+        try {
+          const res = await fetch("/api/users", { headers });
+          if (res.ok) {
+            const users: { ubicacion?: string | null }[] = await res.json();
+            const ubics = [...new Set(
+              users.map((u) => u.ubicacion).filter((u): u is string => !!u)
+            )].sort();
+            console.log("[LabelForm] ubicaciones loaded:", ubics);
+            setAllUbicaciones(ubics);
+          } else {
+            console.error("[LabelForm] users API error:", res.status);
+          }
+        } catch (e) {
+          console.error("[LabelForm] users fetch error:", e);
+        }
       }
     }
     load();
