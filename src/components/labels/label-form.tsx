@@ -95,7 +95,7 @@ const COLD_CHAIN_META: Record<string, { icon: typeof Thermometer; color: string;
 };
 
 export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
-  const { getToken, userData, isSuperAdmin } = useAuth();
+  const { getToken, userData } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
   const [brand, setBrand] = useState("");
@@ -147,19 +147,22 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     }
   }, [coldChainOptions]);
 
-  // Cargar productos e instancia actual
-  const productsLoadedRef = useRef(false);
+  // Cargar productos, instancia y ubicaciones (todo junto)
+  const loadedRef = useRef(false);
   useEffect(() => {
-    async function loadBase() {
-      if (productsLoadedRef.current) return;
+    if (loadedRef.current) return;
+    async function loadAll() {
       const token = await getToken();
       if (!token) return;
-      productsLoadedRef.current = true;
+      loadedRef.current = true;
 
       const headers = { Authorization: `Bearer ${token}` };
-      const [prodRes, instRes] = await Promise.all([
+
+      // Fetch all in parallel (users may 403 for non-admin — that's OK)
+      const [prodRes, instRes, usersRes] = await Promise.all([
         fetch("/api/products", { headers }),
         fetch("/api/instances", { headers }),
+        fetch("/api/users", { headers }).catch(() => null),
       ]);
 
       if (prodRes.ok) setProducts(await prodRes.json());
@@ -176,31 +179,17 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           setPackers(current.packers || []);
         }
       }
-    }
-    loadBase();
-  }, [getToken, userData?.instanceId]);
 
-  // Super admin: cargar ubicaciones de todos los usuarios
-  const ubicacionesLoadedRef = useRef(false);
-  useEffect(() => {
-    if (!isSuperAdmin || ubicacionesLoadedRef.current) return;
-    async function loadUbicaciones() {
-      const token = await getToken();
-      if (!token) return;
-      ubicacionesLoadedRef.current = true;
-      const res = await fetch("/api/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const users: { ubicacion?: string | null }[] = await res.json();
+      if (usersRes?.ok) {
+        const users: { ubicacion?: string | null }[] = await usersRes.json();
         const ubics = [...new Set(
           users.map((u) => u.ubicacion).filter((u): u is string => !!u)
         )].sort();
         setAllUbicaciones(ubics);
       }
     }
-    loadUbicaciones();
-  }, [getToken, isSuperAdmin]);
+    loadAll();
+  }, [getToken, userData?.instanceId]);
 
   // Opciones para "Empacado por": merge all sources, deduplicate
   const packedByOptions = useMemo(() => {
