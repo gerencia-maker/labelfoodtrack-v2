@@ -35,6 +35,7 @@ interface UserData {
   permisos: string[];
   ubicacion?: string | null;
   instanceId: string | null;
+  isSuperAdmin?: boolean;
   instance?: InstanceData | null;
 }
 
@@ -168,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [userData]
   );
 
-  const isSuperAdmin = userData?.role === "ADMIN" && !userData?.instanceId;
+  const isSuperAdmin = userData?.isSuperAdmin ?? (userData?.role === "ADMIN" && !userData?.instanceId);
 
   return (
     <AuthContext.Provider
