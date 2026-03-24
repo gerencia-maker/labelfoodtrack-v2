@@ -38,7 +38,8 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
           <thead>
             <tr>
               <th colSpan={3}>
-                {data.brand || "MARCA"} USO GASTRONÓMICO
+                <div>{data.brand || "MARCA"}</div>
+                <div style={{ fontSize: "0.7em", fontWeight: 400, marginTop: 2 }}>USO GASTRONÓMICO / INSTITUCIONAL</div>
               </th>
             </tr>
           </thead>
