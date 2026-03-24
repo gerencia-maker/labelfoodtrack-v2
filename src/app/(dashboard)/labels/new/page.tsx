@@ -98,10 +98,13 @@ export default function NewLabelPage() {
         productName: pendingSaveData.productName,
         processDate: pendingSaveData.productionDate,
         quantityProduced: quantity,
+        quantity: previewData.netContent !== "--" ? previewData.netContent : null,
         packedBy: pendingSaveData.packedBy,
         destination: pendingSaveData.destination,
         batch: pendingSaveData.batch,
         coldChain: previewData.coldChain !== "--" ? previewData.coldChain : null,
+        expiryRefrigerated: previewData.expiryRefrigerated && previewData.expiryRefrigerated !== "--" ? previewData.expiryRefrigerated : null,
+        expiryFrozen: previewData.expiryFrozen && previewData.expiryFrozen !== "--" ? previewData.expiryFrozen : null,
       }),
     });
 
