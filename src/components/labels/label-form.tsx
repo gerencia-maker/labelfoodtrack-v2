@@ -92,10 +92,10 @@ function parseNetContent(value: string): { qty: string; unit: string } {
   return { qty: value, unit: "g" };
 }
 
-const COLD_CHAIN_META: Record<string, { icon: typeof Thermometer; color: string; bg: string; border: string }> = {
-  refrigerado: { icon: Thermometer, color: "text-amber-600", bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/30" },
-  congelado: { icon: Snowflake, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-500/10", border: "border-blue-200 dark:border-blue-500/30" },
-  ambiente: { icon: Sun, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "border-emerald-200 dark:border-emerald-500/30" },
+const COLD_CHAIN_META: Record<string, { icon: typeof Thermometer; color: string; bg: string; border: string; activeBg: string }> = {
+  refrigerado: { icon: Thermometer, color: "text-white", bg: "bg-amber-500", border: "border-amber-500", activeBg: "bg-amber-500 shadow-lg shadow-amber-500/30" },
+  congelado: { icon: Snowflake, color: "text-white", bg: "bg-blue-500", border: "border-blue-500", activeBg: "bg-blue-500 shadow-lg shadow-blue-500/30" },
+  ambiente: { icon: Sun, color: "text-white", bg: "bg-emerald-500", border: "border-emerald-500", activeBg: "bg-emerald-500 shadow-lg shadow-emerald-500/30" },
 };
 
 export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
@@ -441,10 +441,10 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                     key={opt.value}
                     type="button"
                     onClick={() => setColdChainType(opt.value)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all ${
                       isSelected
-                        ? `${meta.bg} ${meta.color} ring-2 ring-offset-1 ${meta.border}`
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                        ? `${meta.activeBg} ${meta.color}`
+                        : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600"
                     }`}
                   >
                     <Icon size={13} />
