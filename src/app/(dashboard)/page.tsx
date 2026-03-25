@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
@@ -398,35 +398,59 @@ function DateQuickPicker({
   today: string;
   onChange: (val: string) => void;
 }) {
-  const [dd, mm, yy] = value
-    ? value.split("-").reverse().map(Number)
-    : [0, 0, 0];
+  // Local state for partial input while typing
+  const [localDay, setLocalDay] = useState(() => value ? String(parseInt(value.split("-")[2])) : "");
+  const [localMonth, setLocalMonth] = useState(() => value ? String(parseInt(value.split("-")[1])) : "");
+  const [localYear, setLocalYear] = useState(() => value ? value.split("-")[0] : "");
 
-  const todayParts = today.split("-").map(Number); // [YYYY, MM, DD]
-
-  const updatePart = (part: "d" | "m" | "y", raw: string) => {
-    const num = parseInt(raw, 10);
-    if (raw !== "" && isNaN(num)) return;
-
-    let d = part === "d" ? (raw === "" ? 0 : num) : dd;
-    let m = part === "m" ? (raw === "" ? 0 : num) : mm;
-    let y = part === "y" ? (raw === "" ? 0 : num) : yy;
-
-    // Clamp values
-    if (m > 12) m = 12;
-    if (d > 31) d = 31;
-    if (y > 9999) return;
-
-    // If all parts filled, validate
-    if (d > 0 && m > 0 && y >= 2020) {
-      const iso = `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-      const date = new Date(iso + "T00:00:00");
-      if (isNaN(date.getTime()) || date.getDate() !== d) return; // invalid date
-      if (iso < today) return; // past date blocked
-      onChange(iso);
-    } else if (d === 0 && m === 0 && y === 0) {
-      onChange("");
+  // Sync from parent when value changes externally (e.g. "Hoy" button or clear)
+  const prevValue = useRef(value);
+  useEffect(() => {
+    if (value !== prevValue.current) {
+      prevValue.current = value;
+      if (value) {
+        const [y, m, d] = value.split("-");
+        setLocalDay(String(parseInt(d)));
+        setLocalMonth(String(parseInt(m)));
+        setLocalYear(y);
+      } else {
+        setLocalDay("");
+        setLocalMonth("");
+        setLocalYear("");
+      }
     }
+  }, [value]);
+
+  const tryEmitDate = (d: string, m: string, y: string) => {
+    const day = parseInt(d);
+    const month = parseInt(m);
+    const year = parseInt(y);
+    if (!day || !month || !year || y.length < 4) return;
+
+    const iso = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const date = new Date(iso + "T00:00:00");
+    if (isNaN(date.getTime()) || date.getDate() !== day || date.getMonth() + 1 !== month) return;
+    if (iso < today) return;
+    prevValue.current = iso;
+    onChange(iso);
+  };
+
+  const handleDay = (raw: string) => {
+    const clean = raw.replace(/\D/g, "").slice(0, 2);
+    setLocalDay(clean);
+    tryEmitDate(clean, localMonth, localYear);
+  };
+
+  const handleMonth = (raw: string) => {
+    const clean = raw.replace(/\D/g, "").slice(0, 2);
+    setLocalMonth(clean);
+    tryEmitDate(localDay, clean, localYear);
+  };
+
+  const handleYear = (raw: string) => {
+    const clean = raw.replace(/\D/g, "").slice(0, 4);
+    setLocalYear(clean);
+    tryEmitDate(localDay, localMonth, clean);
   };
 
   const inputClass = "w-[36px] rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1 py-1 text-xs text-center text-slate-600 dark:text-slate-300 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-200 dark:focus:ring-orange-500/20 transition-colors";
@@ -439,8 +463,8 @@ function DateQuickPicker({
           inputMode="numeric"
           maxLength={2}
           placeholder="DD"
-          value={dd || ""}
-          onChange={(e) => updatePart("d", e.target.value)}
+          value={localDay}
+          onChange={(e) => handleDay(e.target.value)}
           className={inputClass}
           onClick={(e) => e.stopPropagation()}
         />
@@ -450,8 +474,8 @@ function DateQuickPicker({
           inputMode="numeric"
           maxLength={2}
           placeholder="MM"
-          value={mm || ""}
-          onChange={(e) => updatePart("m", e.target.value)}
+          value={localMonth}
+          onChange={(e) => handleMonth(e.target.value)}
           className={inputClass}
           onClick={(e) => e.stopPropagation()}
         />
@@ -461,8 +485,8 @@ function DateQuickPicker({
           inputMode="numeric"
           maxLength={4}
           placeholder="AAAA"
-          value={yy || ""}
-          onChange={(e) => updatePart("y", e.target.value)}
+          value={localYear}
+          onChange={(e) => handleYear(e.target.value)}
           className={cn(inputClass, "w-[46px]")}
           onClick={(e) => e.stopPropagation()}
         />
