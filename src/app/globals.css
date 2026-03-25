@@ -122,7 +122,9 @@ html.dark ::-webkit-scrollbar-thumb {
 .screen-matrix-label td:first-child {
   width: 30%;
   font-weight: 600;
+  font-size: 13px;
   border-right: 1px solid #000;
+  text-align: center;
 }
 
 .screen-matrix-label td:nth-child(2) {
@@ -142,9 +144,13 @@ html.dark ::-webkit-scrollbar-thumb {
 
 .screen-matrix-label .multiline-row td {
   vertical-align: middle;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
-  text-align: justify;
+  text-align: center;
+}
+
+.screen-matrix-label .multiline-row td:nth-child(2) {
+  text-align: left;
 }
 
 .screen-matrix-label .qr-cell {
