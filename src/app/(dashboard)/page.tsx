@@ -50,9 +50,12 @@ export default function ProductsPage() {
   const canEdit = hasActionPermission("products", "editar");
   const today = new Date().toISOString().split("T")[0];
 
+  const [dateResetKey, setDateResetKey] = useState(0);
   const handleDateChange = (productId: string, value: string) => {
     if (value && value < today) {
       toast({ title: "No se permite insertar fechas anteriores a la fecha actual", variant: "error" });
+      setDates((prev) => ({ ...prev, [productId]: "" }));
+      setDateResetKey((k) => k + 1);
       return;
     }
     setDates((prev) => ({ ...prev, [productId]: value }));
@@ -243,6 +246,7 @@ export default function ProductsPage() {
                     onDateChange={handleDateChange}
                     minDate={today}
                     onProductClick={handleProductClick}
+                    dateResetKey={dateResetKey}
                   />
                 ))
               )}
@@ -393,20 +397,25 @@ function DateQuickPicker({
   value,
   today,
   onChange,
+  resetKey,
 }: {
   value: string;
   today: string;
   onChange: (val: string) => void;
+  resetKey?: number;
 }) {
   // Local state for partial input while typing
   const [localDay, setLocalDay] = useState(() => value ? String(parseInt(value.split("-")[2])) : "");
   const [localMonth, setLocalMonth] = useState(() => value ? String(parseInt(value.split("-")[1])) : "");
   const [localYear, setLocalYear] = useState(() => value ? value.split("-")[0] : "");
 
-  // Sync from parent when value changes externally (e.g. "Hoy" button or clear)
+  // Sync from parent when value changes externally (e.g. "Hoy" button, clear, or rejected date)
   const prevValue = useRef(value);
+  const prevResetKey = useRef(resetKey);
   useEffect(() => {
-    if (value !== prevValue.current) {
+    const resetChanged = resetKey !== prevResetKey.current;
+    prevResetKey.current = resetKey;
+    if (value !== prevValue.current || resetChanged) {
       prevValue.current = value;
       if (value) {
         const [y, m, d] = value.split("-");
@@ -419,7 +428,7 @@ function DateQuickPicker({
         setLocalYear("");
       }
     }
-  }, [value]);
+  }, [value, resetKey]);
 
   const tryEmitDate = (d: string, m: string, y: string) => {
     const day = parseInt(d);
@@ -430,7 +439,7 @@ function DateQuickPicker({
     const iso = `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const date = new Date(iso + "T00:00:00");
     if (isNaN(date.getTime()) || date.getDate() !== day || date.getMonth() + 1 !== month) return;
-    if (iso < today) return;
+    // Let parent handle past-date validation (shows toast)
     prevValue.current = iso;
     onChange(iso);
   };
@@ -529,6 +538,7 @@ function CategoryGroup({
   onDateChange,
   minDate,
   onProductClick,
+  dateResetKey,
 }: {
   category: string;
   items: Product[];
@@ -538,6 +548,7 @@ function CategoryGroup({
   onDateChange: (id: string, val: string) => void;
   minDate: string;
   onProductClick: (product: Product) => void;
+  dateResetKey?: number;
 }) {
   return (
     <>
@@ -577,6 +588,7 @@ function CategoryGroup({
               value={dates[product.id] || ""}
               today={minDate}
               onChange={(val) => onDateChange(product.id, val)}
+              resetKey={dateResetKey}
             />
           </td>
           <td className="px-3 py-2.5 text-center font-medium text-slate-700 dark:text-slate-300">
