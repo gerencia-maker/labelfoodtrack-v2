@@ -43,21 +43,23 @@ function formatDateShort(dateStr: string | null): string {
   });
 }
 
-const EXPORT_HEADERS = [
-  "Id",
-  "Categoria",
-  "Producto",
-  "Cadena de frio",
-  "Fecha proceso",
-  "F.V. Refrigeracion",
-  "F.V. Congelacion",
-  "Peso / Cantidad",
-  "Cantidad producida",
-  "Rotulado por",
-  "Destino",
-  "Lote",
-  "Fecha Trazabilidad",
-];
+function getExportHeaders(t: (key: string) => string) {
+  return [
+    t("headerId"),
+    t("headerCategory"),
+    t("headerProduct"),
+    t("headerColdChain"),
+    t("headerProcessDate"),
+    t("headerExpiryRef"),
+    t("headerExpiryCong"),
+    t("headerWeight"),
+    t("headerProduced"),
+    t("headerPackedBy"),
+    t("headerDestination"),
+    t("headerBatch"),
+    t("headerTraceDate"),
+  ];
+}
 
 function getExportRows(entries: BitacoraEntry[]) {
   return entries.map((e, i) => [
@@ -128,7 +130,7 @@ export default function BitacoraPage() {
   }, [loadEntries]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Eliminar este registro de bitacora?")) return;
+    if (!confirm(t("confirmDelete"))) return;
 
     const token = await getToken();
     if (!token) return;
@@ -145,9 +147,10 @@ export default function BitacoraPage() {
   };
 
   const handleExportXLS = () => {
+    const headers = getExportHeaders(t);
     const rows = getExportRows(filtered);
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const headerCells = EXPORT_HEADERS.map(
+    const headerCells = headers.map(
       (h) => `<th style="background:#f2f2f2;font-weight:bold;border:1px solid #ccc;padding:4px">${esc(h)}</th>`
     ).join("");
     const bodyRows = rows.map(
@@ -155,7 +158,7 @@ export default function BitacoraPage() {
     ).join("");
 
     const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
-<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Bitacora</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>${t("title")}</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
 <body><table><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></body></html>`;
 
     const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8" });
@@ -167,15 +170,16 @@ export default function BitacoraPage() {
     const autoTable = (await import("jspdf-autotable")).default;
 
     const doc = new jsPDF({ orientation: "landscape", format: "tabloid" });
+    const headers = getExportHeaders(t);
     const rows = getExportRows(filtered);
 
     doc.setFontSize(14);
-    doc.text("Trazabilidad - Bitacora", 28, 24);
+    doc.text(t("pdfTitle"), 28, 24);
     doc.setFontSize(9);
-    doc.text(`Registros: ${rows.length}  |  Fecha: ${new Date().toLocaleDateString("es-CO")}`, 28, 32);
+    doc.text(t("pdfRecords", { count: String(rows.length), date: new Date().toLocaleDateString() }), 28, 32);
 
     autoTable(doc, {
-      head: [EXPORT_HEADERS],
+      head: [headers],
       body: rows,
       startY: 38,
       margin: { left: 28, right: 28 },
@@ -320,7 +324,7 @@ export default function BitacoraPage() {
       )}
 
       <p className="text-xs text-slate-400 dark:text-slate-500">
-        {filtered.length} de {total} registros
+        {t("recordsOf", { filtered: String(filtered.length), total: String(total) })}
       </p>
     </div>
     </RequirePermission>

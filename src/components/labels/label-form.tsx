@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -99,6 +100,7 @@ const COLD_CHAIN_META: Record<string, { icon: typeof Thermometer; color: string;
 };
 
 export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
+  const t = useTranslations("labels");
   const { getToken, userData } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
@@ -369,21 +371,27 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     }
   };
 
+  const coldChainLabels: Record<string, string> = {
+    refrigerado: t("refrigerated"),
+    congelado: t("frozen2"),
+    ambiente: t("ambient2"),
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* ── 1. Producto ── */}
       {!defaultValues?.productId && (
       <section className="space-y-3">
-        <SectionHeader icon={Package} title="Producto" />
+        <SectionHeader icon={Package} title={t("product")} />
         <div>
-          <Label htmlFor="productId">Selecciona un producto *</Label>
+          <Label htmlFor="productId">{t("selectProduct")}</Label>
           <Select
             id="productId"
             value={productId}
             onChange={(e) => setProductId(e.target.value)}
             required
           >
-            <option value="">Seleccionar producto...</option>
+            <option value="">{t("selectProductPlaceholder")}</option>
             {products.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.code} - {p.name}
@@ -429,7 +437,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           <div className="border-b border-orange-100 dark:border-slate-700/50 px-4 py-3">
             <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-2 flex items-center gap-1.5">
               <Thermometer size={11} className="text-orange-400" />
-              Cadena de frío
+              {t("coldChainTitle")}
             </p>
             <div className="flex gap-2">
               {coldChainOptions.map((opt) => {
@@ -448,7 +456,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                     }`}
                   >
                     <Icon size={13} />
-                    {opt.shortLabel}
+                    {coldChainLabels[opt.value] || opt.shortLabel}
                     <span className="text-[10px] opacity-70">{opt.days}d</span>
                   </button>
                 );
@@ -463,7 +471,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-500/10 dark:to-purple-500/5 border border-purple-200/60 dark:border-purple-500/20 p-3 space-y-1.5">
             <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-purple-600 dark:text-purple-400 font-bold">
               <Scale size={12} className="text-purple-500" />
-              Peso / Cantidad
+              {t("weightQty")}
             </Label>
             <div className="flex gap-1.5">
               <Input
@@ -498,7 +506,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
             <div className="flex items-center justify-between">
               <Label htmlFor="batch" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">
                 <Hash size={12} className="text-slate-500" />
-                Lote
+                {t("batch")}
               </Label>
               {selectedProduct?.batchAbbr && (
                 <button
@@ -512,7 +520,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                   className="text-[10px] text-orange-600 hover:text-orange-700 dark:text-orange-400 flex items-center gap-0.5 font-bold"
                 >
                   <Wand2 className="h-3 w-3" />
-                  {autoGenerateBatch ? "Manual" : "Auto"}
+                  {autoGenerateBatch ? t("batchManual") : t("batchAuto")}
                 </button>
               )}
             </div>
@@ -533,7 +541,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           <div className="rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 dark:from-teal-500/10 dark:to-teal-500/5 border border-teal-200/60 dark:border-teal-500/20 p-3 space-y-1.5">
             <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-teal-600 dark:text-teal-400 font-bold">
               <UserCheck size={12} className="text-teal-500" />
-              Empacado por
+              {t("packedBy")}
             </Label>
             <select
               id="packedBy"
@@ -541,7 +549,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               onChange={(e) => setPackedBy(e.target.value)}
               className="flex h-9 w-full rounded-lg border border-teal-200 bg-white px-2.5 text-sm font-medium dark:border-teal-500/30 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
             >
-              <option value="">Seleccionar...</option>
+              <option value="">{t("selectPlaceholder")}</option>
               {packedByOptions.map((p) => (
                 <option key={p} value={p}>{p}</option>
               ))}
@@ -552,7 +560,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           <div className="rounded-xl bg-gradient-to-br from-rose-50 to-rose-100/50 dark:from-rose-500/10 dark:to-rose-500/5 border border-rose-200/60 dark:border-rose-500/20 p-3 space-y-1.5">
             <Label htmlFor="destination" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-rose-600 dark:text-rose-400 font-bold">
               <MapPin size={12} className="text-rose-500" />
-              Destino
+              {t("destination")}
             </Label>
             <select
               id="destination"
@@ -560,7 +568,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               onChange={(e) => setDestination(e.target.value)}
               className="flex h-9 w-full rounded-lg border border-rose-200 bg-white px-2.5 text-sm font-medium dark:border-rose-500/30 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400"
             >
-              <option value="">Seleccionar...</option>
+              <option value="">{t("selectPlaceholder")}</option>
               {destinations.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
@@ -580,7 +588,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
             ) : (
               <Save className="h-4 w-4" />
             )}
-            {isEdit ? "Guardar cambios" : "Guardar etiqueta"}
+            {isEdit ? t("saveChanges") : t("saveLabel")}
           </Button>
         </div>
       </section>

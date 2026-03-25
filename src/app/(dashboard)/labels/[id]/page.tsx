@@ -157,7 +157,7 @@ export default function LabelDetailPage({
   }, [loadLabel]);
 
   const handleDelete = async () => {
-    if (!confirm("Eliminar esta etiqueta?")) return;
+    if (!confirm(t("confirmDelete"))) return;
 
     if (DEMO_MODE) {
       toast({ title: t("deleted"), variant: "success" });
@@ -245,7 +245,7 @@ export default function LabelDetailPage({
   }
 
   if (!label) {
-    return <div className="text-center py-20 text-slate-500">Etiqueta no encontrada</div>;
+    return <div className="text-center py-20 text-slate-500">{t("notFound")}</div>;
   }
 
   const p = label.product;
@@ -314,7 +314,7 @@ export default function LabelDetailPage({
               <Link href="/labels/new">
                 <Button variant="outline" size="sm" className="gap-1.5">
                   <Copy className="h-3.5 w-3.5" />
-                  Duplicar
+                  {t("duplicate")}
                 </Button>
               </Link>
             )}
@@ -335,7 +335,7 @@ export default function LabelDetailPage({
 
         {/* ── Details panel (below preview) ── */}
         <div className="mx-auto max-w-[700px] rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-5 shadow-[var(--shadow-warm-sm)] space-y-3">
-          <h3 className="text-xs font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-orange-900/30 pb-2 uppercase tracking-wide">Detalles</h3>
+          <h3 className="text-xs font-semibold text-slate-900 dark:text-white border-b border-orange-100 dark:border-orange-900/30 pb-2 uppercase tracking-wide">{t("details")}</h3>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
             <Detail label={t("product")} value={`${p?.code || "---"} - ${label.productName}`} />
@@ -351,14 +351,14 @@ export default function LabelDetailPage({
 
           {p?.ingredients && (
             <div className="pt-2 border-t border-orange-100 dark:border-orange-900/30">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Ingredientes</p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">{t("ingredients")}</p>
               <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{p.ingredients}</p>
             </div>
           )}
 
           {p?.allergens && (
             <div>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Alergenos</p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">{t("allergens")}</p>
               <p className="text-xs text-red-600 dark:text-red-400 font-medium">{p.allergens}</p>
             </div>
           )}

@@ -52,37 +52,37 @@ const ROLE_COLORS = {
   VIEWER: "bg-slate-100 dark:bg-slate-600/30 text-slate-600 dark:text-slate-400",
 };
 
-const PERM_GROUP_LABELS: Record<string, string> = {
-  modules: "Modulos",
-  config: "Configuracion",
-  dataOps: "Datos",
-  ai: "IA",
+const PERM_GROUP_LABEL_KEYS: Record<string, string> = {
+  modules: "modules",
+  config: "configGroup",
+  dataOps: "dataOps",
+  ai: "aiGroup",
 };
 
-const PERM_LABELS: Record<string, string> = {
-  dashboard: "Dashboard",
-  products: "Productos",
-  labels: "Etiquetas",
-  bitacora: "Bitacora",
-  configuration: "Configuracion",
-  instances: "Instancias",
-  import: "Importar",
-  export: "Exportar",
-  ai_features: "IA",
+const PERM_LABEL_KEYS: Record<string, string> = {
+  dashboard: "permDashboard",
+  products: "permProducts",
+  labels: "permLabels",
+  bitacora: "permBitacora",
+  configuration: "permConfig",
+  instances: "permInstances",
+  import: "permImport",
+  export: "permExport",
+  ai_features: "permAI",
 };
 
-const ACTION_LABELS: Record<string, string> = {
-  crear: "Crear",
-  editar: "Editar",
-  eliminar: "Eliminar",
-  importar: "Importar",
-  imprimir: "Imprimir",
-  duplicar: "Duplicar",
-  exportar: "Exportar",
-  editar_papel: "Papel",
-  editar_instancia: "Instancia",
-  gestionar_usuarios: "Usuarios",
-  sync_sheets: "Sync Sheets",
+const ACTION_LABEL_KEYS: Record<string, string> = {
+  crear: "actionCrear",
+  editar: "actionEditar",
+  eliminar: "actionEliminar",
+  importar: "actionImportar",
+  imprimir: "actionImprimir",
+  duplicar: "actionDuplicar",
+  exportar: "actionExportar",
+  editar_papel: "actionPapel",
+  editar_instancia: "actionInstancia",
+  gestionar_usuarios: "actionUsuarios",
+  sync_sheets: "actionSyncSheets",
 };
 
 export function UserManagement() {
@@ -324,7 +324,7 @@ export function UserManagement() {
         </div>
       ) : users.length === 0 ? (
         <p className="text-sm text-slate-400 py-4 text-center">
-          {DEMO_MODE ? "Demo mode — no users to display" : t("noUsers")}
+          {DEMO_MODE ? t("demoNoUsers") : t("noUsers")}
         </p>
       ) : (
         <div className="overflow-x-auto">
@@ -464,15 +464,15 @@ export function UserManagement() {
 
               {/* Ubicacion */}
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ubicacion</label>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{t("ubicacion")}</label>
                 <input
                   type="text"
                   value={formUbicacion}
                   onChange={(e) => setFormUbicacion(e.target.value)}
-                  placeholder="Ej: Cocina central, Planta 2..."
+                  placeholder={t("ubicacionPlaceholder")}
                   className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
                 />
-                <p className="text-[10px] text-slate-400 mt-1">Se usa como valor por defecto en &quot;Empacado por&quot; al crear etiquetas</p>
+                <p className="text-[10px] text-slate-400 mt-1">{t("ubicacionHint")}</p>
               </div>
 
               {/* Email */}
@@ -524,7 +524,7 @@ export function UserManagement() {
                 >
                   {ROLE_OPTIONS.map((r) => (
                     <option key={r} value={r}>
-                      {r === "ADMIN" ? "Admin — Acceso completo" : r === "EDITOR" ? "Editor — Permisos personalizados" : "Viewer — Solo lectura"}
+                      {r === "ADMIN" ? t("adminDesc") : r === "EDITOR" ? t("editorDesc") : t("viewerDesc")}
                     </option>
                   ))}
                 </select>
@@ -576,7 +576,7 @@ export function UserManagement() {
                     {PERMISOS_GROUPS.map((group) => (
                       <div key={group.labelKey}>
                         <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
-                          {PERM_GROUP_LABELS[group.labelKey] || group.labelKey}
+                          {PERM_GROUP_LABEL_KEYS[group.labelKey] ? t(PERM_GROUP_LABEL_KEYS[group.labelKey]) : group.labelKey}
                         </p>
                         <div className="space-y-1">
                           {group.permisos.map((perm) => {
@@ -611,7 +611,7 @@ export function UserManagement() {
                                     }`}>
                                       {isChecked && "✓"}
                                     </span>
-                                    {PERM_LABELS[perm] || perm}
+                                    {PERM_LABEL_KEYS[perm] ? t(PERM_LABEL_KEYS[perm]) : perm}
                                     {hasActions && isChecked && activeSubCount > 0 && (
                                       <span className="text-[9px] bg-orange-200 dark:bg-orange-500/30 px-1 rounded">
                                         {activeSubCount}/{subActions.length}
@@ -661,7 +661,7 @@ export function UserManagement() {
                                           }`}>
                                             {subChecked && "✓"}
                                           </span>
-                                          {ACTION_LABELS[action.key] || action.key}
+                                          {ACTION_LABEL_KEYS[action.key] ? t(ACTION_LABEL_KEYS[action.key]) : action.key}
                                         </label>
                                       );
                                     })}
