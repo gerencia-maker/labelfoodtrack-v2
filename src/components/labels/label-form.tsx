@@ -422,55 +422,50 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       </section>
       )}
 
-      {/* ── 2. Cadena de frío ── */}
-      {coldChainOptions.length > 0 && (
-        <section className="space-y-3">
-          <SectionHeader icon={Thermometer} title="Cadena de frío" />
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${coldChainOptions.length}, 1fr)` }}>
-            {coldChainOptions.map((opt) => {
-              const meta = COLD_CHAIN_META[opt.value];
-              const Icon = meta.icon;
-              const isSelected = coldChainType === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setColdChainType(opt.value)}
-                  className={`relative rounded-xl border-2 p-3 text-left transition-all ${
-                    isSelected
-                      ? `${meta.border} ${meta.bg} ring-1 ring-offset-1 ${meta.border}`
-                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Icon size={16} className={isSelected ? meta.color : "text-slate-400"} />
-                    <span className={`text-xs font-semibold ${isSelected ? meta.color : "text-slate-500 dark:text-slate-400"}`}>
-                      {opt.shortLabel}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{opt.days} dias</p>
-                  {isSelected && (
-                    <div className={`absolute top-2 right-2 h-2 w-2 rounded-full ${meta.color.replace("text-", "bg-")}`} />
-                  )}
-                </button>
-              );
-            })}
+      {/* ── 2. Configuración de etiqueta (todo en una card) ── */}
+      <section className="rounded-2xl border border-orange-200/60 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+        {/* Cadena de frío — pills compactas */}
+        {coldChainOptions.length > 0 && (
+          <div className="border-b border-orange-100 dark:border-slate-700/50 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-2 flex items-center gap-1.5">
+              <Thermometer size={11} className="text-orange-400" />
+              Cadena de frío
+            </p>
+            <div className="flex gap-2">
+              {coldChainOptions.map((opt) => {
+                const meta = COLD_CHAIN_META[opt.value];
+                const Icon = meta.icon;
+                const isSelected = coldChainType === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setColdChainType(opt.value)}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                      isSelected
+                        ? `${meta.bg} ${meta.color} ring-2 ring-offset-1 ${meta.border}`
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    <Icon size={13} />
+                    {opt.shortLabel}
+                    <span className="text-[10px] opacity-70">{opt.days}d</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </section>
-      )}
+        )}
 
-      {/* ── 3. Datos de etiqueta ── */}
-      <section className="space-y-3">
-        <SectionHeader icon={CalendarDays} title="Datos de etiqueta" />
-
-        <div className="grid grid-cols-2 gap-3">
+        {/* Campos — grid compacto */}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3">
           {/* Contenido neto */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 space-y-1.5">
-            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
-              <Scale size={11} className="text-orange-400" />
-              Contenido neto
+          <div className="space-y-1">
+            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+              <Scale size={10} />
+              Peso / Cantidad
             </Label>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1">
               <Input
                 id="netContentQty"
                 type="number"
@@ -479,13 +474,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 placeholder="500"
                 value={netContentQty}
                 onChange={(e) => setNetContentQty(e.target.value)}
-                className="flex-1 h-9"
+                className="flex-1 h-8 text-sm"
               />
               <Select
                 id="netContentUnit"
                 value={netContentUnit}
                 onChange={(e) => setNetContentUnit(e.target.value)}
-                className="w-20 h-9"
+                className="w-16 h-8 text-sm"
               >
                 {NET_CONTENT_UNITS.map((group) => (
                   <optgroup key={group.label} label={group.label}>
@@ -499,10 +494,10 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
 
           {/* Lote */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 space-y-1.5">
+          <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <Label htmlFor="batch" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
-                <Hash size={11} className="text-orange-400" />
+              <Label htmlFor="batch" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                <Hash size={10} />
                 Lote
               </Label>
               {selectedProduct?.batchAbbr && (
@@ -514,7 +509,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                       setBatch(generateBatch(selectedProduct.batchAbbr, productionDate));
                     }
                   }}
-                  className="text-[10px] text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 flex items-center gap-0.5 font-semibold"
+                  className="text-[10px] text-orange-500 hover:text-orange-700 dark:text-orange-400 flex items-center gap-0.5 font-semibold"
                 >
                   <Wand2 className="h-3 w-3" />
                   {autoGenerateBatch ? "Manual" : "Auto"}
@@ -530,21 +525,21 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 setAutoGenerateBatch(false);
               }}
               readOnly={autoGenerateBatch}
-              className={`h-9 ${autoGenerateBatch ? "bg-slate-50 dark:bg-slate-800" : ""}`}
+              className={`h-8 text-sm ${autoGenerateBatch ? "bg-slate-50 dark:bg-slate-800" : ""}`}
             />
           </div>
 
           {/* Empacado por */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 space-y-1.5">
-            <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
-              <UserCheck size={11} className="text-orange-400" />
+          <div className="space-y-1">
+            <Label htmlFor="packedBy" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+              <UserCheck size={10} />
               Empacado por
             </Label>
             <select
               id="packedBy"
               value={packedBy}
               onChange={(e) => setPackedBy(e.target.value)}
-              className="flex h-9 w-full rounded-lg border border-orange-200 bg-white px-2 py-1 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
+              className="flex h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
             >
               <option value="">Seleccionar...</option>
               {packedByOptions.map((p) => (
@@ -554,16 +549,16 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
 
           {/* Destino */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 space-y-1.5">
-            <Label htmlFor="destination" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
-              <MapPin size={11} className="text-orange-400" />
+          <div className="space-y-1">
+            <Label htmlFor="destination" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+              <MapPin size={10} />
               Destino
             </Label>
             <select
               id="destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="flex h-9 w-full rounded-lg border border-orange-200 bg-white px-2 py-1 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
+              className="flex h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
             >
               <option value="">Seleccionar...</option>
               {destinations.map((d) => (
@@ -572,23 +567,23 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
             </select>
           </div>
         </div>
-      </section>
 
-      {/* ── Boton guardar ── */}
-      <div className="pt-2">
-        <Button
-          type="submit"
-          disabled={saving || !productId}
-          className="w-full gap-2 h-11 text-sm font-semibold"
-        >
-          {saving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          {isEdit ? "Guardar cambios" : "Guardar etiqueta"}
-        </Button>
-      </div>
+        {/* Guardar — integrado en la card */}
+        <div className="border-t border-orange-100 dark:border-slate-700/50 px-4 py-3">
+          <Button
+            type="submit"
+            disabled={saving || !productId}
+            className="w-full gap-2 h-10 text-sm font-semibold"
+          >
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {isEdit ? "Guardar cambios" : "Guardar etiqueta"}
+          </Button>
+        </div>
+      </section>
     </form>
   );
 }
