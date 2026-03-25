@@ -16,6 +16,8 @@ import {
   Snowflake,
   Thermometer,
   Sun,
+  CalendarCheck,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -337,12 +339,10 @@ function ProductCard({
 
       {/* Date input */}
       <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50">
-        <input
-          type="date"
-          min={minDate}
+        <DateQuickPicker
           value={date}
-          onChange={(e) => onDateChange(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:border-orange-300 dark:hover:border-orange-500/50 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-200 dark:focus:ring-orange-500/20 transition-colors"
+          today={minDate}
+          onChange={onDateChange}
         />
       </div>
     </div>
@@ -384,6 +384,52 @@ function TempBar({
         {days > 0 ? `${days}d` : "--"}
       </span>
     </div>
+  );
+}
+
+/* ---- Date Quick Picker ---- */
+function DateQuickPicker({
+  value,
+  today,
+  onChange,
+}: {
+  value: string;
+  today: string;
+  onChange: (val: string) => void;
+}) {
+  const formatDisplay = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr + "T00:00:00");
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" });
+  };
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-1 justify-center">
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+          <CalendarCheck size={12} />
+          {formatDisplay(value)}
+        </span>
+        <button
+          onClick={(e) => { e.stopPropagation(); onChange(""); }}
+          className="rounded-full p-0.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+          title="Quitar fecha"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onChange(today); }}
+      className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 px-3 py-1 text-xs font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-500/20 hover:border-orange-300 dark:hover:border-orange-500/50 transition-colors"
+    >
+      <CalendarCheck size={12} />
+      Hoy
+    </button>
   );
 }
 
@@ -441,13 +487,10 @@ function CategoryGroup({
             </button>
           </td>
           <td className="px-3 py-1.5 text-center">
-            <input
-              type="date"
-              min={minDate}
+            <DateQuickPicker
               value={dates[product.id] || ""}
-              onChange={(e) => onDateChange(product.id, e.target.value)}
-              className="w-full max-w-[140px] rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-600 dark:text-slate-300 hover:border-orange-300 dark:hover:border-orange-500/50 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-200 dark:focus:ring-orange-500/20 transition-colors"
-              placeholder="DD/MM/AAAA"
+              today={minDate}
+              onChange={(val) => onDateChange(product.id, val)}
             />
           </td>
           <td className="px-3 py-2.5 text-center font-medium text-slate-700 dark:text-slate-300">
