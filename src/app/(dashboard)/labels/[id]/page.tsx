@@ -289,7 +289,7 @@ export default function LabelDetailPage({
     <>
       <div className="print:hidden">
         {/* ── Sticky top bar (v1 style) ── */}
-        <div className="sticky top-0 z-20 -mx-6 -mt-6 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
+        <div className="-mx-6 -mt-6 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
           <div className="flex items-center gap-3">
             <Link href="/labels">
               <Button variant="ghost" size="sm" className="gap-1.5 text-slate-600 dark:text-slate-400">

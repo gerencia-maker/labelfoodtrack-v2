@@ -124,7 +124,7 @@ export default function NewLabelPage() {
     <>
       <div className="print:hidden">
         {/* ── Sticky top bar (v1 style) ── */}
-        <div className="sticky top-0 z-20 -mx-6 -mt-6 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
+        <div className="-mx-6 -mt-6 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
           <Link href="/labels">
             <Button variant="ghost" size="sm" className="gap-1.5 text-slate-600 dark:text-slate-400">
               <ArrowLeft className="h-4 w-4" />
@@ -157,11 +157,11 @@ export default function NewLabelPage() {
                 <Save className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
               </div>
               <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                {hasProduct ? previewData.productName : "Configurar etiqueta"}
+                {hasProduct ? previewData.productName : t("newLabel")}
               </span>
               {hasProduct && (
                 <span className="text-xs text-slate-400 dark:text-slate-500">
-                  — {previewData.batch} · {previewData.destination || "Sin destino"}
+                  — {previewData.batch} · {previewData.destination || "--"}
                 </span>
               )}
             </div>
