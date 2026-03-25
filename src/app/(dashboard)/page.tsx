@@ -49,11 +49,12 @@ export default function ProductsPage() {
   const canCreate = hasActionPermission("products", "crear");
   const canEdit = hasActionPermission("products", "editar");
   const today = new Date().toISOString().split("T")[0];
+  const dateLabels = { today: t("today"), clearDate: t("clearDate"), useTodayDate: t("useTodayDate") };
 
   const [dateResetKey, setDateResetKey] = useState(0);
   const handleDateChange = (productId: string, value: string) => {
     if (value && value < today) {
-      toast({ title: "No se permite insertar fechas anteriores a la fecha actual", variant: "error" });
+      toast({ title: t("pastDateError"), variant: "error" });
       setDates((prev) => ({ ...prev, [productId]: "" }));
       setDateResetKey((k) => k + 1);
       return;
@@ -164,7 +165,7 @@ export default function ProductsPage() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
         <Input
-          placeholder="Buscar por codigo, item o categoria"
+          placeholder={t("searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
@@ -180,7 +181,7 @@ export default function ProductsPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="col-span-full text-center py-20 text-slate-400 dark:text-slate-500">
-              No se encontraron productos
+              {t("noProducts")}
             </div>
           ) : (
             filtered.map((product) => (
@@ -192,6 +193,7 @@ export default function ProductsPage() {
                 onDateChange={(val) => handleDateChange(product.id, val)}
                 minDate={today}
                 onProductClick={() => handleProductClick(product)}
+                dateLabels={dateLabels}
               />
             ))
           )}
@@ -202,7 +204,7 @@ export default function ProductsPage() {
           {/* Title bar */}
           <div className="bg-gradient-to-r from-orange-600 to-red-500 px-4 py-3">
             <h2 className="text-center text-lg font-bold text-white tracking-wide uppercase">
-              Rotulacion
+              {t("rotulacion")}
             </h2>
           </div>
 
@@ -211,13 +213,13 @@ export default function ProductsPage() {
               <tr className="border-b-2 border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/5">
                 <th className="px-3 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("code")}</th>
                 <th className="px-3 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("abbreviation")}</th>
-                <th className="px-3 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Item</th>
+                <th className="px-3 py-2.5 text-left text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("item")}</th>
                 <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("productionDate")}</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("refrigeration")} (dias)</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("frozen")} (dias)</th>
-                <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Temp. ambiente (dias)</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("refrigeration")} ({t("days")})</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("frozen")} ({t("days")})</th>
+                <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{t("ambientDays")}</th>
                 {canEdit && (
-                  <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide w-16">Editar</th>
+                  <th className="px-3 py-2.5 text-center text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide w-16">{t("editCol")}</th>
                 )}
               </tr>
             </thead>
@@ -225,13 +227,13 @@ export default function ProductsPage() {
               {loading ? (
                 <tr>
                   <td colSpan={colCount} className="px-4 py-12 text-center text-slate-400 dark:text-slate-500">
-                    Cargando productos...
+                    {t("loadingProducts")}
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={colCount} className="px-4 py-12 text-center text-slate-400 dark:text-slate-500">
-                    No se encontraron productos
+                    {t("noProducts")}
                   </td>
                 </tr>
               ) : (
@@ -247,6 +249,7 @@ export default function ProductsPage() {
                     minDate={today}
                     onProductClick={handleProductClick}
                     dateResetKey={dateResetKey}
+                    dateLabels={dateLabels}
                   />
                 ))
               )}
@@ -256,7 +259,7 @@ export default function ProductsPage() {
       )}
 
       <p className="text-xs text-slate-400 dark:text-slate-500">
-        {filtered.length} de {products.length} productos
+        {filtered.length} {t("ofTotal")} {products.length}
       </p>
     </div>
   );
@@ -270,6 +273,7 @@ function ProductCard({
   onDateChange,
   minDate,
   onProductClick,
+  dateLabels,
 }: {
   product: Product;
   canEdit: boolean;
@@ -277,6 +281,7 @@ function ProductCard({
   onDateChange: (val: string) => void;
   minDate: string;
   onProductClick: () => void;
+  dateLabels?: { today: string; clearDate: string; useTodayDate: string };
 }) {
   const maxDays = Math.max(product.refrigeratedDays, product.frozenDays, product.ambientDays, 1);
 
@@ -348,6 +353,7 @@ function ProductCard({
           value={date}
           today={minDate}
           onChange={onDateChange}
+          labels={dateLabels}
         />
       </div>
     </div>
@@ -398,11 +404,13 @@ function DateQuickPicker({
   today,
   onChange,
   resetKey,
+  labels,
 }: {
   value: string;
   today: string;
   onChange: (val: string) => void;
   resetKey?: number;
+  labels?: { today: string; clearDate: string; useTodayDate: string };
 }) {
   // Local state for partial input while typing
   const [localDay, setLocalDay] = useState(() => value ? String(parseInt(value.split("-")[2])) : "");
@@ -510,16 +518,16 @@ function DateQuickPicker({
       <button
         onClick={(e) => { e.stopPropagation(); onChange(today); }}
         className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 px-2 py-1 text-[11px] font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-colors whitespace-nowrap"
-        title="Usar fecha de hoy"
+        title={labels?.useTodayDate || "Use today's date"}
       >
         <CalendarCheck size={11} />
-        Hoy
+        {labels?.today || "Today"}
       </button>
       {value && (
         <button
           onClick={(e) => { e.stopPropagation(); onChange(""); }}
           className="rounded-full p-0.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-          title="Quitar fecha"
+          title={labels?.clearDate || "Clear date"}
         >
           <X size={13} />
         </button>
@@ -539,6 +547,7 @@ function CategoryGroup({
   minDate,
   onProductClick,
   dateResetKey,
+  dateLabels,
 }: {
   category: string;
   items: Product[];
@@ -549,6 +558,7 @@ function CategoryGroup({
   minDate: string;
   onProductClick: (product: Product) => void;
   dateResetKey?: number;
+  dateLabels?: { today: string; clearDate: string; useTodayDate: string };
 }) {
   return (
     <>
@@ -589,6 +599,7 @@ function CategoryGroup({
               today={minDate}
               onChange={(val) => onDateChange(product.id, val)}
               resetKey={dateResetKey}
+              labels={dateLabels}
             />
           </td>
           <td className="px-3 py-2.5 text-center font-medium text-slate-700 dark:text-slate-300">
