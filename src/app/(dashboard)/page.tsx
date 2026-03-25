@@ -398,15 +398,75 @@ function DateQuickPicker({
   today: string;
   onChange: (val: string) => void;
 }) {
+  const [dd, mm, yy] = value
+    ? value.split("-").reverse().map(Number)
+    : [0, 0, 0];
+
+  const todayParts = today.split("-").map(Number); // [YYYY, MM, DD]
+
+  const updatePart = (part: "d" | "m" | "y", raw: string) => {
+    const num = parseInt(raw, 10);
+    if (raw !== "" && isNaN(num)) return;
+
+    let d = part === "d" ? (raw === "" ? 0 : num) : dd;
+    let m = part === "m" ? (raw === "" ? 0 : num) : mm;
+    let y = part === "y" ? (raw === "" ? 0 : num) : yy;
+
+    // Clamp values
+    if (m > 12) m = 12;
+    if (d > 31) d = 31;
+    if (y > 9999) return;
+
+    // If all parts filled, validate
+    if (d > 0 && m > 0 && y >= 2020) {
+      const iso = `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const date = new Date(iso + "T00:00:00");
+      if (isNaN(date.getTime()) || date.getDate() !== d) return; // invalid date
+      if (iso < today) return; // past date blocked
+      onChange(iso);
+    } else if (d === 0 && m === 0 && y === 0) {
+      onChange("");
+    }
+  };
+
+  const inputClass = "w-[36px] rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1 py-1 text-xs text-center text-slate-600 dark:text-slate-300 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-200 dark:focus:ring-orange-500/20 transition-colors";
+
   return (
-    <div className="flex items-center gap-1.5 justify-center">
-      <input
-        type="date"
-        min={today}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-[130px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs text-slate-600 dark:text-slate-300 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-200 dark:focus:ring-orange-500/20 transition-colors"
-      />
+    <div className="flex items-center gap-1 justify-center">
+      <div className="inline-flex items-center gap-0.5 text-[10px] text-slate-400">
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={2}
+          placeholder="DD"
+          value={dd || ""}
+          onChange={(e) => updatePart("d", e.target.value)}
+          className={inputClass}
+          onClick={(e) => e.stopPropagation()}
+        />
+        <span>/</span>
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={2}
+          placeholder="MM"
+          value={mm || ""}
+          onChange={(e) => updatePart("m", e.target.value)}
+          className={inputClass}
+          onClick={(e) => e.stopPropagation()}
+        />
+        <span>/</span>
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={4}
+          placeholder="AAAA"
+          value={yy || ""}
+          onChange={(e) => updatePart("y", e.target.value)}
+          className={cn(inputClass, "w-[46px]")}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
       <button
         onClick={(e) => { e.stopPropagation(); onChange(today); }}
         className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 px-2 py-1 text-[11px] font-semibold text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-colors whitespace-nowrap"
