@@ -435,16 +435,21 @@ function DateQuickPicker({
     onChange(iso);
   };
 
+  const monthRef = useRef<HTMLInputElement>(null);
+  const yearRef = useRef<HTMLInputElement>(null);
+
   const handleDay = (raw: string) => {
     const clean = raw.replace(/\D/g, "").slice(0, 2);
     setLocalDay(clean);
     tryEmitDate(clean, localMonth, localYear);
+    if (clean.length === 2) monthRef.current?.focus();
   };
 
   const handleMonth = (raw: string) => {
     const clean = raw.replace(/\D/g, "").slice(0, 2);
     setLocalMonth(clean);
     tryEmitDate(localDay, clean, localYear);
+    if (clean.length === 2) yearRef.current?.focus();
   };
 
   const handleYear = (raw: string) => {
@@ -470,6 +475,7 @@ function DateQuickPicker({
         />
         <span>/</span>
         <input
+          ref={monthRef}
           type="text"
           inputMode="numeric"
           maxLength={2}
@@ -481,6 +487,7 @@ function DateQuickPicker({
         />
         <span>/</span>
         <input
+          ref={yearRef}
           type="text"
           inputMode="numeric"
           maxLength={4}
