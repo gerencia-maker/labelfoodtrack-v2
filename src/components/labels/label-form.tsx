@@ -457,15 +457,15 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
         )}
 
-        {/* Campos — grid compacto */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3">
+        {/* Campos — grid compacto con cards */}
+        <div className="grid grid-cols-2 gap-3 px-4 py-3">
           {/* Contenido neto */}
-          <div className="space-y-1">
-            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-              <Scale size={10} />
+          <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-500/10 dark:to-purple-500/5 border border-purple-200/60 dark:border-purple-500/20 p-3 space-y-1.5">
+            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-purple-600 dark:text-purple-400 font-bold">
+              <Scale size={12} className="text-purple-500" />
               Peso / Cantidad
             </Label>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               <Input
                 id="netContentQty"
                 type="number"
@@ -474,13 +474,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 placeholder="500"
                 value={netContentQty}
                 onChange={(e) => setNetContentQty(e.target.value)}
-                className="flex-1 h-8 text-sm"
+                className="flex-1 h-9 text-sm font-medium bg-white dark:bg-slate-800 border-purple-200 dark:border-purple-500/30 focus:border-purple-400"
               />
               <Select
                 id="netContentUnit"
                 value={netContentUnit}
                 onChange={(e) => setNetContentUnit(e.target.value)}
-                className="w-16 h-8 text-sm"
+                className="w-16 h-9 text-sm font-medium bg-white dark:bg-slate-800 border-purple-200 dark:border-purple-500/30"
               >
                 {NET_CONTENT_UNITS.map((group) => (
                   <optgroup key={group.label} label={group.label}>
@@ -494,10 +494,10 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
 
           {/* Lote */}
-          <div className="space-y-1">
+          <div className="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-700/30 dark:to-slate-800/30 border border-slate-200/60 dark:border-slate-600/30 p-3 space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="batch" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                <Hash size={10} />
+              <Label htmlFor="batch" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">
+                <Hash size={12} className="text-slate-500" />
                 Lote
               </Label>
               {selectedProduct?.batchAbbr && (
@@ -509,7 +509,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                       setBatch(generateBatch(selectedProduct.batchAbbr, productionDate));
                     }
                   }}
-                  className="text-[10px] text-orange-500 hover:text-orange-700 dark:text-orange-400 flex items-center gap-0.5 font-semibold"
+                  className="text-[10px] text-orange-600 hover:text-orange-700 dark:text-orange-400 flex items-center gap-0.5 font-bold"
                 >
                   <Wand2 className="h-3 w-3" />
                   {autoGenerateBatch ? "Manual" : "Auto"}
@@ -525,21 +525,21 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 setAutoGenerateBatch(false);
               }}
               readOnly={autoGenerateBatch}
-              className={`h-8 text-sm ${autoGenerateBatch ? "bg-slate-50 dark:bg-slate-800" : ""}`}
+              className={`h-9 text-sm font-medium ${autoGenerateBatch ? "bg-slate-100 dark:bg-slate-800" : "bg-white dark:bg-slate-800"}`}
             />
           </div>
 
           {/* Empacado por */}
-          <div className="space-y-1">
-            <Label htmlFor="packedBy" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-              <UserCheck size={10} />
+          <div className="rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 dark:from-teal-500/10 dark:to-teal-500/5 border border-teal-200/60 dark:border-teal-500/20 p-3 space-y-1.5">
+            <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-teal-600 dark:text-teal-400 font-bold">
+              <UserCheck size={12} className="text-teal-500" />
               Empacado por
             </Label>
             <select
               id="packedBy"
               value={packedBy}
               onChange={(e) => setPackedBy(e.target.value)}
-              className="flex h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
+              className="flex h-9 w-full rounded-lg border border-teal-200 bg-white px-2.5 text-sm font-medium dark:border-teal-500/30 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
             >
               <option value="">Seleccionar...</option>
               {packedByOptions.map((p) => (
@@ -549,16 +549,16 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
 
           {/* Destino */}
-          <div className="space-y-1">
-            <Label htmlFor="destination" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-              <MapPin size={10} />
+          <div className="rounded-xl bg-gradient-to-br from-rose-50 to-rose-100/50 dark:from-rose-500/10 dark:to-rose-500/5 border border-rose-200/60 dark:border-rose-500/20 p-3 space-y-1.5">
+            <Label htmlFor="destination" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-rose-600 dark:text-rose-400 font-bold">
+              <MapPin size={12} className="text-rose-500" />
               Destino
             </Label>
             <select
               id="destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="flex h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
+              className="flex h-9 w-full rounded-lg border border-rose-200 bg-white px-2.5 text-sm font-medium dark:border-rose-500/30 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400"
             >
               <option value="">Seleccionar...</option>
               {destinations.map((d) => (
