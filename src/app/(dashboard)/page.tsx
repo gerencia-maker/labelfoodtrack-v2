@@ -46,6 +46,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const canCreate = hasActionPermission("products", "crear");
   const canEdit = hasActionPermission("products", "editar");
   const today = new Date().toISOString().split("T")[0];
 
@@ -145,7 +146,7 @@ export default function ProductsPage() {
             </button>
           </div>
 
-          {canEdit && (
+          {canCreate && (
             <Link href="/products/new">
               <Button className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white shadow-md shadow-orange-500/25">
                 <Plus className="h-4 w-4" />
