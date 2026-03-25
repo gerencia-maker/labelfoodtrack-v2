@@ -1,6 +1,7 @@
 "use client";
 
 import { QRCodeCanvas } from "qrcode.react";
+import { useTranslations } from "next-intl";
 import type { LabelPreviewData } from "./label-preview";
 
 interface LabelPrintProps {
@@ -11,15 +12,14 @@ interface LabelPrintProps {
 
 /**
  * Componente de impresion: tabla matricial 3 columnas con QR inline.
- * Portado de v1 app.js buildPrintMatrixHtml() (lineas 5185-5249).
- * Se muestra solo al imprimir (hidden en pantalla, block en print via CSS).
  * Con screenPreview=true se muestra en pantalla como preview real.
  */
 export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
+  const t = useTranslations("labels");
+
   const formatDate = (dateStr: string) => {
     if (!dateStr || dateStr === "--") return "--";
     try {
-      // Handle both "YYYY-MM-DD" and full ISO "2026-03-23T00:00:00.000Z"
       const raw = dateStr.includes("T") ? dateStr : dateStr + "T00:00:00";
       const d = new Date(raw);
       if (isNaN(d.getTime())) return dateStr;
@@ -50,14 +50,14 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
           <thead>
             <tr>
               <th colSpan={3}>
-                <div>{data.brand || "MARCA"}</div>
-                <div style={{ fontSize: "0.7em", fontWeight: 400, marginTop: 2 }}>USO GASTRONÓMICO / INSTITUCIONAL</div>
+                <div>{data.brand || t("printBrand")}</div>
+                <div style={{ fontSize: "0.7em", fontWeight: 400, marginTop: 2 }}>{t("printSubtitle")}</div>
               </th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Producto:</td>
+              <td>{t("printProduct")}</td>
               <td>{data.productName || "--"}</td>
               <td rowSpan={qrRowSpan} className="qr-cell">
                 {data.qrData ? (
@@ -73,63 +73,63 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
               </td>
             </tr>
             <tr>
-              <td>Tipo de cadena de frío:</td>
+              <td>{t("printColdChain")}</td>
               <td>{data.coldChain || "--"}</td>
             </tr>
             <tr>
-              <td>Fecha de producción:</td>
+              <td>{t("printProductionDate")}</td>
               <td>{formatDate(data.productionDate)}</td>
             </tr>
             {hasRefrigerated && (
               <tr>
-                <td>{hasFrozen ? "Post-descongelación:" : "Vence (refrigerado 0°C a 4°C):"}</td>
+                <td>{hasFrozen ? t("printPostThaw") : t("printExpiryRef")}</td>
                 <td>{data.expiryRefrigerated}</td>
               </tr>
             )}
             {hasFrozen && (
               <tr>
-                <td>Vence (congelado -18°C a -22°C):</td>
+                <td>{t("printExpiryCong")}</td>
                 <td>{data.expiryFrozen}</td>
               </tr>
             )}
             <tr>
-              <td>Peso/Cantidad:</td>
+              <td>{t("printWeight")}</td>
               <td>{data.netContent || "--"}</td>
             </tr>
             <tr>
-              <td>Envasado por:</td>
+              <td>{t("printPackedBy")}</td>
               <td>{data.packedBy || "--"}</td>
             </tr>
             {data.ingredients && (
               <tr className="multiline-row">
-                <td>Ingredientes:</td>
+                <td>{t("printIngredients")}</td>
                 <td>{data.ingredients}</td>
               </tr>
             )}
             {data.allergens && (
               <tr className="multiline-row">
-                <td>Alérgenos:</td>
+                <td>{t("printAllergens")}</td>
                 <td>{data.allergens}</td>
               </tr>
             )}
             {data.storage && (
               <tr className="multiline-row">
-                <td>Conservación:</td>
+                <td>{t("printStorage")}</td>
                 <td>{data.storage}</td>
               </tr>
             )}
             {data.usage && (
               <tr className="multiline-row">
-                <td>Uso:</td>
+                <td>{t("printUsage")}</td>
                 <td>{data.usage}</td>
               </tr>
             )}
             <tr>
-              <td>Destino:</td>
+              <td>{t("printDestination")}</td>
               <td colSpan={2}>{data.destination || "--"}</td>
             </tr>
             <tr>
-              <td>Lote:</td>
+              <td>{t("printBatch")}</td>
               <td colSpan={2}>{data.batch || "--"}</td>
             </tr>
           </tbody>
