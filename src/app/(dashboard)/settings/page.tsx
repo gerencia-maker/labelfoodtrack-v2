@@ -27,7 +27,7 @@ import { UserManagement } from "@/components/settings/user-management";
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export default function SettingsPage() {
-  const { userData } = useAuth();
+  const { userData, hasActionPermission } = useAuth();
   const t = useTranslations("settings");
 
   return (
@@ -52,7 +52,7 @@ export default function SettingsPage() {
               <Printer className="h-4 w-4" />
               {t("paperConfig")}
             </TabsTrigger>
-            {userData?.role === "ADMIN" && (
+            {hasActionPermission("configuration", "gestionar_usuarios") && (
               <TabsTrigger value="users">
                 <Users className="h-4 w-4" />
                 {t("users")}
@@ -62,7 +62,7 @@ export default function SettingsPage() {
               <Download className="h-4 w-4" />
               {t("dataExport")}
             </TabsTrigger>
-            {userData?.role === "ADMIN" && (
+            {userData?.role === "ADMIN" && userData?.isSuperAdmin && (
               <TabsTrigger
                 value="factory-reset"
                 className="text-red-600 data-[state=active]:bg-red-50 data-[state=active]:text-red-700 dark:text-red-400 dark:data-[state=active]:bg-red-900/30 dark:data-[state=active]:text-red-300"

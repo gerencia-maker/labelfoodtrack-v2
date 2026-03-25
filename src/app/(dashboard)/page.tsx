@@ -41,12 +41,12 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [dates, setDates] = useState<Record<string, string>>({});
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
-  const { getToken, userData } = useAuth();
+  const { getToken, userData, hasActionPermission } = useAuth();
   const t = useTranslations("products");
   const router = useRouter();
   const { toast } = useToast();
 
-  const canEdit = !!(userData?.role === "ADMIN" || userData?.role === "EDITOR");
+  const canEdit = hasActionPermission("products", "editar");
   const today = new Date().toISOString().split("T")[0];
 
   const handleDateChange = (productId: string, value: string) => {

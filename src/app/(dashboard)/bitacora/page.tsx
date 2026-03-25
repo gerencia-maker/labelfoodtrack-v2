@@ -91,10 +91,10 @@ export default function BitacoraPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const { getToken, userData } = useAuth();
+  const { getToken, userData, hasActionPermission } = useAuth();
   const t = useTranslations("bitacora");
 
-  const canDelete = userData?.role === "ADMIN" || userData?.role === "EDITOR";
+  const canDelete = hasActionPermission("bitacora", "eliminar");
 
   const filtered = entries.filter((e) =>
     e.productName.toLowerCase().includes(search.toLowerCase()) ||

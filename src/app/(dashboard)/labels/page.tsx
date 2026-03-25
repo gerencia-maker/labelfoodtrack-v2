@@ -22,10 +22,10 @@ export default function LabelsPage() {
   const [labels, setLabels] = useState<LabelItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const { getToken, userData } = useAuth();
+  const { getToken, userData, hasActionPermission } = useAuth();
 
-  const canCreate = userData?.role === "ADMIN" || userData?.role === "EDITOR";
-  const canDelete = userData?.role === "ADMIN" || userData?.role === "EDITOR";
+  const canCreate = hasActionPermission("labels", "crear");
+  const canDelete = hasActionPermission("labels", "eliminar");
 
   const loadLabels = useCallback(async () => {
     const token = await getToken();

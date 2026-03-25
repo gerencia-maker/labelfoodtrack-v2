@@ -124,7 +124,7 @@ export default function LabelDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { getToken, userData } = useAuth();
+  const { getToken, userData, hasActionPermission } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("labels");
   const { triggerPrint } = usePrintPreset();
@@ -135,7 +135,7 @@ export default function LabelDetailPage({
   const [loading, setLoading] = useState(!DEMO_MODE);
   const [showPrintModal, setShowPrintModal] = useState(false);
 
-  const canDelete = userData?.role === "ADMIN" || userData?.role === "EDITOR";
+  const canDelete = hasActionPermission("labels", "eliminar");
 
   const loadLabel = useCallback(async () => {
     if (DEMO_MODE) return;

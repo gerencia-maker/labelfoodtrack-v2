@@ -36,7 +36,7 @@ export default function EditProductPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { getToken, userData } = useAuth();
+  const { getToken, userData, hasActionPermission } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("products");
   const tc = useTranslations("common");
@@ -154,7 +154,7 @@ export default function EditProductPage({
           </div>
         </div>
 
-        {userData?.role === "ADMIN" && (
+        {hasActionPermission("products", "eliminar") && (
           <Button variant="destructive" size="sm" onClick={handleDelete}>
             <Trash2 className="h-4 w-4" />
             {tc("delete")}
