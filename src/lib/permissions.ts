@@ -145,10 +145,6 @@ export function hasActionPermission(
   const moduleActions = MODULE_ACTIONS[module];
   if (!moduleActions) return true; // Module without sub-actions
 
-  // Backward compatible: if user has the module but no sub-permissions → full access
-  const hasAnySubPerm = moduleActions.some((a) => permisos.includes(`${module}.${a.key}`));
-  if (!hasAnySubPerm) return true;
-
   return permisos.includes(`${module}.${action}`);
 }
 
