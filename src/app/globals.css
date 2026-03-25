@@ -141,9 +141,10 @@ html.dark ::-webkit-scrollbar-thumb {
 }
 
 .screen-matrix-label .multiline-row td {
-  vertical-align: top;
+  vertical-align: middle;
   font-size: 12px;
   line-height: 1.4;
+  text-align: justify;
 }
 
 .screen-matrix-label .qr-cell {
@@ -238,10 +239,11 @@ html.dark ::-webkit-scrollbar-thumb {
 }
 
 #printMatrixLabel .multiline-row td {
-  vertical-align: top;
+  vertical-align: middle;
   padding-top: 1px;
   padding-bottom: 1px;
   font-size: 6pt;
+  text-align: justify;
   line-height: 1.15;
 }
 
