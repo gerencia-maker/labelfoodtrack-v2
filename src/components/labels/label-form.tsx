@@ -463,85 +463,88 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       <section className="space-y-3">
         <SectionHeader icon={CalendarDays} title="Datos de etiqueta" />
 
-        <div>
-          <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5">
-            <Scale size={12} className="text-slate-400" />
-            Contenido neto
-          </Label>
-          <div className="flex gap-1.5">
-            <Input
-              id="netContentQty"
-              type="number"
-              min="0"
-              step="any"
-              placeholder="500"
-              value={netContentQty}
-              onChange={(e) => setNetContentQty(e.target.value)}
-              className="flex-1"
-            />
-            <Select
-              id="netContentUnit"
-              value={netContentUnit}
-              onChange={(e) => setNetContentUnit(e.target.value)}
-              className="w-24"
-            >
-              {NET_CONTENT_UNITS.map((group) => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.value}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </Select>
-          </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="batch" className="inline-flex items-center gap-1.5">
-              <Hash size={12} className="text-slate-400" />
-              Lote
-            </Label>
-            {selectedProduct?.batchAbbr && (
-              <button
-                type="button"
-                onClick={() => {
-                  setAutoGenerateBatch(!autoGenerateBatch);
-                  if (!autoGenerateBatch && selectedProduct.batchAbbr) {
-                    setBatch(generateBatch(selectedProduct.batchAbbr, productionDate));
-                  }
-                }}
-                className="text-xs text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 flex items-center gap-1 font-medium"
-              >
-                <Wand2 className="h-3 w-3" />
-                {autoGenerateBatch ? "Manual" : "Auto-generar"}
-              </button>
-            )}
-          </div>
-          <Input
-            id="batch"
-            placeholder="L-010125-0930"
-            value={batch}
-            onChange={(e) => {
-              setBatch(e.target.value);
-              setAutoGenerateBatch(false);
-            }}
-            readOnly={autoGenerateBatch}
-            className={autoGenerateBatch ? "bg-slate-50 dark:bg-slate-800" : ""}
-          />
-        </div>
-
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5">
-              <UserCheck size={12} className="text-slate-400" />
+          {/* Contenido neto */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 space-y-1.5">
+            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+              <Scale size={11} className="text-orange-400" />
+              Contenido neto
+            </Label>
+            <div className="flex gap-1.5">
+              <Input
+                id="netContentQty"
+                type="number"
+                min="0"
+                step="any"
+                placeholder="500"
+                value={netContentQty}
+                onChange={(e) => setNetContentQty(e.target.value)}
+                className="flex-1 h-9"
+              />
+              <Select
+                id="netContentUnit"
+                value={netContentUnit}
+                onChange={(e) => setNetContentUnit(e.target.value)}
+                className="w-20 h-9"
+              >
+                {NET_CONTENT_UNITS.map((group) => (
+                  <optgroup key={group.label} label={group.label}>
+                    {group.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.value}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </Select>
+            </div>
+          </div>
+
+          {/* Lote */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="batch" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                <Hash size={11} className="text-orange-400" />
+                Lote
+              </Label>
+              {selectedProduct?.batchAbbr && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAutoGenerateBatch(!autoGenerateBatch);
+                    if (!autoGenerateBatch && selectedProduct.batchAbbr) {
+                      setBatch(generateBatch(selectedProduct.batchAbbr, productionDate));
+                    }
+                  }}
+                  className="text-[10px] text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 flex items-center gap-0.5 font-semibold"
+                >
+                  <Wand2 className="h-3 w-3" />
+                  {autoGenerateBatch ? "Manual" : "Auto"}
+                </button>
+              )}
+            </div>
+            <Input
+              id="batch"
+              placeholder="L-010125-0930"
+              value={batch}
+              onChange={(e) => {
+                setBatch(e.target.value);
+                setAutoGenerateBatch(false);
+              }}
+              readOnly={autoGenerateBatch}
+              className={`h-9 ${autoGenerateBatch ? "bg-slate-50 dark:bg-slate-800" : ""}`}
+            />
+          </div>
+
+          {/* Empacado por */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 space-y-1.5">
+            <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+              <UserCheck size={11} className="text-orange-400" />
               Empacado por
             </Label>
             <select
               id="packedBy"
               value={packedBy}
               onChange={(e) => setPackedBy(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-orange-200 bg-white px-3 py-2 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
+              className="flex h-9 w-full rounded-lg border border-orange-200 bg-white px-2 py-1 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
             >
               <option value="">Seleccionar...</option>
               {packedByOptions.map((p) => (
@@ -549,16 +552,18 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               ))}
             </select>
           </div>
-          <div>
-            <Label htmlFor="destination" className="inline-flex items-center gap-1.5">
-              <MapPin size={12} className="text-slate-400" />
+
+          {/* Destino */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 space-y-1.5">
+            <Label htmlFor="destination" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+              <MapPin size={11} className="text-orange-400" />
               Destino
             </Label>
             <select
               id="destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="flex h-10 w-full rounded-xl border border-orange-200 bg-white px-3 py-2 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
+              className="flex h-9 w-full rounded-lg border border-orange-200 bg-white px-2 py-1 text-sm dark:border-orange-900/30 dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
             >
               <option value="">Seleccionar...</option>
               {destinations.map((d) => (
