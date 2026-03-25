@@ -198,26 +198,28 @@ export default function BitacoraPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleExportXLS}
-            disabled={entries.length === 0}
-            className="border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-orange-50/50 dark:hover:bg-orange-500/10"
-          >
-            <FileSpreadsheet className="h-4 w-4" />
-            {t("exportXLS")}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleExportPDF}
-            disabled={entries.length === 0}
-            className="border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-orange-50/50 dark:hover:bg-orange-500/10"
-          >
-            <FileText className="h-4 w-4" />
-            {t("exportPDF")}
-          </Button>
-        </div>
+        {hasActionPermission("bitacora", "exportar") && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportXLS}
+              disabled={entries.length === 0}
+              className="border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-orange-50/50 dark:hover:bg-orange-500/10"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              {t("exportXLS")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleExportPDF}
+              disabled={entries.length === 0}
+              className="border-orange-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-orange-50/50 dark:hover:bg-orange-500/10"
+            >
+              <FileText className="h-4 w-4" />
+              {t("exportPDF")}
+            </Button>
+          </div>
+        )}
       </div>
 
       {!loading && entries.length > 0 && (

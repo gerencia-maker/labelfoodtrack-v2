@@ -304,16 +304,20 @@ export default function LabelDetailPage({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrintClick} className="gap-1.5">
-              <Printer className="h-3.5 w-3.5" />
-              {t("print")}
-            </Button>
-            <Link href="/labels/new">
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <Copy className="h-3.5 w-3.5" />
-                Duplicar
+            {hasActionPermission("labels", "imprimir") && (
+              <Button variant="outline" size="sm" onClick={handlePrintClick} className="gap-1.5">
+                <Printer className="h-3.5 w-3.5" />
+                {t("print")}
               </Button>
-            </Link>
+            )}
+            {hasActionPermission("labels", "duplicar") && (
+              <Link href="/labels/new">
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Copy className="h-3.5 w-3.5" />
+                  Duplicar
+                </Button>
+              </Link>
+            )}
             {canDelete && (
               <Button variant="destructive" size="sm" onClick={handleDelete}>
                 <Trash2 className="h-3.5 w-3.5" />

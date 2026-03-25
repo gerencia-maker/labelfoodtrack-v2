@@ -31,11 +31,13 @@ export const MODULE_ACTIONS: Record<string, { key: string; labelKey: string }[]>
     { key: "crear", labelKey: "crear" },
     { key: "editar", labelKey: "editar" },
     { key: "eliminar", labelKey: "eliminar" },
+    { key: "imprimir", labelKey: "imprimir" },
+    { key: "duplicar", labelKey: "duplicar" },
   ],
   bitacora: [
     { key: "crear", labelKey: "crear" },
-    { key: "editar", labelKey: "editar" },
     { key: "eliminar", labelKey: "eliminar" },
+    { key: "exportar", labelKey: "exportar" },
   ],
   configuration: [
     { key: "editar_papel", labelKey: "editarPapel" },
