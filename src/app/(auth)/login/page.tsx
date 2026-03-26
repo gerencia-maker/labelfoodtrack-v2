@@ -64,11 +64,37 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Set instance cookie before login
-      if (selectedInstance) {
-        document.cookie = `lft-instance-id=${selectedInstance.id};path=/;max-age=${60 * 60 * 24 * 365}`;
+      // Instance is required
+      if (!selectedInstance) {
+        setError(t("instanceRequired"));
+        setLoading(false);
+        return;
       }
+
+      // Set instance cookie before login
+      document.cookie = `lft-instance-id=${selectedInstance.id};path=/;max-age=${60 * 60 * 24 * 365}`;
+
+      // Sign in with Firebase
       await signIn(email, password);
+
+      // Verify user belongs to this instance
+      const token = await (await import("firebase/auth")).getAuth().currentUser?.getIdToken();
+      if (token) {
+        const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const userData = await res.json();
+          // Super-admin can access any instance
+          if (!userData.isSuperAdmin && userData.instanceId !== selectedInstance.id) {
+            // Sign out - wrong instance
+            await (await import("firebase/auth")).getAuth().signOut();
+            document.cookie = "lft-instance-id=;path=/;max-age=0";
+            setError(t("wrongInstance"));
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       router.push("/");
     } catch (err: unknown) {
       const firebaseError = err as { code?: string; message?: string };
