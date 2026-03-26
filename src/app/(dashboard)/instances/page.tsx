@@ -368,7 +368,7 @@ function InstancesContent() {
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="RANCHERITO"
+                placeholder="Ej: Alimentos del Valle"
               />
             </div>
 
@@ -380,7 +380,7 @@ function InstancesContent() {
               <Input
                 value={form.brandName}
                 onChange={(e) => setForm({ ...form, brandName: e.target.value })}
-                placeholder="Marca comercial"
+                placeholder="Ej: FreshFoods"
               />
             </div>
 
@@ -409,7 +409,7 @@ function InstancesContent() {
                   value={newDest}
                   onChange={(e) => setNewDest(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addDestination())}
-                  placeholder="ALZATE"
+                  placeholder="Ej: Bogota Norte"
                   className="flex-1"
                 />
                 <Button type="button" variant="outline" size="sm" onClick={addDestination}>
@@ -447,7 +447,7 @@ function InstancesContent() {
                   value={newPacker}
                   onChange={(e) => setNewPacker(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addPacker())}
-                  placeholder="Nombre empacador"
+                  placeholder="Ej: Cocina Central"
                   className="flex-1"
                 />
                 <Button type="button" variant="outline" size="sm" onClick={addPacker}>
