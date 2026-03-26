@@ -344,7 +344,14 @@
     "permInstances": "Instancias",
     "permImport": "Importar",
     "permExport": "Exportar",
-    "permAI": "IA"
+    "permAI": "IA",
+    "units": "Unidades",
+    "unitsSubtitle": "Gestionar unidades de medida para esta instancia",
+    "addUnit": "Agregar",
+    "unitPlaceholder": "Ej: kg, ml, oz...",
+    "resetDefaults": "Restaurar predeterminadas",
+    "unitsUpdated": "Unidades actualizadas",
+    "unitExists": "La unidad ya existe"
   },
   "auth": {
     "login": "Iniciar Sesion",

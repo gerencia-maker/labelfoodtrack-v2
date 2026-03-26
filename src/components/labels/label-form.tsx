@@ -70,21 +70,7 @@ export interface LabelSaveData {
   qrData: string;
 }
 
-const NET_CONTENT_UNITS = [
-  { label: "Peso", options: [
-    { value: "g", label: "g (Gramo)" },
-    { value: "kg", label: "kg (Kilogramo)" },
-    { value: "oz", label: "oz (Onza)" },
-    { value: "lb", label: "lb (Libra)" },
-  ]},
-  { label: "Volumen", options: [
-    { value: "ml", label: "ml (Mililitro)" },
-    { value: "L", label: "L (Litro)" },
-  ]},
-  { label: "Unidad", options: [
-    { value: "und", label: "und (Unidad)" },
-  ]},
-];
+const FALLBACK_UNITS = ["g", "kg", "oz", "lb", "ml", "L", "und"];
 
 function parseNetContent(value: string): { qty: string; unit: string } {
   if (!value) return { qty: "", unit: "g" };
@@ -108,6 +94,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   const [destinations, setDestinations] = useState<string[]>([]);
   const [packers, setPackers] = useState<string[]>([]);
   const [allUbicaciones, setAllUbicaciones] = useState<string[]>([]);
+  const [dynamicUnits, setDynamicUnits] = useState<string[]>(FALLBACK_UNITS);
 
   // Parse netContent default into qty + unit (e.g. "500 g" -> "500", "g")
   const parsedDefault = parseNetContent(defaultValues?.netContent || "");
@@ -165,10 +152,11 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch all in parallel (users may 403 for non-admin — that's OK)
-      const [prodRes, instRes, usersRes] = await Promise.all([
+      const [prodRes, instRes, usersRes, unitsRes] = await Promise.all([
         fetch("/api/products", { headers }),
         fetch("/api/instances", { headers }),
         fetch("/api/users", { headers }).catch(() => null),
+        fetch("/api/units", { headers }).catch(() => null),
       ]);
 
       if (prodRes.ok) setProducts(await prodRes.json());
@@ -192,6 +180,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           users.map((u) => u.ubicacion).filter((u): u is string => !!u)
         )].sort();
         setAllUbicaciones(ubics);
+      }
+
+      if (unitsRes?.ok) {
+        const data = await unitsRes.json();
+        if (Array.isArray(data.units) && data.units.length > 0) {
+          setDynamicUnits(data.units);
+        }
       }
     }
     loadAll();
@@ -488,14 +483,10 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 id="netContentUnit"
                 value={netContentUnit}
                 onChange={(e) => setNetContentUnit(e.target.value)}
-                className="w-16 h-9 text-sm font-medium bg-white dark:bg-slate-800 border-purple-200 dark:border-purple-500/30"
+                className="w-20 h-9 text-sm font-medium bg-white dark:bg-slate-800 border-purple-200 dark:border-purple-500/30"
               >
-                {NET_CONTENT_UNITS.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.options.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.value}</option>
-                    ))}
-                  </optgroup>
+                {dynamicUnits.map((u) => (
+                  <option key={u} value={u}>{u}</option>
                 ))}
               </Select>
             </div>

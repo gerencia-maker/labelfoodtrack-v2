@@ -20,6 +20,10 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Ruler,
+  X,
+  Plus,
+  RotateCcw,
 } from "lucide-react";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -50,6 +54,10 @@ export default function SettingsPage() {
               <Printer className="h-4 w-4" />
               {t("paperConfig")}
             </TabsTrigger>
+            <TabsTrigger value="units">
+              <Ruler className="h-4 w-4" />
+              {t("units")}
+            </TabsTrigger>
             <TabsTrigger value="export">
               <Download className="h-4 w-4" />
               {t("dataExport")}
@@ -73,6 +81,11 @@ export default function SettingsPage() {
           {/* Paper Config Tab */}
           <TabsContent value="paper">
             <PaperConfigTab />
+          </TabsContent>
+
+          {/* Units Tab */}
+          <TabsContent value="units">
+            <UnitsTab />
           </TabsContent>
 
           {/* Export Tab */}
@@ -593,6 +606,182 @@ function PaperConfigTab() {
               {t("savePaperConfig")}
             </button>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Units Tab ─── */
+function UnitsTab() {
+  const { getToken } = useAuth();
+  const { toast } = useToast();
+  const t = useTranslations("settings");
+
+  const [units, setUnits] = useState<string[]>([]);
+  const [newUnit, setNewUnit] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const token = await getToken();
+        if (!token) { setLoading(false); return; }
+        const res = await fetch("/api/units", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUnits(data.units || []);
+        }
+      } catch {
+        // Use empty list on error
+      }
+      setLoading(false);
+    }
+    load();
+  }, [getToken]);
+
+  const saveUnits = async (updated: string[]) => {
+    setSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await fetch("/api/units", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ units: updated }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUnits(data.units);
+        toast({ title: t("unitsUpdated"), variant: "success" });
+      } else {
+        const err = await res.json();
+        toast({ title: err.error || "Error", variant: "error" });
+      }
+    } catch {
+      toast({ title: "Error", variant: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addUnit = () => {
+    const trimmed = newUnit.trim();
+    if (!trimmed) return;
+    if (units.some((u) => u.toLowerCase() === trimmed.toLowerCase())) {
+      toast({ title: t("unitExists"), variant: "error" });
+      return;
+    }
+    const updated = [...units, trimmed];
+    setUnits(updated);
+    setNewUnit("");
+    saveUnits(updated);
+  };
+
+  const removeUnit = (unit: string) => {
+    const updated = units.filter((u) => u !== unit);
+    setUnits(updated);
+    saveUnits(updated);
+  };
+
+  const resetDefaults = () => {
+    // Same defaults as the API route
+    const defaults = [
+      "g", "kg", "mg", "oz", "lb",
+      "ml", "L", "cl", "dl",
+      "fl oz", "gal", "qt", "pt", "cup",
+      "und", "pza", "par", "docena",
+      "cm", "m", "mm", "in", "ft",
+    ];
+    setUnits(defaults);
+    saveUnits(defaults);
+  };
+
+  return (
+    <div className="rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
+      <div className="flex items-center justify-between border-b border-orange-100 dark:border-slate-700/50 pb-2">
+        <div>
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
+            <Ruler className="h-5 w-5 text-slate-500" />
+            {t("units")}
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            {t("unitsSubtitle")}
+          </p>
+        </div>
+        <button
+          onClick={resetDefaults}
+          disabled={saving}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
+        >
+          <RotateCcw className="h-3 w-3" />
+          {t("resetDefaults")}
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Add new unit */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder={t("unitPlaceholder")}
+              value={newUnit}
+              onChange={(e) => setNewUnit(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addUnit(); } }}
+              className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/30"
+            />
+            <button
+              onClick={addUnit}
+              disabled={saving || !newUnit.trim()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              {t("addUnit")}
+            </button>
+          </div>
+
+          {/* Current units as tags */}
+          <div className="flex flex-wrap gap-2">
+            {units.map((u) => (
+              <span
+                key={u}
+                className="inline-flex items-center gap-1 rounded-full bg-orange-100 dark:bg-orange-500/20 px-3 py-1 text-sm font-medium text-orange-700 dark:text-orange-300"
+              >
+                {u}
+                <button
+                  type="button"
+                  onClick={() => removeUnit(u)}
+                  disabled={saving}
+                  className="ml-0.5 rounded-full p-0.5 hover:bg-orange-200 dark:hover:bg-orange-500/30 transition-colors disabled:opacity-50"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+            {units.length === 0 && (
+              <p className="text-sm text-slate-400 dark:text-slate-500 italic">
+                No units configured
+              </p>
+            )}
+          </div>
+
+          {saving && (
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Saving...
+            </div>
+          )}
         </div>
       )}
     </div>

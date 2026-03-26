@@ -17,6 +17,7 @@ model Instance {
   sheetGid     String?
   destinations String[]
   packers      String[]
+  units        String[] @default([])
   plan         Plan     @default(BASIC)
   activo       Boolean  @default(true)
   createdAt    DateTime @default(now())
