@@ -20,6 +20,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserManagement } from "@/components/settings/user-management";
 
 interface InstanceData {
   id: string;
@@ -74,6 +75,7 @@ function InstancesContent() {
   const [newPacker, setNewPacker] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [instanceTab, setInstanceTab] = useState<"details" | "users">("details");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadInstances = useCallback(async () => {
@@ -100,6 +102,7 @@ function InstancesContent() {
   const openCreate = () => {
     setEditingId(null);
     setForm(EMPTY_FORM);
+    setInstanceTab("details");
     setShowForm(true);
   };
 
@@ -113,6 +116,7 @@ function InstancesContent() {
       destinations: [...inst.destinations],
       packers: [...(inst.packers || [])],
     });
+    setInstanceTab("details");
     setShowForm(true);
   };
 
@@ -277,6 +281,32 @@ function InstancesContent() {
             </button>
           </div>
 
+          {/* Tabs (only when editing) */}
+          {editingId && (
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setInstanceTab("details")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${instanceTab === "details" ? "bg-orange-500 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}`}
+              >
+                {t("details")}
+              </button>
+              <button
+                onClick={() => setInstanceTab("users")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${instanceTab === "users" ? "bg-orange-500 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}`}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Users size={14} />
+                  {t("users")}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* Users tab content */}
+          {editingId && instanceTab === "users" ? (
+            <UserManagement instanceId={editingId} />
+          ) : (
+          <>
           {/* Logo upload */}
           <div className="mb-4">
             <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -483,6 +513,8 @@ function InstancesContent() {
               {saving ? "..." : t("saveInstance")}
             </Button>
           </div>
+          </>
+          )}
         </div>
       )}
 

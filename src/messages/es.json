@@ -48,7 +48,8 @@
     "logo": "Logo",
     "uploadLogo": "Subir logo",
     "removeLogo": "Eliminar logo",
-    "logoHint": "Arrastra una imagen o pega una URL. Max 5MB."
+    "logoHint": "Arrastra una imagen o pega una URL. Max 5MB.",
+    "details": "Datos"
   },
   "products": {
     "title": "Indice de rotulacion",

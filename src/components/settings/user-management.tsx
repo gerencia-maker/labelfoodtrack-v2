@@ -85,7 +85,7 @@ const ACTION_LABEL_KEYS: Record<string, string> = {
   sync_sheets: "actionSyncSheets",
 };
 
-export function UserManagement() {
+export function UserManagement({ instanceId }: { instanceId?: string } = {}) {
   const { getToken, hasActionPermission, userData } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("settings");
@@ -123,7 +123,8 @@ export function UserManagement() {
     try {
       const token = await getToken();
       if (!token) return;
-      const res = await fetch("/api/users", {
+      const usersUrl = instanceId ? `/api/users?instanceId=${instanceId}` : "/api/users";
+      const res = await fetch(usersUrl, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -210,6 +211,7 @@ export function UserManagement() {
             role: formRole,
             permisos: formRole === "EDITOR" ? formPermisos : [],
             ubicacion: formUbicacion,
+            ...(instanceId ? { instanceId } : {}),
           }),
         });
         if (res.ok) {

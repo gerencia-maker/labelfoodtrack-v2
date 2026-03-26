@@ -19,7 +19,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const where = user.instanceId ? { instanceId: user.instanceId } : {};
+    const queryInstanceId = request.nextUrl.searchParams.get("instanceId");
+    const effectiveInstanceId = (user.isSuperAdmin || user.email === "gerencia@gestionpg.com") && queryInstanceId
+      ? queryInstanceId
+      : user.instanceId;
+    const where = effectiveInstanceId ? { instanceId: effectiveInstanceId } : {};
 
     const users = await prisma.user.findMany({
       where,
@@ -52,12 +56,16 @@ export async function POST(request: NextRequest) {
     return forbidden();
   }
 
-  if (!user.instanceId) {
-    return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
-  }
-
   const body = await request.json();
   const { email, password, name, role, permisos, ubicacion } = body;
+
+  const targetInstanceId = (user.isSuperAdmin || user.email === "gerencia@gestionpg.com") && body.instanceId
+    ? body.instanceId
+    : user.instanceId;
+
+  if (!targetInstanceId) {
+    return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
+  }
 
   if (!email || !name) {
     return NextResponse.json({ error: "Email y nombre son requeridos" }, { status: 400 });
@@ -95,7 +103,7 @@ export async function POST(request: NextRequest) {
           role: role || "VIEWER",
           permisos: permisos || [],
           ubicacion: ubicacion || null,
-          instanceId: user.instanceId,
+          instanceId: targetInstanceId,
         },
         select: {
           id: true,

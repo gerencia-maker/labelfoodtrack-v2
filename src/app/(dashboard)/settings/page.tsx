@@ -14,7 +14,6 @@ import {
   Save,
   Loader2,
   User,
-  Users,
   ShieldCheck,
   AlertTriangle,
   Trash2,
@@ -22,12 +21,11 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { UserManagement } from "@/components/settings/user-management";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export default function SettingsPage() {
-  const { userData, hasActionPermission } = useAuth();
+  const { userData } = useAuth();
   const t = useTranslations("settings");
 
   return (
@@ -52,12 +50,6 @@ export default function SettingsPage() {
               <Printer className="h-4 w-4" />
               {t("paperConfig")}
             </TabsTrigger>
-            {hasActionPermission("configuration", "gestionar_usuarios") && (
-              <TabsTrigger value="users">
-                <Users className="h-4 w-4" />
-                {t("users")}
-              </TabsTrigger>
-            )}
             <TabsTrigger value="export">
               <Download className="h-4 w-4" />
               {t("dataExport")}
@@ -81,11 +73,6 @@ export default function SettingsPage() {
           {/* Paper Config Tab */}
           <TabsContent value="paper">
             <PaperConfigTab />
-          </TabsContent>
-
-          {/* Users Tab */}
-          <TabsContent value="users">
-            <UserManagement />
           </TabsContent>
 
           {/* Export Tab */}

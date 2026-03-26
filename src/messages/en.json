@@ -48,7 +48,8 @@
     "logo": "Logo",
     "uploadLogo": "Upload logo",
     "removeLogo": "Remove logo",
-    "logoHint": "Drag an image or paste a URL. Max 5MB."
+    "logoHint": "Drag an image or paste a URL. Max 5MB.",
+    "details": "Details"
   },
   "products": {
     "title": "Labeling Index",
