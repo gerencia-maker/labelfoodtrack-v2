@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Super-admin: list all instances
-    if (user.isSuperAdmin) {
+    // Super-admin or gerencia email: list all instances
+    if (user.isSuperAdmin || user.email === "gerencia@gestionpg.com") {
       const instances = await prisma.instance.findMany({
         orderBy: { name: "asc" },
         include: { _count: { select: { users: true } } },
@@ -40,12 +40,8 @@ export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  // Only super-admin can create instances
-  if (!user.isSuperAdmin) {
-    return forbidden();
-  }
-
-  if (!hasPermission(user.role, user.permisos, "instances")) {
+  // Only super-admin email can create instances
+  if (user.email !== "gerencia@gestionpg.com") {
     return forbidden();
   }
 

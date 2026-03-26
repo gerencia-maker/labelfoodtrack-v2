@@ -66,10 +66,8 @@ export async function DELETE(
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  // Only super-admin can delete instances
-  if (!user.isSuperAdmin) return forbidden();
-
-  if (!hasPermission(user.role, user.permisos, "instances")) {
+  // Only super-admin email can delete instances
+  if (user.email !== "gerencia@gestionpg.com") {
     return forbidden();
   }
 
