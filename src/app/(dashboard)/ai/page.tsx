@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { RequirePermission } from "@/components/require-permission";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { FoodBotAvatar } from "@/components/foodbot/FoodBotAvatar";
 import { BotMessageRenderer } from "@/components/foodbot/BotMessageRenderer";
 import {
@@ -22,17 +22,30 @@ interface Message {
   timestamp: Date;
 }
 
-const WELCOME_MESSAGE = `\u00a1Hola! \ud83d\udc4b Soy **FoodBot**, tu asistente de seguridad alimentaria. Estoy aqu\u00ed para ayudarte con normativas, etiquetado, conservaci\u00f3n y buenas pr\u00e1cticas.
+const WELCOME_MESSAGES: Record<string, string> = {
+  es: `¡Hola! 👋 Soy **FoodBot**, tu asistente de seguridad alimentaria. Estoy aquí para ayudarte con normativas, etiquetado, conservación y buenas prácticas.
 
-\u00bfQu\u00e9 te gustar\u00eda consultar?
+¿Qué te gustaría consultar?
 
 [menu]
-\ud83d\udcca|Resumen|resumen
-\ud83d\udce6|Productos|productos
-\u23f0|Vencimientos|vencimientos
-\ud83c\udfe2|Sedes|sedes
-\ud83d\udcc8|An\u00e1lisis|analisis
-[/menu]`;
+📊|Resumen|resumen
+📦|Productos|productos
+⏰|Vencimientos|vencimientos
+🏢|Sedes|sedes
+📈|Análisis|analisis
+[/menu]`,
+  en: `Hello! 👋 I'm **FoodBot**, your food safety assistant. I'm here to help with regulations, labeling, preservation and best practices.
+
+What would you like to check?
+
+[menu]
+📊|Summary|resumen
+📦|Products|productos
+⏰|Expiration|vencimientos
+🏢|Locations|sedes
+📈|Analysis|analisis
+[/menu]`,
+};
 
 export default function AIPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -41,6 +54,7 @@ export default function AIPage() {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const { getToken, userData } = useAuth();
   const t = useTranslations("ai");
+  const locale = useLocale();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const initRef = useRef(false);
@@ -59,7 +73,7 @@ export default function AIPage() {
     if (!initRef.current) {
       initRef.current = true;
       setMessages([
-        { role: "assistant", content: WELCOME_MESSAGE, timestamp: new Date() },
+        { role: "assistant", content: WELCOME_MESSAGES[locale] || WELCOME_MESSAGES.es, timestamp: new Date() },
       ]);
     }
   }, []);
@@ -98,6 +112,7 @@ export default function AIPage() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
+            locale,
             messages: newMessages.map((m) => ({
               role: m.role,
               content: m.content,

@@ -121,7 +121,7 @@ async function fetchInstanceData(user: AuthUser) {
 
 const SYSTEM_PROMPT = `Eres FoodBot, un asistente especializado en seguridad alimentaria, rotulado de alimentos, normativa sanitaria (INVIMA, FDA, EU), trazabilidad y buenas practicas de manufactura (BPM).
 
-Respondes en el idioma del usuario. Eres conciso, profesional y practico.
+IDIOMA: Responde SIEMPRE en el idioma indicado por el parámetro "locale" al final de este prompt. Si es "es" responde en español, si es "en" en inglés, si es "pt" en portugués. Todos los menús, botones, alertas y texto deben estar en ese idioma. Eres conciso, profesional y practico.
 
 IMPORTANTE: Tienes acceso a los datos REALES de la empresa del usuario (productos, bitácora de producción, vencimientos). Estos datos aparecen al final de este prompt bajo "=== DATOS DE LA INSTANCIA ===".
 SIEMPRE usa esos datos reales para responder. NUNCA inventes productos, lotes, cantidades ni fechas.
@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
     return forbidden();
   }
 
-  const { messages } = await request.json();
+  const { messages, locale = "es" } = await request.json();
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "Mensajes requeridos" }, { status: 400 });
@@ -230,9 +230,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const localeNames: Record<string, string> = { es: "español", en: "English", pt: "português" };
+    const localeLine = `\n\nlocale: ${locale} (${localeNames[locale] || locale}). Responde TODO en este idioma.`;
+
     const fullSystemPrompt = dataContext
-      ? `${SYSTEM_PROMPT}\n\n=== DATOS DE LA INSTANCIA ===\n${dataContext}\n=== FIN DATOS ===`
-      : SYSTEM_PROMPT;
+      ? `${SYSTEM_PROMPT}${localeLine}\n\n=== DATOS DE LA INSTANCIA ===\n${dataContext}\n=== FIN DATOS ===`
+      : `${SYSTEM_PROMPT}${localeLine}`;
 
     const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
