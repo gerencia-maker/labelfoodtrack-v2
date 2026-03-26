@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/toast";
@@ -49,6 +49,20 @@ export default function NewLabelPage() {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [pendingSaveData, setPendingSaveData] = useState<LabelSaveData | null>(null);
   const [formCollapsed, setFormCollapsed] = useState(false);
+
+  // Intercept Ctrl+P / Cmd+P → open print modal instead of browser print
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "p") {
+        e.preventDefault();
+        if (pendingSaveData || previewData.productName) {
+          setShowPrintModal(true);
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [pendingSaveData, previewData.productName]);
 
   const handlePreviewChange = useCallback((data: LabelPreviewData) => {
     setPreviewData(data);

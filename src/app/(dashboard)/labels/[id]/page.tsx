@@ -156,6 +156,20 @@ export default function LabelDetailPage({
     loadLabel();
   }, [loadLabel]);
 
+  // Intercept Ctrl+P / Cmd+P → open print modal instead of browser print
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "p") {
+        e.preventDefault();
+        if (label) {
+          setShowPrintModal(true);
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [label]);
+
   const handleDelete = async () => {
     if (!confirm(t("confirmDelete"))) return;
 
