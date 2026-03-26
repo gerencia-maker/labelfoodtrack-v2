@@ -158,17 +158,27 @@ export default function LabelDetailPage({
 
   // Intercept Ctrl+P / Cmd+P → open print modal instead of browser print
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "p") {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === "p" || e.key === "P")) {
         e.preventDefault();
+        e.stopImmediatePropagation();
         if (label) {
           setShowPrintModal(true);
         }
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [label]);
+    const handleBeforePrint = (e: Event) => {
+      if (!showPrintModal) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", handleKeydown, { capture: true });
+    window.addEventListener("beforeprint", handleBeforePrint);
+    return () => {
+      document.removeEventListener("keydown", handleKeydown, { capture: true });
+      window.removeEventListener("beforeprint", handleBeforePrint);
+    };
+  }, [label, showPrintModal]);
 
   const handleDelete = async () => {
     if (!confirm(t("confirmDelete"))) return;

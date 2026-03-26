@@ -52,17 +52,28 @@ export default function NewLabelPage() {
 
   // Intercept Ctrl+P / Cmd+P → open print modal instead of browser print
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "p") {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === "p" || e.key === "P")) {
         e.preventDefault();
-        if (pendingSaveData || previewData.productName) {
+        e.stopImmediatePropagation();
+        if (previewData.productName) {
           setShowPrintModal(true);
         }
       }
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [pendingSaveData, previewData.productName]);
+    // Block browser beforeprint as fallback
+    const handleBeforePrint = (e: Event) => {
+      if (!showPrintModal) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", handleKeydown, { capture: true });
+    window.addEventListener("beforeprint", handleBeforePrint);
+    return () => {
+      document.removeEventListener("keydown", handleKeydown, { capture: true });
+      window.removeEventListener("beforeprint", handleBeforePrint);
+    };
+  }, [previewData.productName, showPrintModal]);
 
   const handlePreviewChange = useCallback((data: LabelPreviewData) => {
     setPreviewData(data);
