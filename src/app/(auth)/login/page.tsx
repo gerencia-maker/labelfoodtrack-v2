@@ -64,15 +64,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Instance is required
-      if (!selectedInstance) {
+      // Instance is required (except super-admin)
+      const isSuperEmail = email.trim().toLowerCase() === "gerencia@gestionpg.com";
+      if (!selectedInstance && !isSuperEmail) {
         setError(t("instanceRequired"));
         setLoading(false);
         return;
       }
 
       // Set instance cookie before login
-      document.cookie = `lft-instance-id=${selectedInstance.id};path=/;max-age=${60 * 60 * 24 * 365}`;
+      if (selectedInstance) {
+        document.cookie = `lft-instance-id=${selectedInstance.id};path=/;max-age=${60 * 60 * 24 * 365}`;
+      } else {
+        document.cookie = "lft-instance-id=;path=/;max-age=0";
+      }
 
       // Sign in with Firebase
       await signIn(email, password);
