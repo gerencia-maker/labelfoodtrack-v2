@@ -19,6 +19,7 @@ import {
   Hash,
   MapPin,
   UserCheck,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import {
@@ -479,16 +480,11 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 onChange={(e) => setNetContentQty(e.target.value)}
                 className="flex-1 h-9 text-sm font-medium bg-white dark:bg-slate-800 border-purple-200 dark:border-purple-500/30 focus:border-purple-400"
               />
-              <Select
-                id="netContentUnit"
+              <UnitCombobox
                 value={netContentUnit}
-                onChange={(e) => setNetContentUnit(e.target.value)}
-                className="w-20 h-9 text-sm font-medium bg-white dark:bg-slate-800 border-purple-200 dark:border-purple-500/30"
-              >
-                {dynamicUnits.map((u) => (
-                  <option key={u} value={u}>{u}</option>
-                ))}
-              </Select>
+                units={dynamicUnits}
+                onChange={setNetContentUnit}
+              />
             </div>
           </div>
 
@@ -584,6 +580,74 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
         </div>
       </section>
     </form>
+  );
+}
+
+function UnitCombobox({ value, units, onChange }: { value: string; units: string[]; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered = search
+    ? units.filter((u) => u.toLowerCase().includes(search.toLowerCase()))
+    : units;
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(!open); setSearch(""); }}
+        className="flex items-center justify-between gap-1 w-20 h-9 rounded-lg border border-purple-200 dark:border-purple-500/30 bg-white dark:bg-slate-800 px-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-purple-400 transition-colors"
+      >
+        <span className="truncate">{value}</span>
+        <ChevronDown size={12} className="text-slate-400 shrink-0" />
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-1 w-40 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg z-50 overflow-hidden">
+          <div className="p-1.5">
+            <input
+              autoFocus
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar..."
+              className="w-full rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-2 py-1 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:border-purple-400"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-xs text-slate-400">Sin resultados</div>
+            ) : (
+              filtered.map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onChange(u); setOpen(false); setSearch(""); }}
+                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors ${
+                    u === value ? "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 font-medium" : "text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  {u}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
