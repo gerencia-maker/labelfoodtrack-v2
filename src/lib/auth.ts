@@ -178,8 +178,9 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       return null;
     }
 
-    // Super-admin: instanceId = null, use cookie to scope to a specific instance
-    const isSuper = user.role === "ADMIN" && !user.instanceId;
+    // Super-admin: instanceId = null OR specific super-admin email
+    const SUPER_ADMIN_EMAILS = ["gerencia@gestionpg.com"];
+    const isSuper = (user.role === "ADMIN" && !user.instanceId) || SUPER_ADMIN_EMAILS.includes(user.email);
     let effectiveInstanceId = user.instanceId;
     if (isSuper) {
       const cookieInstanceId = request.cookies.get("lft-instance-id")?.value;

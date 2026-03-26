@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, Eye, EyeOff, Tag, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Tag, CheckCircle2, Building2 } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,6 +18,39 @@ export default function LoginPage() {
   const { signIn, resetPassword, userData, loading: authLoading } = useAuth();
   const router = useRouter();
   const t = useTranslations("auth");
+
+  // Instance selector
+  const [instanceSearch, setInstanceSearch] = useState("");
+  const [instances, setInstances] = useState<{ id: string; name: string; logoUrl: string | null }[]>([]);
+  const [selectedInstance, setSelectedInstance] = useState<{ id: string; name: string; logoUrl: string | null } | null>(null);
+  const [showInstanceDropdown, setShowInstanceDropdown] = useState(false);
+  const [loadingInstances, setLoadingInstances] = useState(false);
+  const instanceRef = useRef<HTMLDivElement>(null);
+
+  // Load instances for search
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (instanceSearch.length < 1) { setInstances([]); return; }
+      setLoadingInstances(true);
+      try {
+        const res = await fetch(`/api/instances/public?q=${encodeURIComponent(instanceSearch)}`);
+        if (res.ok) setInstances(await res.json());
+      } catch { /* silent */ }
+      setLoadingInstances(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [instanceSearch]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (instanceRef.current && !instanceRef.current.contains(e.target as Node)) {
+        setShowInstanceDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
     if (!authLoading && userData) {
@@ -31,6 +64,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // Set instance cookie before login
+      if (selectedInstance) {
+        document.cookie = `lft-instance-id=${selectedInstance.id};path=/;max-age=${60 * 60 * 24 * 365}`;
+      }
       await signIn(email, password);
       router.push("/");
     } catch (err: unknown) {
@@ -147,6 +184,64 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Instance */}
+              <div className="space-y-1.5" ref={instanceRef}>
+                <label className="text-sm font-medium text-slate-700">
+                  {t("instance")}
+                </label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  {selectedInstance ? (
+                    <div
+                      className="flex items-center gap-2 h-11 rounded-lg border border-orange-300 bg-orange-50 px-10 cursor-pointer"
+                      onClick={() => { setSelectedInstance(null); setInstanceSearch(""); setShowInstanceDropdown(true); }}
+                    >
+                      {selectedInstance.logoUrl && (
+                        <img src={selectedInstance.logoUrl} alt="" className="h-5 w-5 rounded object-contain" />
+                      )}
+                      <span className="text-sm font-medium text-orange-700">{selectedInstance.name}</span>
+                    </div>
+                  ) : (
+                    <Input
+                      type="text"
+                      placeholder={t("instancePlaceholder")}
+                      value={instanceSearch}
+                      onChange={(e) => { setInstanceSearch(e.target.value); setShowInstanceDropdown(true); }}
+                      onFocus={() => instanceSearch.length >= 1 && setShowInstanceDropdown(true)}
+                      disabled={loading}
+                      className="pl-10 border-slate-200 focus:ring-orange-500/20 focus:border-orange-400 h-11"
+                    />
+                  )}
+                  {showInstanceDropdown && !selectedInstance && (
+                    <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-slate-200 bg-white shadow-lg z-50 overflow-hidden">
+                      {loadingInstances ? (
+                        <div className="px-3 py-3 text-xs text-slate-400 text-center">
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-400 border-t-transparent mx-auto" />
+                        </div>
+                      ) : instances.length > 0 ? (
+                        instances.map((inst) => (
+                          <button
+                            key={inst.id}
+                            type="button"
+                            onClick={() => { setSelectedInstance(inst); setShowInstanceDropdown(false); setInstanceSearch(""); }}
+                            className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-orange-50 transition-colors"
+                          >
+                            {inst.logoUrl ? (
+                              <img src={inst.logoUrl} alt="" className="h-6 w-6 rounded object-contain" />
+                            ) : (
+                              <Building2 size={16} className="text-slate-400" />
+                            )}
+                            <span className="text-sm font-medium text-slate-700">{inst.name}</span>
+                          </button>
+                        ))
+                      ) : instanceSearch.length >= 1 ? (
+                        <div className="px-3 py-3 text-xs text-slate-400 text-center">{t("noInstanceFound")}</div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Email */}
               <div className="space-y-1.5">
                 <label htmlFor="email" className="text-sm font-medium text-slate-700">
