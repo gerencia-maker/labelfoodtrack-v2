@@ -16,8 +16,6 @@ const DEFAULT_UNITS = [
   "fl oz", "gal", "qt", "pt", "cup",
   // Unidades
   "und", "pza", "par", "docena",
-  // Longitud
-  "cm", "m", "mm", "in", "ft",
 ];
 
 export async function GET(request: NextRequest) {
