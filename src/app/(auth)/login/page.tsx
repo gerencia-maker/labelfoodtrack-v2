@@ -89,7 +89,7 @@ export default function LoginPage() {
         if (res.ok) {
           const userData = await res.json();
           // Super-admin can access any instance
-          if (!userData.isSuperAdmin && userData.instanceId !== selectedInstance.id) {
+          if (!userData.isSuperAdmin && selectedInstance && userData.instanceId !== selectedInstance.id) {
             // Sign out - wrong instance
             await (await import("firebase/auth")).getAuth().signOut();
             document.cookie = "lft-instance-id=;path=/;max-age=0";
