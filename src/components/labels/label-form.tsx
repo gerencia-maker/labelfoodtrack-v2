@@ -496,32 +496,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 <Hash size={12} className="text-slate-500" />
                 {t("batch")}
               </Label>
-              {selectedProduct?.batchAbbr && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAutoGenerateBatch(!autoGenerateBatch);
-                    if (!autoGenerateBatch && selectedProduct.batchAbbr) {
-                      setBatch(generateBatch(selectedProduct.batchAbbr, productionDate));
-                    }
-                  }}
-                  className="text-[10px] text-orange-600 hover:text-orange-700 dark:text-orange-400 flex items-center gap-0.5 font-bold"
-                >
-                  <Wand2 className="h-3 w-3" />
-                  {autoGenerateBatch ? t("batchManual") : t("batchAuto")}
-                </button>
-              )}
             </div>
             <Input
               id="batch"
               placeholder="L-010125-0930"
               value={batch}
-              onChange={(e) => {
-                setBatch(e.target.value);
-                setAutoGenerateBatch(false);
-              }}
-              readOnly={autoGenerateBatch}
-              className={`h-9 text-sm font-medium ${autoGenerateBatch ? "bg-slate-100 dark:bg-slate-800" : "bg-white dark:bg-slate-800"}`}
+              readOnly
+              className="h-9 text-sm font-medium bg-slate-100 dark:bg-slate-800"
             />
           </div>
 
