@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Lock, Eye, EyeOff, Tag, CheckCircle2, Building2 } from "lucide-react";
+import { SpiralAnimation } from "@/components/ui/spiral-animation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -147,48 +148,40 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen bg-[#FAFAF9]">
-      {/* Left panel - branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-orange-500 via-red-500 to-rose-600">
-        {/* Decorative pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-white/20 blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute top-1/2 left-1/3 w-48 h-48 rounded-full bg-yellow-300/20 blur-2xl" />
+      {/* Left panel - spiral animation */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-black">
+        {/* Spiral animation background */}
+        <div className="absolute inset-0">
+          <SpiralAnimation />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-          {/* Logo */}
-          <div className="mb-8 flex items-center gap-3">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg">
-              <Tag className="h-8 w-8 text-white" />
+        {/* Content overlay */}
+        <div className="relative z-10 flex flex-col justify-end px-16 pb-16 text-white">
+          <div className="mb-6 flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+              <Tag className="h-7 w-7 text-white" />
             </div>
           </div>
 
           <h1 className="text-4xl font-bold mb-2 drop-shadow-lg">
             LabelFoodTrack
           </h1>
-          <p className="text-xl text-white/90 mb-10 drop-shadow-md">
+          <p className="text-lg text-white/70 mb-8">
             {t("heroSubtitle")}
           </p>
 
-          <div className="space-y-4 text-white/90">
+          <div className="space-y-3 text-white/70">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
-                <CheckCircle2 className="h-4 w-4" />
-              </div>
-              <span className="font-medium drop-shadow-md">{t("feature1")}</span>
+              <CheckCircle2 className="h-4 w-4 text-orange-400" />
+              <span className="text-sm font-medium">{t("feature1")}</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
-                <CheckCircle2 className="h-4 w-4" />
-              </div>
-              <span className="font-medium drop-shadow-md">{t("feature2")}</span>
+              <CheckCircle2 className="h-4 w-4 text-orange-400" />
+              <span className="text-sm font-medium">{t("feature2")}</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
-                <CheckCircle2 className="h-4 w-4" />
-              </div>
-              <span className="font-medium drop-shadow-md">{t("feature3")}</span>
+              <CheckCircle2 className="h-4 w-4 text-orange-400" />
+              <span className="text-sm font-medium">{t("feature3")}</span>
             </div>
           </div>
         </div>
