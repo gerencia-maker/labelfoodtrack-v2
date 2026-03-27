@@ -205,38 +205,50 @@ class Star {
 }
 
 export function SpiralAnimation() {
+    const containerRef = useRef<HTMLDivElement>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const animRef = useRef<AnimationController | null>(null)
-    const [dims, setDims] = useState({ w: 800, h: 600 })
 
     useEffect(() => {
-        const handle = () => setDims({ w: window.innerWidth, h: window.innerHeight })
-        handle()
-        window.addEventListener('resize', handle)
-        return () => window.removeEventListener('resize', handle)
+        const container = containerRef.current
+        const canvas = canvasRef.current
+        if (!container || !canvas) return
+
+        const setup = () => {
+            const ctx = canvas.getContext('2d')
+            if (!ctx) return
+
+            // Destroy previous animation
+            animRef.current?.destroy()
+
+            const rect = container.getBoundingClientRect()
+            const dpr = window.devicePixelRatio || 1
+            const size = Math.max(rect.width, rect.height)
+
+            canvas.width = size * dpr
+            canvas.height = size * dpr
+            canvas.style.width = `${size}px`
+            canvas.style.height = `${size}px`
+            // Center the canvas
+            canvas.style.left = `${(rect.width - size) / 2}px`
+            canvas.style.top = `${(rect.height - size) / 2}px`
+            ctx.scale(dpr, dpr)
+
+            animRef.current = new AnimationController(canvas, ctx, dpr, size)
+        }
+
+        setup()
+        window.addEventListener('resize', setup)
+        return () => {
+            window.removeEventListener('resize', setup)
+            animRef.current?.destroy()
+            animRef.current = null
+        }
     }, [])
 
-    useEffect(() => {
-        const canvas = canvasRef.current
-        if (!canvas) return
-        const ctx = canvas.getContext('2d')
-        if (!ctx) return
-
-        const dpr = window.devicePixelRatio || 1
-        const size = Math.max(dims.w, dims.h)
-        canvas.width = size * dpr
-        canvas.height = size * dpr
-        canvas.style.width = `${dims.w}px`
-        canvas.style.height = `${dims.h}px`
-        ctx.scale(dpr, dpr)
-
-        animRef.current = new AnimationController(canvas, ctx, dpr, size)
-        return () => { animRef.current?.destroy(); animRef.current = null }
-    }, [dims])
-
     return (
-        <div className="relative w-full h-full">
-            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+        <div ref={containerRef} className="relative w-full h-full overflow-hidden">
+            <canvas ref={canvasRef} className="absolute" />
         </div>
     )
 }
