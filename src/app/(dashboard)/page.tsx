@@ -48,7 +48,7 @@ export default function ProductsPage() {
 
   const canCreate = hasActionPermission("products", "crear");
   const canEdit = hasActionPermission("products", "editar");
-  const canCreateLabel = hasActionPermission("labels", "crear");
+  const canRotular = hasActionPermission("products", "rotular");
   const canEditDate = hasActionPermission("products", "editar_fecha");
   const canEditShelfLife = hasActionPermission("products", "editar_caducidad");
   const today = new Date().toISOString().split("T")[0];
@@ -107,7 +107,7 @@ export default function ProductsPage() {
   }, [filtered]);
 
   const handleProductClick = (product: Product) => {
-    if (!canCreateLabel) {
+    if (!canRotular) {
       toast({ title: "Permisos insuficientes", variant: "error" });
       return;
     }

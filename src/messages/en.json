@@ -335,6 +335,7 @@
     "actionEditar": "Edit",
     "actionEliminar": "Delete",
     "actionImportar": "Import",
+    "actionRotular": "Label (enter item)",
     "actionEditarFecha": "Edit production date",
     "actionEditarCaducidad": "Edit shelf life",
     "actionVerRotulacion": "View labeling index",

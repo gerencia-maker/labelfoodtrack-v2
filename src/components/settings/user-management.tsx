@@ -76,6 +76,7 @@ const ACTION_LABEL_KEYS: Record<string, string> = {
   editar: "actionEditar",
   eliminar: "actionEliminar",
   importar: "actionImportar",
+  rotular: "actionRotular",
   editar_fecha: "actionEditarFecha",
   editar_caducidad: "actionEditarCaducidad",
   ver_rotulacion: "actionVerRotulacion",

@@ -26,6 +26,7 @@ export const MODULE_ACTIONS: Record<string, { key: string; labelKey: string }[]>
     { key: "editar", labelKey: "editar" },
     { key: "eliminar", labelKey: "eliminar" },
     { key: "importar", labelKey: "importar" },
+    { key: "rotular", labelKey: "rotular" },
     { key: "editar_fecha", labelKey: "editarFecha" },
     { key: "editar_caducidad", labelKey: "editarCaducidad" },
     { key: "ver_rotulacion", labelKey: "verRotulacion" },
