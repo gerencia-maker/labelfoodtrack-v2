@@ -46,12 +46,20 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Extract date as YYYY-MM-DD using UTC to avoid timezone shift
+    const toDateStr = (d: Date): string => {
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const day = String(d.getUTCDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
+
     // Calculate expiry dates from productionDate + product days
     const computeExpiry = (days: number): string | null => {
       if (!label.productionDate || days <= 0) return null;
       const d = new Date(label.productionDate);
-      d.setDate(d.getDate() + days);
-      return d.toISOString().split("T")[0];
+      d.setUTCDate(d.getUTCDate() + days);
+      return toDateStr(d);
     };
 
     const p = label.product;
@@ -59,10 +67,7 @@ export async function GET(
     const expiryFrozen = p ? computeExpiry(p.frozenDays) : null;
     const expiryAmbient = p ? computeExpiry(p.ambientDays) : null;
 
-    // Format productionDate as ISO string (YYYY-MM-DD)
-    const prodDateISO = label.productionDate
-      ? label.productionDate.toISOString().split("T")[0]
-      : null;
+    const prodDateISO = label.productionDate ? toDateStr(label.productionDate) : null;
 
     return NextResponse.json({
       productName: label.productName,
