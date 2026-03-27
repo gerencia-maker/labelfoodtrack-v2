@@ -76,6 +76,7 @@ export async function GET(
       productionDate: prodDateISO,
       packedBy: label.packedBy,
       destination: label.destination,
+      coldChain: label.coldChain,
       expiryRefrigerated,
       expiryFrozen,
       expiryAmbient,

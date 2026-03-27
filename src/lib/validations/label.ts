@@ -8,6 +8,7 @@ export const labelSchema = z.object({
   origin: z.string().nullable().optional(),
   productionDate: z.string().nullable().optional(),
   batch: z.string().nullable().optional(),
+  coldChain: z.string().nullable().optional(),
   packedBy: z.string().nullable().optional(),
   destination: z.string().nullable().optional(),
 });

@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
         ? new Date(parsed.data.productionDate)
         : null,
       batch: parsed.data.batch,
+      coldChain: parsed.data.coldChain,
       packedBy: parsed.data.packedBy,
       destination: parsed.data.destination,
       productId: parsed.data.productId,

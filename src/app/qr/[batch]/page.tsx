@@ -9,6 +9,7 @@ interface LabelData {
   productionDate: string | null;
   packedBy: string | null;
   destination: string | null;
+  coldChain: string | null;
   expiryRefrigerated: string | null;
   expiryFrozen: string | null;
   expiryAmbient: string | null;
@@ -131,7 +132,8 @@ export default function QRLabelPage({
   const instance = label.instance;
   const prodDate = label.productionDate || null;
 
-  // Build cold chain info using pre-calculated expiry dates from API
+  // Build cold chain info — only show the type that was selected on the label
+  const cc = (label.coldChain || "").toLowerCase();
   const coldChainItems: {
     type: string;
     label: string;
@@ -143,7 +145,8 @@ export default function QRLabelPage({
     iconBg: string;
   }[] = [];
   if (product) {
-    if (product.refrigeratedDays > 0)
+    // Show refrigerated if label says "refrigerado" or "refrigerado / congelado"
+    if (product.refrigeratedDays > 0 && (cc.includes("refrigerado") || cc.includes("refrigerated") || !label.coldChain))
       coldChainItems.push({
         type: "refrigerado",
         label: "Refrigerado",
@@ -154,7 +157,8 @@ export default function QRLabelPage({
         bg: "bg-amber-50 border-amber-200",
         iconBg: "bg-amber-100",
       });
-    if (product.frozenDays > 0)
+    // Show frozen only if label explicitly says "congelado"
+    if (product.frozenDays > 0 && (cc.includes("congelado") || cc.includes("frozen")))
       coldChainItems.push({
         type: "congelado",
         label: "Congelado",
@@ -165,7 +169,8 @@ export default function QRLabelPage({
         bg: "bg-blue-50 border-blue-200",
         iconBg: "bg-blue-100",
       });
-    if (product.ambientDays > 0)
+    // Show ambient only if label says "ambiente"
+    if (product.ambientDays > 0 && (cc.includes("ambiente") || cc.includes("ambient")))
       coldChainItems.push({
         type: "ambiente",
         label: "Ambiente",

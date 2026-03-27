@@ -120,6 +120,7 @@ model Label {
   productionDate DateTime?
   batch          String?
   expiry         String?
+  coldChain      String?
   packedBy       String?
   destination    String?
   qrData         String?
