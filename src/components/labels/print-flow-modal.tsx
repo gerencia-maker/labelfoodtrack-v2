@@ -16,6 +16,14 @@ interface PrintFlowModalProps {
 /**
  * Modal "Cantidad producida" - pide cantidad + unidad antes de guardar + imprimir.
  */
+// Format number with thousand separators (dots), comma as decimal
+function formatThousands(value: string): string {
+  if (!value) return "";
+  const [intPart, decPart] = value.split(",");
+  const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return decPart !== undefined ? `${formatted},${decPart}` : formatted;
+}
+
 export function PrintFlowModal({ open, onClose, onConfirm, productName }: PrintFlowModalProps) {
   const [qty, setQty] = useState("");
   const [unit, setUnit] = useState("");
@@ -120,10 +128,14 @@ export function PrintFlowModal({ open, onClose, onConfirm, productName }: PrintF
               type="text"
               inputMode="decimal"
               placeholder="0"
-              value={qty}
+              value={formatThousands(qty)}
               onChange={(e) => {
-                const v = e.target.value.replace(/[^0-9.,]/g, "");
-                setQty(v);
+                // Strip formatting, keep only digits, dot, comma (as decimal)
+                const raw = e.target.value.replace(/[^0-9.,]/g, "").replace(/\./g, "");
+                // Allow only one comma (decimal separator)
+                const parts = raw.split(",");
+                const clean = parts.length > 2 ? parts[0] + "," + parts.slice(1).join("") : raw;
+                setQty(clean);
               }}
               onKeyDown={handleKeyDown}
               className="flex-1 h-14 rounded-xl border-2 border-orange-200 dark:border-orange-500/30 bg-white dark:bg-slate-900 px-4 text-center text-2xl font-bold text-slate-800 dark:text-slate-100 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-500/20 transition-colors"
