@@ -2,6 +2,40 @@
 
 import { useEffect, useState, use } from "react";
 
+function playScanBeep() {
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    // First beep - high pitch
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = "square";
+    osc1.frequency.setValueAtTime(1800, ctx.currentTime);
+    gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime + 0.08);
+
+    // Second beep - confirmation tone
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = "square";
+    osc2.frequency.setValueAtTime(2400, ctx.currentTime + 0.1);
+    gain2.gain.setValueAtTime(0.25, ctx.currentTime + 0.1);
+    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(ctx.currentTime + 0.1);
+    osc2.stop(ctx.currentTime + 0.2);
+
+    // Cleanup
+    setTimeout(() => ctx.close(), 500);
+  } catch {
+    // Silent fallback — some browsers block audio without user interaction
+  }
+}
+
 interface LabelData {
   productName: string;
   batch: string | null;
@@ -75,6 +109,8 @@ export default function QRLabelPage({
         }
         const data = await res.json();
         setLabel(data);
+        // Play scanner beep sound
+        playScanBeep();
       } catch {
         setNotFound(true);
       } finally {
