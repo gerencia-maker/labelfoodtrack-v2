@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/auth-context";
+import { motion } from "motion/react";
 import {
   LayoutDashboard,
   Package,
@@ -17,9 +18,12 @@ import {
   ChevronRight,
   LogOut,
   User,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { canAccessNavItem } from "@/lib/permissions";
+
+const MotionLink = motion.create(Link);
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -51,7 +55,7 @@ export function Sidebar() {
         collapsed ? "w-16" : "w-64"
       )}
     >
-      {/* Logo header — FOOD LOGIC style */}
+      {/* Logo header */}
       <div className="flex h-20 items-center justify-between border-b border-orange-100 dark:border-orange-900/30 px-4 hover:bg-orange-50/50 dark:hover:bg-orange-500/5 transition-colors">
         {!collapsed && (
           <Link href="/" className="flex items-center gap-2.5">
@@ -85,30 +89,72 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Navigation — FOOD LOGIC style */}
-      <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
+      {/* Navigation with motion */}
+      <nav className="flex-1 space-y-1 p-3 overflow-y-auto overflow-x-hidden">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
+          const Icon = item.icon;
+
+          if (collapsed) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center justify-center rounded-xl p-2.5 transition-all duration-200",
+                  isActive
+                    ? "bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-200 dark:shadow-orange-500/20"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400"
+                )}
+                title={item.label}
+              >
+                <Icon size={20} />
+              </Link>
+            );
+          }
+
           return (
-            <Link
+            <motion.div
               key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-200 dark:shadow-orange-500/20"
-                  : "text-slate-600 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400"
-              )}
-              title={collapsed ? item.label : undefined}
+              className="flex items-center cursor-pointer"
+              initial="initial"
+              whileHover={isActive ? undefined : "hover"}
             >
-              <item.icon size={20} className="shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+              {/* Arrow indicator */}
+              <motion.div
+                variants={{
+                  initial: { x: "-100%", opacity: 0 },
+                  hover: { x: 0, opacity: 1 },
+                }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="shrink-0 text-orange-500"
+              >
+                <ArrowRight strokeWidth={2.5} size={16} />
+              </motion.div>
+
+              <MotionLink
+                href={item.href}
+                variants={{
+                  initial: { x: -16 },
+                  hover: { x: 0 },
+                }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200 w-full",
+                  isActive
+                    ? "bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-200 dark:shadow-orange-500/20"
+                    : "text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400"
+                )}
+              >
+                <Icon size={20} className="shrink-0" />
+                <span>{item.label}</span>
+              </MotionLink>
+            </motion.div>
           );
         })}
       </nav>
 
-      {/* User section — FOOD LOGIC style */}
+      {/* User section */}
       <div className="border-t border-orange-100 dark:border-orange-900/30 p-4">
         {!collapsed ? (
           <div className="flex items-center gap-3">
