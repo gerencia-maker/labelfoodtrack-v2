@@ -20,6 +20,7 @@ import {
   MapPin,
   UserCheck,
   ChevronDown,
+  Printer,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import {
@@ -563,20 +564,24 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
         </div>
 
-        {/* Guardar — integrado en la card */}
-        <div className="border-t border-orange-100 dark:border-slate-700/50 px-4 py-3">
-          <Button
+        {/* Guardar e imprimir — prominente */}
+        <div className="border-t border-orange-100 dark:border-slate-700/50 px-4 py-4">
+          <button
             type="submit"
             disabled={saving || !productId}
-            className="w-full gap-2 h-10 text-sm font-semibold"
+            className="w-full flex items-center justify-center gap-3 h-14 rounded-xl text-base font-bold text-white bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 hover:from-orange-600 hover:via-orange-700 hover:to-red-600 shadow-lg shadow-orange-300/40 dark:shadow-orange-900/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed animate-pulse-subtle"
           >
             {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <Save className="h-4 w-4" />
+              <>
+                <Save className="h-5 w-5" />
+                <span>{isEdit ? t("saveChanges") : t("savePrint")}</span>
+                <span className="text-white/60">|</span>
+                <Printer className="h-5 w-5" />
+              </>
             )}
-            {isEdit ? t("saveChanges") : t("saveLabel")}
-          </Button>
+          </button>
         </div>
       </section>
     </form>

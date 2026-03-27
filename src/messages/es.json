@@ -138,6 +138,7 @@
     "batchAuto": "Auto",
     "batchManual": "Manual",
     "saveLabel": "Guardar etiqueta",
+    "savePrint": "Guardar etiqueta e imprimir",
     "saveChanges": "Guardar cambios",
     "duplicate": "Duplicar",
     "notFound": "Etiqueta no encontrada",

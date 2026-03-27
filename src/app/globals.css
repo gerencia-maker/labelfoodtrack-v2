@@ -3,6 +3,12 @@
 /* Enable class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
+@keyframes pulse-subtle {
+  0%, 100% { box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3); }
+  50% { box-shadow: 0 4px 20px rgba(249, 115, 22, 0.5); }
+}
+.animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

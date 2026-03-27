@@ -138,6 +138,7 @@
     "batchAuto": "Auto",
     "batchManual": "Manual",
     "saveLabel": "Save label",
+    "savePrint": "Save label & print",
     "saveChanges": "Save changes",
     "duplicate": "Duplicate",
     "notFound": "Label not found",
