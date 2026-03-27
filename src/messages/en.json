@@ -385,6 +385,7 @@
     "noInstanceFound": "Instance not found",
     "instanceRequired": "You must select an instance to sign in",
     "wrongInstance": "Your account does not belong to this instance",
+    "rememberMe": "Keep me signed in",
     "heroSubtitle": "Smart labeling panel",
     "feature1": "Automatic product labeling",
     "feature2": "Traceability and production log",

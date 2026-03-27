@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showReset, setShowReset] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const { signIn, resetPassword, userData, loading: authLoading } = useAuth();
   const router = useRouter();
   const t = useTranslations("auth");
@@ -78,6 +79,11 @@ export default function LoginPage() {
       } else {
         document.cookie = "lft-instance-id=;path=/;max-age=0";
       }
+
+      // Set Firebase persistence based on checkbox
+      const { getAuth, browserLocalPersistence, browserSessionPersistence, setPersistence } = await import("firebase/auth");
+      const auth = getAuth();
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
 
       // Sign in with Firebase
       await signIn(email, password);
@@ -320,6 +326,17 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Remember me */}
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500/20"
+                />
+                <span className="text-sm text-slate-600">{t("rememberMe")}</span>
+              </label>
 
               {error && (
                 <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2">

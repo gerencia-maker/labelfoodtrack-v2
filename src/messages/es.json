@@ -385,6 +385,7 @@
     "noInstanceFound": "No se encontro la instancia",
     "instanceRequired": "Debes seleccionar una instancia para ingresar",
     "wrongInstance": "Tu usuario no pertenece a esta instancia",
+    "rememberMe": "Mantener sesion iniciada",
     "heroSubtitle": "Panel de etiquetado inteligente",
     "feature1": "Etiquetado automatico de productos",
     "feature2": "Trazabilidad y bitacora de produccion",
