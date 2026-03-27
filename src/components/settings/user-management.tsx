@@ -79,10 +79,16 @@ const ACTION_LABEL_KEYS: Record<string, string> = {
   imprimir: "actionImprimir",
   duplicar: "actionDuplicar",
   exportar: "actionExportar",
+  ver_cuenta: "actionVerCuenta",
+  cambiar_password: "actionCambiarPassword",
   editar_papel: "actionPapel",
+  editar_unidades: "actionUnidades",
+  exportar_datos: "actionExportarDatos",
+  importar_datos: "actionImportarDatos",
   editar_instancia: "actionInstancia",
   gestionar_usuarios: "actionUsuarios",
   sync_sheets: "actionSyncSheets",
+  factory_reset: "actionFactoryReset",
 };
 
 export function UserManagement({ instanceId }: { instanceId?: string } = {}) {

@@ -29,8 +29,14 @@ import {
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export default function SettingsPage() {
-  const { userData } = useAuth();
+  const { userData, hasActionPermission } = useAuth();
   const t = useTranslations("settings");
+
+  const canAccount = hasActionPermission("configuration", "ver_cuenta");
+  const canPaper = hasActionPermission("configuration", "editar_papel");
+  const canUnits = hasActionPermission("configuration", "editar_unidades");
+  const canExport = hasActionPermission("configuration", "exportar_datos");
+  const canReset = hasActionPermission("configuration", "factory_reset");
 
   return (
     <RequirePermission permission="configuration">
@@ -44,25 +50,33 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <Tabs defaultValue="account" className="w-full">
+        <Tabs defaultValue={canAccount ? "account" : canPaper ? "paper" : "units"} className="w-full">
           <TabsList className="flex flex-wrap w-full">
-            <TabsTrigger value="account">
-              <User className="h-4 w-4" />
-              {t("account")}
-            </TabsTrigger>
-            <TabsTrigger value="paper">
-              <Printer className="h-4 w-4" />
-              {t("paperConfig")}
-            </TabsTrigger>
-            <TabsTrigger value="units">
-              <Ruler className="h-4 w-4" />
-              {t("units")}
-            </TabsTrigger>
-            <TabsTrigger value="export">
-              <Download className="h-4 w-4" />
-              {t("dataExport")}
-            </TabsTrigger>
-            {userData?.role === "ADMIN" && userData?.isSuperAdmin && (
+            {canAccount && (
+              <TabsTrigger value="account">
+                <User className="h-4 w-4" />
+                {t("account")}
+              </TabsTrigger>
+            )}
+            {canPaper && (
+              <TabsTrigger value="paper">
+                <Printer className="h-4 w-4" />
+                {t("paperConfig")}
+              </TabsTrigger>
+            )}
+            {canUnits && (
+              <TabsTrigger value="units">
+                <Ruler className="h-4 w-4" />
+                {t("units")}
+              </TabsTrigger>
+            )}
+            {canExport && (
+              <TabsTrigger value="export">
+                <Download className="h-4 w-4" />
+                {t("dataExport")}
+              </TabsTrigger>
+            )}
+            {canReset && (
               <TabsTrigger
                 value="factory-reset"
                 className="text-red-600 data-[state=active]:bg-red-50 data-[state=active]:text-red-700 dark:text-red-400 dark:data-[state=active]:bg-red-900/30 dark:data-[state=active]:text-red-300"
@@ -73,30 +87,31 @@ export default function SettingsPage() {
             )}
           </TabsList>
 
-          {/* Account Tab */}
-          <TabsContent value="account">
-            <AccountTab />
-          </TabsContent>
-
-          {/* Paper Config Tab */}
-          <TabsContent value="paper">
-            <PaperConfigTab />
-          </TabsContent>
-
-          {/* Units Tab */}
-          <TabsContent value="units">
-            <UnitsTab />
-          </TabsContent>
-
-          {/* Export Tab */}
-          <TabsContent value="export">
-            <ExportTab />
-          </TabsContent>
-
-          {/* Factory Reset Tab */}
-          <TabsContent value="factory-reset">
-            <FactoryResetTab />
-          </TabsContent>
+          {canAccount && (
+            <TabsContent value="account">
+              <AccountTab />
+            </TabsContent>
+          )}
+          {canPaper && (
+            <TabsContent value="paper">
+              <PaperConfigTab />
+            </TabsContent>
+          )}
+          {canUnits && (
+            <TabsContent value="units">
+              <UnitsTab />
+            </TabsContent>
+          )}
+          {canExport && (
+            <TabsContent value="export">
+              <ExportTab />
+            </TabsContent>
+          )}
+          {canReset && (
+            <TabsContent value="factory-reset">
+              <FactoryResetTab />
+            </TabsContent>
+          )}
         </Tabs>
 
         <p className="text-xs text-slate-400 dark:text-slate-500">

@@ -40,10 +40,16 @@ export const MODULE_ACTIONS: Record<string, { key: string; labelKey: string }[]>
     { key: "exportar", labelKey: "exportar" },
   ],
   configuration: [
+    { key: "ver_cuenta", labelKey: "verCuenta" },
+    { key: "cambiar_password", labelKey: "cambiarPassword" },
     { key: "editar_papel", labelKey: "editarPapel" },
+    { key: "editar_unidades", labelKey: "editarUnidades" },
+    { key: "exportar_datos", labelKey: "exportarDatos" },
+    { key: "importar_datos", labelKey: "importarDatos" },
     { key: "editar_instancia", labelKey: "editarInstancia" },
     { key: "gestionar_usuarios", labelKey: "gestionarUsuarios" },
     { key: "sync_sheets", labelKey: "syncSheets" },
+    { key: "factory_reset", labelKey: "factoryReset" },
   ],
 };
 
