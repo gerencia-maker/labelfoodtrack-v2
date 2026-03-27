@@ -9,6 +9,9 @@ interface LabelData {
   productionDate: string | null;
   packedBy: string | null;
   destination: string | null;
+  expiryRefrigerated: string | null;
+  expiryFrozen: string | null;
+  expiryAmbient: string | null;
   product: {
     name: string;
     code: string;
