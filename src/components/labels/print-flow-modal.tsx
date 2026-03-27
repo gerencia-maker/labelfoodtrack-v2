@@ -33,7 +33,7 @@ export function PrintFlowModal({ open, onClose, onConfirm, productName }: PrintF
   const { getToken } = useAuth();
   const t = useTranslations("labels");
 
-  // Load units from API
+  // Load units from API (only when modal opens)
   const loadUnits = useCallback(async () => {
     try {
       const token = await getToken();
@@ -43,11 +43,12 @@ export function PrintFlowModal({ open, onClose, onConfirm, productName }: PrintF
       });
       if (res.ok) {
         const data = await res.json();
-        setUnits(data.units || []);
-        if (!unit && data.units?.length > 0) setUnit(data.units[0]);
+        const loadedUnits = data.units || [];
+        setUnits(loadedUnits);
+        if (loadedUnits.length > 0) setUnit(loadedUnits[0]);
       }
     } catch { /* silent */ }
-  }, [getToken, unit]);
+  }, [getToken]);
 
   useEffect(() => {
     if (open) {
