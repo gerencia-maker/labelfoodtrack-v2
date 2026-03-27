@@ -49,6 +49,8 @@ export default function ProductsPage() {
   const canCreate = hasActionPermission("products", "crear");
   const canEdit = hasActionPermission("products", "editar");
   const canCreateLabel = hasActionPermission("labels", "crear");
+  const canEditDate = hasActionPermission("products", "editar_fecha");
+  const canEditShelfLife = hasActionPermission("products", "editar_caducidad");
   const today = new Date().toISOString().split("T")[0];
   const dateLabels = { today: t("today"), clearDate: t("clearDate"), useTodayDate: t("useTodayDate") };
 
@@ -194,6 +196,7 @@ export default function ProductsPage() {
                 key={product.id}
                 product={product}
                 canEdit={canEdit}
+                canEditDate={canEditDate}
                 date={dates[product.id] || ""}
                 onDateChange={(val) => handleDateChange(product.id, val)}
                 minDate={today}
@@ -249,6 +252,7 @@ export default function ProductsPage() {
                     items={items}
                     colCount={colCount}
                     canEdit={canEdit}
+                    canEditDate={canEditDate}
                     dates={dates}
                     onDateChange={handleDateChange}
                     minDate={today}
@@ -274,6 +278,7 @@ export default function ProductsPage() {
 function ProductCard({
   product,
   canEdit,
+  canEditDate,
   date,
   onDateChange,
   minDate,
@@ -282,6 +287,7 @@ function ProductCard({
 }: {
   product: Product;
   canEdit: boolean;
+  canEditDate: boolean;
   date: string;
   onDateChange: (val: string) => void;
   minDate: string;
@@ -354,12 +360,16 @@ function ProductCard({
 
       {/* Date input */}
       <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50">
-        <DateQuickPicker
-          value={date}
-          today={minDate}
-          onChange={onDateChange}
-          labels={dateLabels}
-        />
+        {canEditDate ? (
+          <DateQuickPicker
+            value={date}
+            today={minDate}
+            onChange={onDateChange}
+            labels={dateLabels}
+          />
+        ) : (
+          <span className="text-xs text-slate-400">--</span>
+        )}
       </div>
     </div>
   );
@@ -547,6 +557,7 @@ function CategoryGroup({
   items,
   colCount,
   canEdit,
+  canEditDate,
   dates,
   onDateChange,
   minDate,
@@ -558,6 +569,7 @@ function CategoryGroup({
   items: Product[];
   colCount: number;
   canEdit: boolean;
+  canEditDate: boolean;
   dates: Record<string, string>;
   onDateChange: (id: string, val: string) => void;
   minDate: string;
@@ -599,13 +611,17 @@ function CategoryGroup({
             </button>
           </td>
           <td className="px-3 py-1.5 text-center">
-            <DateQuickPicker
-              value={dates[product.id] || ""}
-              today={minDate}
-              onChange={(val) => onDateChange(product.id, val)}
-              resetKey={dateResetKey}
-              labels={dateLabels}
-            />
+            {canEditDate ? (
+              <DateQuickPicker
+                value={dates[product.id] || ""}
+                today={minDate}
+                onChange={(val) => onDateChange(product.id, val)}
+                resetKey={dateResetKey}
+                labels={dateLabels}
+              />
+            ) : (
+              <span className="text-xs text-slate-400">--</span>
+            )}
           </td>
           <td className="px-3 py-2.5 text-center font-medium text-slate-700 dark:text-slate-300">
             {product.refrigeratedDays || <span className="text-slate-300 dark:text-slate-600">N/A</span>}
