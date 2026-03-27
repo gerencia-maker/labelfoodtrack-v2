@@ -171,34 +171,11 @@ export default function NewLabelPage() {
           </div>
         </div>
 
-        {/* ── Collapsible form panel ── */}
-        <div className="mb-4">
-          <button
-            onClick={() => setFormCollapsed(!formCollapsed)}
-            className="flex w-full items-center justify-between rounded-t-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-5 py-3 text-left transition-colors hover:bg-orange-50/50 dark:hover:bg-orange-500/5"
-          >
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-500/10">
-                <Save className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                {hasProduct ? previewData.productName : t("newLabel")}
-              </span>
-              {hasProduct && (
-                <span className="text-xs text-slate-400 dark:text-slate-500">
-                  — {previewData.batch} · {previewData.destination || "--"}
-                </span>
-              )}
-            </div>
-            {formCollapsed ? (
-              <ChevronDown className="h-4 w-4 text-slate-400" />
-            ) : (
-              <ChevronUp className="h-4 w-4 text-slate-400" />
-            )}
-          </button>
-
-          {!formCollapsed && (
-            <div className="rounded-b-2xl border border-t-0 border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 p-5 shadow-[var(--shadow-warm-sm)]">
+        {/* ── Two-column layout: Form left, Preview right ── */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Left column — Form */}
+          <div className="w-full lg:w-[420px] lg:shrink-0">
+            <div className="rounded-2xl border border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 shadow-[var(--shadow-warm-sm)] overflow-hidden">
               <LabelForm
                 onPreviewChange={handlePreviewChange}
                 onSave={handleSave}
@@ -208,17 +185,17 @@ export default function NewLabelPage() {
                 }}
               />
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* ── Real print label preview (HERO — full width) ── */}
-        <div className="flex justify-center">
-          <div className="w-full max-w-[900px]">
-            {hasProduct ? (
-              <LabelPrint data={previewData} screenPreview />
-            ) : (
-              <EmptyPreview brand={previewData.brand} />
-            )}
+          {/* Right column — Preview (sticky) */}
+          <div className="flex-1 min-w-0">
+            <div className="lg:sticky lg:top-4">
+              {hasProduct ? (
+                <LabelPrint data={previewData} screenPreview />
+              ) : (
+                <EmptyPreview brand={previewData.brand} />
+              )}
+            </div>
           </div>
         </div>
       </div>
