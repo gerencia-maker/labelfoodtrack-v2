@@ -98,6 +98,7 @@ export default function QRLabelPage({
   const [label, setLabel] = useState<LabelData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
     async function fetchLabel() {
@@ -109,8 +110,6 @@ export default function QRLabelPage({
         }
         const data = await res.json();
         setLabel(data);
-        // Play scanner beep sound
-        playScanBeep();
       } catch {
         setNotFound(true);
       } finally {
@@ -120,12 +119,29 @@ export default function QRLabelPage({
     fetchLabel();
   }, [batch]);
 
+  const handleReveal = () => {
+    if (revealed) return;
+    setRevealed(true);
+    playScanBeep();
+  };
+
+  // Auto-reveal after 2 seconds (fallback if user doesn't tap)
+  useEffect(() => {
+    if (label && !revealed) {
+      const timer = setTimeout(() => {
+        setRevealed(true);
+        // Don't play sound on auto-reveal (no user interaction = blocked by browser)
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [label, revealed]);
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-orange-500 via-orange-600 to-red-500">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
-          <p className="text-sm text-slate-500">Cargando etiqueta...</p>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-white border-t-transparent" />
+          <p className="text-sm text-white/80 font-medium">Verificando etiqueta...</p>
         </div>
       </div>
     );
@@ -159,6 +175,38 @@ export default function QRLabelPage({
               {decodeURIComponent(batch)}
             </span>
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Splash screen — tap to reveal with beep
+  if (!revealed) {
+    return (
+      <div
+        className="flex items-center justify-center min-h-screen bg-gradient-to-br from-orange-500 via-orange-600 to-red-500 cursor-pointer select-none"
+        onClick={handleReveal}
+        onTouchStart={handleReveal}
+      >
+        <div className="text-center space-y-6 px-6">
+          {label.instance?.logoUrl && (
+            <img
+              src={label.instance.logoUrl}
+              alt=""
+              className="h-16 w-16 mx-auto rounded-2xl bg-white/20 object-contain p-2"
+            />
+          )}
+          <div>
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm mb-4 animate-pulse">
+              <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Etiqueta verificada</h1>
+            <p className="text-white/70 text-sm">{label.productName}</p>
+            <p className="text-white/50 text-xs font-mono mt-1">{label.batch}</p>
+          </div>
+          <p className="text-white/60 text-xs animate-bounce mt-8">Toca para ver detalles</p>
         </div>
       </div>
     );
