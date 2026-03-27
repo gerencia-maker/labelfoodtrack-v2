@@ -19,23 +19,32 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
 
   const style = document.createElement("style");
   style.id = STYLE_TAG_ID;
+  // Scale font size proportionally to paper height (base: 5pt at 45mm)
+  const baseFontPt = Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
+  const headerFontPt = baseFontPt * 1.2;
+  const qrMaxPx = Math.max(40, Math.min(200, Math.round(preset.heightMm * 2.5)));
+
   style.textContent = `
     @media print {
       @page {
         size: ${preset.widthMm}mm ${preset.heightMm}mm;
         margin: ${preset.marginTop}mm ${preset.marginRight}mm ${preset.marginBottom}mm ${preset.marginLeft}mm !important;
       }
-      html, body {
-        width: ${preset.widthMm}mm !important;
-        height: ${preset.heightMm}mm !important;
-        max-width: ${preset.widthMm}mm !important;
-        max-height: ${preset.heightMm}mm !important;
+      #printMatrixLabel {
+        font-size: ${baseFontPt}pt !important;
       }
-      #printMatrixContainer {
-        width: ${preset.widthMm}mm !important;
-        height: ${preset.heightMm}mm !important;
-        max-width: ${preset.widthMm}mm !important;
-        max-height: ${preset.heightMm}mm !important;
+      #printMatrixLabel th {
+        font-size: ${headerFontPt}pt !important;
+      }
+      #printMatrixLabel td {
+        font-size: ${baseFontPt}pt !important;
+      }
+      #printMatrixLabel .multiline-row td {
+        font-size: ${Math.max(3, baseFontPt - 0.5)}pt !important;
+      }
+      #printMatrixLabel .qr-cell canvas {
+        max-width: ${qrMaxPx}px !important;
+        max-height: ${qrMaxPx}px !important;
       }
     }
   `;
