@@ -48,6 +48,7 @@ export default function ProductsPage() {
 
   const canCreate = hasActionPermission("products", "crear");
   const canEdit = hasActionPermission("products", "editar");
+  const canCreateLabel = hasActionPermission("labels", "crear");
   const today = new Date().toISOString().split("T")[0];
   const dateLabels = { today: t("today"), clearDate: t("clearDate"), useTodayDate: t("useTodayDate") };
 
@@ -104,6 +105,10 @@ export default function ProductsPage() {
   }, [filtered]);
 
   const handleProductClick = (product: Product) => {
+    if (!canCreateLabel) {
+      toast({ title: "Permisos insuficientes", variant: "error" });
+      return;
+    }
     const date = dates[product.id] || "";
     const params = new URLSearchParams({
       productId: product.id,

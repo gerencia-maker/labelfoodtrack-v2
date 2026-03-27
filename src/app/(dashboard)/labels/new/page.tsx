@@ -18,7 +18,7 @@ const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export default function NewLabelPage() {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { getToken, hasActionPermission } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("labels");
   const { triggerPrint } = usePrintPreset();
@@ -158,16 +158,18 @@ export default function NewLabelPage() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrint}
-              disabled={!hasProduct}
-              className="gap-1.5"
-            >
-              <Printer className="h-3.5 w-3.5" />
-              {t("print")}
-            </Button>
+            {hasActionPermission("labels", "imprimir") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                disabled={!hasProduct}
+                className="gap-1.5"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                {t("print")}
+              </Button>
+            )}
           </div>
         </div>
 
