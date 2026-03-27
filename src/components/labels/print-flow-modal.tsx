@@ -160,7 +160,7 @@ export function PrintFlowModal({ open, onClose, onConfirm, productName }: PrintF
                 <ChevronDown size={14} className={`text-orange-400 transition-transform ${showUnitDropdown ? "rotate-180" : ""}`} />
               </button>
               {showUnitDropdown && (
-                <div className="absolute top-full right-0 mt-1 w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg z-50 overflow-hidden">
+                <div className="absolute bottom-full left-0 mb-1 w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl z-50 overflow-hidden">
                   <div className="p-2">
                     <input
                       autoFocus
