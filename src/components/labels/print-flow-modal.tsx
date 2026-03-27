@@ -154,13 +154,13 @@ export function PrintFlowModal({ open, onClose, onConfirm, productName }: PrintF
               <button
                 type="button"
                 onClick={() => { setShowUnitDropdown(!showUnitDropdown); setUnitSearch(""); }}
-                className="flex items-center gap-1 h-12 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 px-3 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-orange-300 transition-colors min-w-[70px] justify-between"
+                className="flex items-center gap-1.5 h-12 rounded-xl border-2 border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 px-4 text-base font-bold text-orange-700 dark:text-orange-300 hover:border-orange-400 transition-colors min-w-[80px] justify-between"
               >
                 <span>{unit || "..."}</span>
-                <ChevronDown size={14} className="text-slate-400" />
+                <ChevronDown size={14} className={`text-orange-400 transition-transform ${showUnitDropdown ? "rotate-180" : ""}`} />
               </button>
               {showUnitDropdown && (
-                <div className="absolute bottom-full right-0 mb-1 w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg z-50 overflow-hidden">
+                <div className="absolute top-full right-0 mt-1 w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg z-50 overflow-hidden">
                   <div className="p-2">
                     <input
                       autoFocus
