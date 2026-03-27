@@ -46,13 +46,34 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
+    // Calculate expiry dates from productionDate + product days
+    const computeExpiry = (days: number): string | null => {
+      if (!label.productionDate || days <= 0) return null;
+      const d = new Date(label.productionDate);
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split("T")[0];
+    };
+
+    const p = label.product;
+    const expiryRefrigerated = p ? computeExpiry(p.refrigeratedDays) : null;
+    const expiryFrozen = p ? computeExpiry(p.frozenDays) : null;
+    const expiryAmbient = p ? computeExpiry(p.ambientDays) : null;
+
+    // Format productionDate as ISO string (YYYY-MM-DD)
+    const prodDateISO = label.productionDate
+      ? label.productionDate.toISOString().split("T")[0]
+      : null;
+
     return NextResponse.json({
       productName: label.productName,
       batch: label.batch,
       netContent: label.netContent,
-      productionDate: label.productionDate,
+      productionDate: prodDateISO,
       packedBy: label.packedBy,
       destination: label.destination,
+      expiryRefrigerated,
+      expiryFrozen,
+      expiryAmbient,
       product: label.product,
       instance: label.instance,
     });

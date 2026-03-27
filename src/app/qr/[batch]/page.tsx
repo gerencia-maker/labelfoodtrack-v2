@@ -30,7 +30,8 @@ interface LabelData {
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "--";
-  const d = new Date(dateStr);
+  const raw = dateStr.includes("T") ? dateStr : dateStr + "T00:00:00";
+  const d = new Date(raw);
   if (isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString("es-ES", {
     day: "2-digit",
@@ -125,18 +126,15 @@ export default function QRLabelPage({
 
   const product = label.product;
   const instance = label.instance;
-  const prodDate = label.productionDate
-    ? typeof label.productionDate === "string"
-      ? label.productionDate
-      : new Date(label.productionDate).toISOString().split("T")[0]
-    : null;
+  const prodDate = label.productionDate || null;
 
-  // Build cold chain info
+  // Build cold chain info using pre-calculated expiry dates from API
   const coldChainItems: {
     type: string;
     label: string;
     temp: string;
     days: number;
+    expiry: string | null;
     color: string;
     bg: string;
     iconBg: string;
@@ -148,6 +146,7 @@ export default function QRLabelPage({
         label: "Refrigerado",
         temp: "0 a 4 °C",
         days: product.refrigeratedDays,
+        expiry: label.expiryRefrigerated || null,
         color: "text-amber-700",
         bg: "bg-amber-50 border-amber-200",
         iconBg: "bg-amber-100",
@@ -158,6 +157,7 @@ export default function QRLabelPage({
         label: "Congelado",
         temp: "-18 a -22 °C",
         days: product.frozenDays,
+        expiry: label.expiryFrozen || null,
         color: "text-blue-700",
         bg: "bg-blue-50 border-blue-200",
         iconBg: "bg-blue-100",
@@ -168,6 +168,7 @@ export default function QRLabelPage({
         label: "Ambiente",
         temp: "Temp. ambiente",
         days: product.ambientDays,
+        expiry: label.expiryAmbient || null,
         color: "text-emerald-700",
         bg: "bg-emerald-50 border-emerald-200",
         iconBg: "bg-emerald-100",
@@ -294,7 +295,7 @@ export default function QRLabelPage({
                       </div>
                       <div className="text-right">
                         <p className={`text-sm font-bold ${item.color}`}>
-                          {prodDate ? addDays(prodDate, item.days) : "--"}
+                          {item.expiry ? formatDate(item.expiry) : "--"}
                         </p>
                         <p className="text-xs text-slate-400">
                           {item.days} dias
