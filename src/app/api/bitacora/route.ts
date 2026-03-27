@@ -44,7 +44,9 @@ export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  if (!hasActionPermission(user.role, user.permisos, "bitacora", "crear")) {
+  // Allow if user has bitacora.crear OR products.rotular (printing flow)
+  if (!hasActionPermission(user.role, user.permisos, "bitacora", "crear") &&
+      !hasActionPermission(user.role, user.permisos, "products", "rotular")) {
     return forbidden();
   }
 

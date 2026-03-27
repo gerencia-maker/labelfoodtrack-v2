@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  if (!hasActionPermission(user.role, user.permisos, "labels", "crear")) {
+  // Allow if user has labels.crear OR products.rotular
+  if (!hasActionPermission(user.role, user.permisos, "labels", "crear") &&
+      !hasActionPermission(user.role, user.permisos, "products", "rotular")) {
     return forbidden();
   }
 
