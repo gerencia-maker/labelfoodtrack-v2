@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { RequirePermission } from "@/components/require-permission";
 import { useToast } from "@/components/ui/toast";
@@ -1282,7 +1282,7 @@ function FactoryResetTab() {
   );
 }
 
-/* ─── Paper Preview ─── */
+/* ─── Label Preview with auto-scale ─── */
 function LabelPreview({
   width,
   height,
@@ -1302,21 +1302,45 @@ function LabelPreview({
   fontSize: number;
   orientation: "landscape" | "portrait";
 }) {
-  const maxDisplay = 320;
+  const tableRef = useRef<HTMLTableElement>(null);
+  const [contentScale, setContentScale] = useState(1);
+
+  const maxDisplay = 400;
   const paperW = orientation === "landscape" ? Math.max(width, 1) : Math.max(height, 1);
   const paperH = orientation === "landscape" ? Math.max(height, 1) : Math.max(width, 1);
-  const scale = maxDisplay / Math.max(paperW, paperH);
-  const w = paperW * scale;
-  const h = paperH * scale;
-  const contentW = Math.max((paperW - ml - mr) * scale, 0);
-  const contentH = Math.max((paperH - mt - mb) * scale, 0);
-  const contentX = ml * scale;
-  const contentY = mt * scale;
+  const displayScale = maxDisplay / Math.max(paperW, paperH);
+  const w = paperW * displayScale;
+  const h = paperH * displayScale;
+  const areaW = Math.max((paperW - ml - mr) * displayScale, 0);
+  const areaH = Math.max((paperH - mt - mb) * displayScale, 0);
+  const areaX = ml * displayScale;
+  const areaY = mt * displayScale;
 
-  // Simulated font size (scaled to preview)
+  // Font size in preview pixels
   const basePt = fs > 0 ? fs : Math.max(3.5, Math.min(7, (height / 45) * 5));
-  const previewFontPx = basePt * scale * 0.35;
-  const headerFontPx = previewFontPx * 1.3;
+  const fontPx = basePt * displayScale * 0.4;
+  const headerPx = fontPx * 1.3;
+  const pad = displayScale * 0.4;
+  const qrSize = Math.min(areaH * 0.45, areaW * 0.2);
+
+  // Auto-scale: measure table and shrink if overflows
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el || areaW <= 0 || areaH <= 0) return;
+    // Reset to measure natural size
+    el.style.transform = "none";
+    requestAnimationFrame(() => {
+      const tw = el.scrollWidth;
+      const th = el.scrollHeight;
+      if (tw > 0 && th > 0) {
+        const sx = areaW / tw;
+        const sy = areaH / th;
+        setContentScale(Math.min(sx, sy, 1));
+      } else {
+        setContentScale(1);
+      }
+    });
+  }, [fs, width, height, mt, mr, mb, ml, orientation, areaW, areaH]);
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -1324,66 +1348,61 @@ function LabelPreview({
         className="relative border-2 border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 overflow-hidden"
         style={{ width: w, height: h }}
       >
-        {/* Margin area */}
-        <div
-          className="absolute overflow-hidden"
-          style={{ left: contentX, top: contentY, width: contentW, height: contentH }}
-        >
-          {/* Simulated label content */}
-          <table className="w-full h-full border-collapse" style={{ fontSize: previewFontPx, lineHeight: 1.2 }}>
+        <div className="absolute overflow-hidden" style={{ left: areaX, top: areaY, width: areaW, height: areaH }}>
+          <table
+            ref={tableRef}
+            className="border-collapse border border-slate-400"
+            style={{
+              fontSize: fontPx,
+              lineHeight: 1.2,
+              transformOrigin: "top left",
+              transform: `scale(${contentScale})`,
+              width: contentScale < 1 ? `${areaW / contentScale}px` : "100%",
+            }}
+          >
             <thead>
               <tr>
-                <th
-                  colSpan={3}
-                  className="border-b border-slate-400 text-center font-bold text-slate-800 dark:text-slate-200"
-                  style={{ fontSize: headerFontPx, padding: `${scale * 0.5}px` }}
-                >
+                <th colSpan={3} className="border-b border-slate-400 text-center font-bold text-slate-800 dark:text-slate-200" style={{ fontSize: headerPx, padding: pad }}>
                   EMPRESA EJEMPLO
-                  <div className="font-normal text-slate-500" style={{ fontSize: previewFontPx * 0.8 }}>
-                    USO GASTRONOMICO
-                  </div>
+                  <div className="font-normal text-slate-400" style={{ fontSize: fontPx * 0.7 }}>USO GASTRONOMICO</div>
                 </th>
               </tr>
             </thead>
             <tbody className="text-slate-700 dark:text-slate-300">
+              {[
+                ["Producto:", "AJI RANCHERITO"],
+                ["Cadena frio:", "Refrigerado (0-4°C)"],
+                ["Produccion:", "30/3/2026"],
+                ["Vence:", "29 de abril de 2026"],
+                ["Peso:", "500 g"],
+                ["Envasado:", "ACOPIO"],
+              ].map(([label, val], i) => (
+                <tr key={i}>
+                  <td className="border-b border-r border-slate-300 font-semibold whitespace-nowrap" style={{ padding: pad, width: "30%" }}>{label}</td>
+                  <td className="border-b border-r border-slate-300" style={{ padding: pad, width: "48%" }}>{val}</td>
+                  {i === 0 && (
+                    <td className="border-b border-slate-300 text-center" style={{ padding: pad, width: "22%" }} rowSpan={4}>
+                      <div className="mx-auto border border-slate-400" style={{ width: qrSize, height: qrSize, background: "repeating-conic-gradient(#333 0% 25%, #fff 0% 50%) 50%/3px 3px" }} />
+                    </td>
+                  )}
+                </tr>
+              ))}
               <tr>
-                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px`, width: "30%" }}>Producto:</td>
-                <td className="border-b border-r border-slate-300" style={{ padding: `${scale * 0.3}px`, width: "48%" }}>AJI EJEMPLO</td>
-                <td className="border-b border-slate-300 text-center" style={{ padding: `${scale * 0.3}px`, width: "22%" }} rowSpan={4}>
-                  <div className="flex items-center justify-center h-full">
-                    <div className="border border-slate-400" style={{ width: contentH * 0.35, height: contentH * 0.35, background: "repeating-conic-gradient(#333 0% 25%, #fff 0% 50%) 50%/4px 4px" }} />
-                  </div>
-                </td>
+                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: pad }}>Destino:</td>
+                <td className="border-b border-slate-300" style={{ padding: pad }} colSpan={2}>MIRANORTE</td>
               </tr>
               <tr>
-                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Cadena frio:</td>
-                <td className="border-b border-r border-slate-300" style={{ padding: `${scale * 0.3}px` }}>Refrigerado (0-4°C)</td>
-              </tr>
-              <tr>
-                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Produccion:</td>
-                <td className="border-b border-r border-slate-300" style={{ padding: `${scale * 0.3}px` }}>30/3/2026</td>
-              </tr>
-              <tr>
-                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Vence:</td>
-                <td className="border-b border-r border-slate-300" style={{ padding: `${scale * 0.3}px` }}>29 abril 2026</td>
-              </tr>
-              <tr>
-                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Destino:</td>
-                <td className="border-b border-slate-300" style={{ padding: `${scale * 0.3}px` }} colSpan={2}>SEDE NORTE</td>
-              </tr>
-              <tr>
-                <td className="border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Lote:</td>
-                <td className="border-slate-300" style={{ padding: `${scale * 0.3}px` }} colSpan={2}>PP001-300326-1200</td>
+                <td className="border-r border-slate-300 font-semibold" style={{ padding: pad }}>Lote:</td>
+                <td className="border-slate-300" style={{ padding: pad }} colSpan={2}>PP003-300326-1200</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-      <div className="text-center">
-        <span className="text-[10px] text-slate-400 dark:text-slate-500">
-          {width} x {height} mm — {fs === 0 ? "Auto" : `${fs}pt`} — {orientation === "landscape" ? "Horizontal" : "Vertical"}
-        </span>
-      </div>
+      <span className="text-[10px] text-slate-400 dark:text-slate-500">
+        {width} x {height} mm — {fs === 0 ? "Auto" : `${fs}pt`} — {orientation === "landscape" ? "Horizontal" : "Vertical"}
+        {contentScale < 1 && <span className="text-orange-500 ml-1">(escalado {Math.round(contentScale * 100)}%)</span>}
+      </span>
     </div>
   );
 }
