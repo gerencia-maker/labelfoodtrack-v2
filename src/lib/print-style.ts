@@ -12,10 +12,6 @@ export interface PrintPresetConfig {
 
 const STYLE_TAG_ID = "dynamic-print-style";
 
-/**
- * Inject print styles. Uses user fontSize directly and applies CSS scale
- * transform if content would overflow the paper.
- */
 export function injectPrintStyles(preset: PrintPresetConfig): void {
   const existing = document.getElementById(STYLE_TAG_ID);
   if (existing) existing.remove();
@@ -23,34 +19,23 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
   const style = document.createElement("style");
   style.id = STYLE_TAG_ID;
 
-  // Available area in mm
+  // Available area
   const availH = preset.heightMm - preset.marginTop - preset.marginBottom;
   const availW = preset.widthMm - preset.marginLeft - preset.marginRight;
 
-  // Font: user value or auto
+  // Auto font: scale to paper height
   const baseFontPt = preset.fontSize > 0
     ? preset.fontSize
     : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
 
   const headerFontPt = baseFontPt * 1.15;
-  const ingredientsFontPt = Math.max(3, baseFontPt * 0.85);
+  const ingredientsFontPt = Math.max(3, baseFontPt * 0.8);
 
-  // Estimate content height at this font size (in mm)
-  // Each row ≈ fontSize_pt * 0.5mm (empirical), header ≈ fontSize * 1.2mm
-  const rowCount = 10;
-  const estimatedH = (baseFontPt * 1.2) + (rowCount * baseFontPt * 0.55);
-
-  // Scale factor: shrink if content overflows
-  const scaleY = Math.min(1, availH / estimatedH);
-  const scaleX = Math.min(1, availW / (baseFontPt * 15)); // rough width check
-  const scaleFactor = Math.min(scaleX, scaleY);
-
-  // QR size proportional to paper
+  // QR: 15% of paper width, max 80% of height
+  const qrMm = Math.min(availW * 0.15, availH * 0.8);
   const pxPerMm = preset.dpi / 25.4;
-  const qrMm = Math.min(availH * 0.45, availW * 0.2);
-  const qrPx = Math.max(30, Math.round(qrMm * pxPerMm));
+  const qrPx = Math.max(20, Math.round(qrMm * pxPerMm));
 
-  // Page size
   const pageSize = preset.orientation === "landscape"
     ? `${preset.widthMm}mm ${preset.heightMm}mm landscape`
     : `${preset.heightMm}mm ${preset.widthMm}mm portrait`;
@@ -62,38 +47,56 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
         margin: 0mm !important;
       }
       #printMatrixContainer {
-        padding: ${preset.marginTop}mm ${preset.marginRight}mm ${preset.marginBottom}mm ${preset.marginLeft}mm !important;
         width: ${preset.widthMm}mm !important;
         height: ${preset.heightMm}mm !important;
+        padding: ${preset.marginTop}mm ${preset.marginRight}mm ${preset.marginBottom}mm ${preset.marginLeft}mm !important;
         overflow: hidden !important;
+        box-sizing: border-box !important;
       }
       #printMatrixLabel {
         font-size: ${baseFontPt}pt !important;
-        transform-origin: top left !important;
-        transform: scale(${scaleFactor.toFixed(4)}) !important;
-        width: ${(100 / scaleFactor).toFixed(2)}% !important;
+        width: ${availW}mm !important;
+        height: ${availH}mm !important;
+        overflow: hidden !important;
       }
       #printMatrixLabel table {
         width: 100% !important;
+        height: 100% !important;
         table-layout: fixed !important;
+        border-collapse: collapse !important;
       }
       #printMatrixLabel th {
         font-size: ${headerFontPt}pt !important;
+        padding: 0.3mm 0.5mm !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
       }
       #printMatrixLabel td {
         font-size: ${baseFontPt}pt !important;
+        padding: 0.2mm 0.5mm !important;
+        overflow: hidden !important;
+        word-break: break-word !important;
+      }
+      #printMatrixLabel td:first-child {
+        width: 28% !important;
+        white-space: nowrap !important;
+      }
+      #printMatrixLabel td:nth-child(2) {
+        width: auto !important;
       }
       #printMatrixLabel .multiline-row td {
         font-size: ${ingredientsFontPt}pt !important;
+        line-height: 1.1 !important;
       }
       #printMatrixLabel .qr-cell {
         width: ${qrMm}mm !important;
+        padding: 0.5mm !important;
       }
       #printMatrixLabel .qr-cell canvas {
         width: ${qrPx}px !important;
         height: ${qrPx}px !important;
-        max-width: ${qrPx}px !important;
-        max-height: ${qrPx}px !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
       }
     }
   `;
