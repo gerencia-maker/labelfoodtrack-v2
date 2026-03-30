@@ -66,8 +66,12 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
         overflow: hidden !important;
         box-sizing: border-box !important;
       }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
       #printMatrixLabel {
-        font-size: ${baseFontPt}pt !important;
+        font-size: ${baseFontPt.toFixed(1)}pt !important;
         width: 100% !important;
         height: 100% !important;
         overflow: hidden !important;
