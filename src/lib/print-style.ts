@@ -7,6 +7,7 @@ export interface PrintPresetConfig {
   marginLeft: number;
   orientation: "landscape" | "portrait";
   dpi: number;
+  fontSize: number; // base font size in pt (0 = auto)
 }
 
 const STYLE_TAG_ID = "dynamic-print-style";
@@ -21,8 +22,10 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
 
   const style = document.createElement("style");
   style.id = STYLE_TAG_ID;
-  // Scale font size proportionally to paper height (base: 5pt at 45mm)
-  const baseFontPt = Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
+  // Font size: use manual value if set, otherwise auto-scale to paper height
+  const baseFontPt = preset.fontSize > 0
+    ? preset.fontSize
+    : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
   const headerFontPt = baseFontPt * 1.2;
   const qrMaxPx = Math.max(40, Math.min(200, Math.round(preset.heightMm * 2.5)));
 
@@ -62,4 +65,5 @@ export const DEFAULT_PRINT_PRESET: PrintPresetConfig = {
   marginLeft: 0,
   orientation: "landscape",
   dpi: 203,
+  fontSize: 0, // 0 = auto
 };

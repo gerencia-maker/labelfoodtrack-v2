@@ -356,6 +356,7 @@ function PaperConfigTab() {
     "landscape"
   );
   const [dpi, setDpi] = useState(203);
+  const [fontSize, setFontSize] = useState(0);
   const [stockType, setStockType] = useState("Die-Cut Labels");
 
   useEffect(() => {
@@ -385,6 +386,7 @@ function PaperConfigTab() {
             setMarginLeft(data.marginLeft);
             setOrientation(data.orientation);
             setDpi(data.dpi || 203);
+            setFontSize(data.fontSize || 0);
             setStockType(data.stockType || "Die-Cut Labels");
           }
         }
@@ -421,6 +423,7 @@ function PaperConfigTab() {
           marginLeft,
           orientation,
           dpi,
+          fontSize,
           stockType: stockType || null,
         }),
       });
@@ -625,6 +628,43 @@ function PaperConfigTab() {
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Font size */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+              {t("fontSize")}
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="14"
+                step="0.5"
+                value={fontSize}
+                onChange={(e) => setFontSize(Number(e.target.value))}
+                className="flex-1 accent-orange-500"
+              />
+              <span className="text-sm font-mono font-semibold text-slate-700 dark:text-slate-300 min-w-[60px] text-center">
+                {fontSize === 0 ? "Auto" : `${fontSize} pt`}
+              </span>
+            </div>
+            <div className="flex gap-1.5 mt-1.5">
+              {[0, 5, 6, 7, 8, 9, 10].map((val) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setFontSize(val)}
+                  className={`px-2 py-0.5 text-[11px] rounded-md border transition-colors ${
+                    fontSize === val
+                      ? "bg-orange-500 text-white border-orange-500"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600"
+                  }`}
+                >
+                  {val === 0 ? "Auto" : `${val}pt`}
+                </button>
+              ))}
             </div>
           </div>
 

@@ -252,6 +252,7 @@
     "landscape": "Landscape",
     "portrait": "Portrait",
     "dpi": "Resolution (DPI)",
+    "fontSize": "Font size (print)",
     "stockType": "Stock type",
     "savePaperConfig": "Save configuration",
     "paperSaved": "Paper configuration saved",

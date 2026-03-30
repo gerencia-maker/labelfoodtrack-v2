@@ -32,6 +32,7 @@ export function usePrintPreset() {
               marginLeft: data.marginLeft,
               orientation: data.orientation || "landscape",
               dpi: data.dpi || 203,
+              fontSize: data.fontSize || 0,
             });
           }
         }

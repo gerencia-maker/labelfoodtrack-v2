@@ -252,6 +252,7 @@
     "landscape": "Horizontal",
     "portrait": "Vertical",
     "dpi": "Resolucion (DPI)",
+    "fontSize": "Tamano de letra (impresion)",
     "stockType": "Tipo de papel",
     "savePaperConfig": "Guardar configuracion",
     "paperSaved": "Configuracion de papel guardada",
