@@ -640,7 +640,7 @@ function PaperConfigTab() {
               <input
                 type="range"
                 min="0"
-                max="14"
+                max="30"
                 step="0.5"
                 value={fontSize}
                 onChange={(e) => setFontSize(Number(e.target.value))}
@@ -651,7 +651,7 @@ function PaperConfigTab() {
               </span>
             </div>
             <div className="flex gap-1.5 mt-1.5">
-              {[0, 5, 6, 7, 8, 9, 10].map((val) => (
+              {[0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24].map((val) => (
                 <button
                   key={val}
                   type="button"
