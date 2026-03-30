@@ -280,7 +280,7 @@ html.dark ::-webkit-scrollbar-thumb {
 @media print {
   /* Default @page - overridden dynamically by print-style.ts when preset exists */
   @page {
-    size: 100mm 45mm;
+    size: 100mm 45mm landscape;
     margin: 0mm !important;
   }
 

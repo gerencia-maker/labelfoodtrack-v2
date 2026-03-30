@@ -5,6 +5,8 @@ export interface PrintPresetConfig {
   marginRight: number;
   marginBottom: number;
   marginLeft: number;
+  orientation: "landscape" | "portrait";
+  dpi: number;
 }
 
 const STYLE_TAG_ID = "dynamic-print-style";
@@ -27,7 +29,7 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
   style.textContent = `
     @media print {
       @page {
-        size: ${preset.widthMm}mm ${preset.heightMm}mm;
+        size: ${preset.orientation === "landscape" ? `${preset.widthMm}mm ${preset.heightMm}mm landscape` : `${preset.heightMm}mm ${preset.widthMm}mm portrait`};
         margin: ${preset.marginTop}mm ${preset.marginRight}mm ${preset.marginBottom}mm ${preset.marginLeft}mm !important;
       }
       #printMatrixLabel {
@@ -58,4 +60,6 @@ export const DEFAULT_PRINT_PRESET: PrintPresetConfig = {
   marginRight: 0,
   marginBottom: 0,
   marginLeft: 0,
+  orientation: "landscape",
+  dpi: 203,
 };

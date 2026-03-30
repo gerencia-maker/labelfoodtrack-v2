@@ -355,6 +355,7 @@ function PaperConfigTab() {
   const [orientation, setOrientation] = useState<"portrait" | "landscape">(
     "landscape"
   );
+  const [dpi, setDpi] = useState(203);
   const [stockType, setStockType] = useState("Die-Cut Labels");
 
   useEffect(() => {
@@ -383,6 +384,7 @@ function PaperConfigTab() {
             setMarginBottom(data.marginBottom);
             setMarginLeft(data.marginLeft);
             setOrientation(data.orientation);
+            setDpi(data.dpi || 203);
             setStockType(data.stockType || "Die-Cut Labels");
           }
         }
@@ -418,6 +420,7 @@ function PaperConfigTab() {
           marginBottom,
           marginLeft,
           orientation,
+          dpi,
           stockType: stockType || null,
         }),
       });
@@ -576,7 +579,7 @@ function PaperConfigTab() {
             </div>
           </div>
 
-          {/* Orientation + Preview */}
+          {/* Orientation + DPI */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -594,16 +597,47 @@ function PaperConfigTab() {
               </select>
             </div>
 
-            <div className="flex flex-col items-center justify-center">
-              <PaperPreview
-                width={widthMm}
-                height={heightMm}
-                mt={marginTop}
-                mr={marginRight}
-                mb={marginBottom}
-                ml={marginLeft}
+            <div>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                {t("dpi")}
+              </label>
+              <input
+                type="number"
+                min="72"
+                max="1200"
+                value={dpi}
+                onChange={(e) => setDpi(Number(e.target.value) || 203)}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
               />
+              <div className="flex gap-1.5 mt-1.5">
+                {[203, 300, 600].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setDpi(val)}
+                    className={`px-2 py-0.5 text-[11px] rounded-md border transition-colors ${
+                      dpi === val
+                        ? "bg-orange-500 text-white border-orange-500"
+                        : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600"
+                    }`}
+                  >
+                    {val} DPI
+                  </button>
+                ))}
+              </div>
             </div>
+          </div>
+
+          {/* Preview */}
+          <div className="flex justify-center">
+            <PaperPreview
+              width={widthMm}
+              height={heightMm}
+              mt={marginTop}
+              mr={marginRight}
+              mb={marginBottom}
+              ml={marginLeft}
+            />
           </div>
 
           {/* Save Button */}

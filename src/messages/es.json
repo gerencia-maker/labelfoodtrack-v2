@@ -251,6 +251,7 @@
     "orientation": "Orientacion",
     "landscape": "Horizontal",
     "portrait": "Vertical",
+    "dpi": "Resolucion (DPI)",
     "stockType": "Tipo de papel",
     "savePaperConfig": "Guardar configuracion",
     "paperSaved": "Configuracion de papel guardada",

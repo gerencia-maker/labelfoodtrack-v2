@@ -14,6 +14,7 @@ export const printPresetSchema = z.object({
   marginBottom: toNumber.pipe(z.number().min(0).max(50)),
   marginLeft: toNumber.pipe(z.number().min(0).max(50)),
   orientation: z.enum(["portrait", "landscape"]),
+  dpi: toNumber.pipe(z.number().int().min(72).max(1200)),
   stockType: z.string().nullable().optional(),
 });
 

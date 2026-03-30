@@ -167,6 +167,7 @@ model PrintPreset {
   marginBottom Float  @default(0)
   marginLeft   Float  @default(0)
   orientation  String @default("portrait")
+  dpi          Int    @default(203)
   stockType    String?
 
   instanceId String

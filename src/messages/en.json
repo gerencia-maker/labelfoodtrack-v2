@@ -251,6 +251,7 @@
     "orientation": "Orientation",
     "landscape": "Landscape",
     "portrait": "Portrait",
+    "dpi": "Resolution (DPI)",
     "stockType": "Stock type",
     "savePaperConfig": "Save configuration",
     "paperSaved": "Paper configuration saved",
