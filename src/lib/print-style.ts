@@ -31,8 +31,8 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
   const headerFontPt = baseFontPt * 1.15;
   const ingredientsFontPt = Math.max(3, baseFontPt * 0.8);
 
-  // QR: 15% of paper width, max 80% of height
-  const qrMm = Math.min(availW * 0.15, availH * 0.8);
+  // QR: 13% of paper width, max 70% of height
+  const qrMm = Math.min(availW * 0.13, availH * 0.7);
   const pxPerMm = preset.dpi / 25.4;
   const qrPx = Math.max(20, Math.round(qrMm * pxPerMm));
 
@@ -86,7 +86,12 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
       }
       #printMatrixLabel .multiline-row td {
         font-size: ${ingredientsFontPt}pt !important;
-        line-height: 1.1 !important;
+        line-height: 1.0 !important;
+        max-height: ${availH * 0.25}mm !important;
+        overflow: hidden !important;
+      }
+      #printMatrixLabel .multiline-row td:nth-child(2) {
+        word-break: break-all !important;
       }
       #printMatrixLabel .qr-cell {
         width: ${qrMm}mm !important;
