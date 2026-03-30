@@ -51,6 +51,12 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
         max-width: ${qrMaxPx}px !important;
         max-height: ${qrMaxPx}px !important;
       }
+      #printMatrixContainer {
+        padding-top: ${preset.marginTop}mm !important;
+        padding-right: ${preset.marginRight}mm !important;
+        padding-bottom: ${preset.marginBottom}mm !important;
+        padding-left: ${preset.marginLeft}mm !important;
+      }
     }
   `;
   document.head.appendChild(style);
