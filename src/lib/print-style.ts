@@ -19,20 +19,33 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
   const style = document.createElement("style");
   style.id = STYLE_TAG_ID;
 
-  // Available area
   const availH = preset.heightMm - preset.marginTop - preset.marginBottom;
   const availW = preset.widthMm - preset.marginLeft - preset.marginRight;
 
-  // Auto font: scale to paper height
-  const baseFontPt = preset.fontSize > 0
+  // User font or auto
+  const userFontPt = preset.fontSize > 0
     ? preset.fontSize
     : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
 
-  const headerFontPt = baseFontPt * 1.15;
-  const ingredientsFontPt = Math.max(3, baseFontPt * 0.8);
+  // Calculate how much space this font needs (in mm)
+  // 1pt = 0.353mm. Each row = font * lineHeight(1.3) + padding(0.6mm)
+  // Header = font * 1.15 * 1.3 + subtitle + padding ≈ font * 0.353 * 3
+  // 10 body rows (product, chain, date, expiry, weight, packed, ingredients, allergens, dest, lot)
+  const ptToMm = 0.353;
+  const headerH = userFontPt * ptToMm * 3.5;
+  const rowH = userFontPt * ptToMm * 1.3 + 0.4;
+  const ingredientExtraH = userFontPt * ptToMm * 3; // multi-line ingredients ~3 extra lines
+  const totalContentH = headerH + (9 * rowH) + ingredientExtraH;
 
-  // QR: 13% of paper width, max 70% of height
-  const qrMm = Math.min(availW * 0.13, availH * 0.7);
+  // Scale to fit
+  const scale = Math.min(1, availH / totalContentH);
+
+  const baseFontPt = userFontPt * scale;
+  const headerFontPt = baseFontPt * 1.15;
+  const ingredientsFontPt = Math.max(2.5, baseFontPt * 0.75);
+
+  // QR proportional
+  const qrMm = Math.min(availW * 0.18, availH * 0.6);
   const pxPerMm = preset.dpi / 25.4;
   const qrPx = Math.max(20, Math.round(qrMm * pxPerMm));
 
@@ -55,8 +68,8 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
       }
       #printMatrixLabel {
         font-size: ${baseFontPt}pt !important;
-        width: ${availW}mm !important;
-        height: ${availH}mm !important;
+        width: 100% !important;
+        height: 100% !important;
         overflow: hidden !important;
       }
       #printMatrixLabel table {
@@ -68,7 +81,6 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
       #printMatrixLabel th {
         font-size: ${headerFontPt}pt !important;
         padding: 0.3mm 0.5mm !important;
-        white-space: nowrap !important;
         overflow: hidden !important;
       }
       #printMatrixLabel td {
@@ -76,26 +88,21 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
         padding: 0.2mm 0.5mm !important;
         overflow: hidden !important;
         word-break: break-word !important;
+        line-height: 1.2 !important;
       }
       #printMatrixLabel td:first-child {
         width: 28% !important;
         white-space: nowrap !important;
       }
-      #printMatrixLabel td:nth-child(2) {
-        width: auto !important;
-      }
       #printMatrixLabel .multiline-row td {
         font-size: ${ingredientsFontPt}pt !important;
         line-height: 1.0 !important;
-        max-height: ${availH * 0.25}mm !important;
+        max-height: ${availH * 0.2}mm !important;
         overflow: hidden !important;
-      }
-      #printMatrixLabel .multiline-row td:nth-child(2) {
-        word-break: break-all !important;
       }
       #printMatrixLabel .qr-cell {
         width: ${qrMm}mm !important;
-        padding: 0.5mm !important;
+        padding: 0.3mm !important;
       }
       #printMatrixLabel .qr-cell canvas {
         width: ${qrPx}px !important;
