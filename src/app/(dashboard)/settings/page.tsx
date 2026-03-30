@@ -668,15 +668,17 @@ function PaperConfigTab() {
             </div>
           </div>
 
-          {/* Preview */}
+          {/* Live label preview */}
           <div className="flex justify-center">
-            <PaperPreview
+            <LabelPreview
               width={widthMm}
               height={heightMm}
               mt={marginTop}
               mr={marginRight}
               mb={marginBottom}
               ml={marginLeft}
+              fontSize={fontSize}
+              orientation={orientation}
             />
           </div>
 
@@ -1281,6 +1283,111 @@ function FactoryResetTab() {
 }
 
 /* ─── Paper Preview ─── */
+function LabelPreview({
+  width,
+  height,
+  mt,
+  mr,
+  mb,
+  ml,
+  fontSize: fs,
+  orientation,
+}: {
+  width: number;
+  height: number;
+  mt: number;
+  mr: number;
+  mb: number;
+  ml: number;
+  fontSize: number;
+  orientation: "landscape" | "portrait";
+}) {
+  const maxDisplay = 320;
+  const paperW = orientation === "landscape" ? Math.max(width, 1) : Math.max(height, 1);
+  const paperH = orientation === "landscape" ? Math.max(height, 1) : Math.max(width, 1);
+  const scale = maxDisplay / Math.max(paperW, paperH);
+  const w = paperW * scale;
+  const h = paperH * scale;
+  const contentW = Math.max((paperW - ml - mr) * scale, 0);
+  const contentH = Math.max((paperH - mt - mb) * scale, 0);
+  const contentX = ml * scale;
+  const contentY = mt * scale;
+
+  // Simulated font size (scaled to preview)
+  const basePt = fs > 0 ? fs : Math.max(3.5, Math.min(7, (height / 45) * 5));
+  const previewFontPx = basePt * scale * 0.35;
+  const headerFontPx = previewFontPx * 1.3;
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className="relative border-2 border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 overflow-hidden"
+        style={{ width: w, height: h }}
+      >
+        {/* Margin area */}
+        <div
+          className="absolute overflow-hidden"
+          style={{ left: contentX, top: contentY, width: contentW, height: contentH }}
+        >
+          {/* Simulated label content */}
+          <table className="w-full h-full border-collapse" style={{ fontSize: previewFontPx, lineHeight: 1.2 }}>
+            <thead>
+              <tr>
+                <th
+                  colSpan={3}
+                  className="border-b border-slate-400 text-center font-bold text-slate-800 dark:text-slate-200"
+                  style={{ fontSize: headerFontPx, padding: `${scale * 0.5}px` }}
+                >
+                  EMPRESA EJEMPLO
+                  <div className="font-normal text-slate-500" style={{ fontSize: previewFontPx * 0.8 }}>
+                    USO GASTRONOMICO
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-700 dark:text-slate-300">
+              <tr>
+                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px`, width: "30%" }}>Producto:</td>
+                <td className="border-b border-r border-slate-300" style={{ padding: `${scale * 0.3}px`, width: "48%" }}>AJI EJEMPLO</td>
+                <td className="border-b border-slate-300 text-center" style={{ padding: `${scale * 0.3}px`, width: "22%" }} rowSpan={4}>
+                  <div className="flex items-center justify-center h-full">
+                    <div className="border border-slate-400" style={{ width: contentH * 0.35, height: contentH * 0.35, background: "repeating-conic-gradient(#333 0% 25%, #fff 0% 50%) 50%/4px 4px" }} />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Cadena frio:</td>
+                <td className="border-b border-r border-slate-300" style={{ padding: `${scale * 0.3}px` }}>Refrigerado (0-4°C)</td>
+              </tr>
+              <tr>
+                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Produccion:</td>
+                <td className="border-b border-r border-slate-300" style={{ padding: `${scale * 0.3}px` }}>30/3/2026</td>
+              </tr>
+              <tr>
+                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Vence:</td>
+                <td className="border-b border-r border-slate-300" style={{ padding: `${scale * 0.3}px` }}>29 abril 2026</td>
+              </tr>
+              <tr>
+                <td className="border-b border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Destino:</td>
+                <td className="border-b border-slate-300" style={{ padding: `${scale * 0.3}px` }} colSpan={2}>SEDE NORTE</td>
+              </tr>
+              <tr>
+                <td className="border-r border-slate-300 font-semibold" style={{ padding: `${scale * 0.3}px` }}>Lote:</td>
+                <td className="border-slate-300" style={{ padding: `${scale * 0.3}px` }} colSpan={2}>PP001-300326-1200</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="text-center">
+        <span className="text-[10px] text-slate-400 dark:text-slate-500">
+          {width} x {height} mm — {fs === 0 ? "Auto" : `${fs}pt`} — {orientation === "landscape" ? "Horizontal" : "Vertical"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function PaperPreview({
   width,
   height,
