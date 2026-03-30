@@ -99,8 +99,6 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
       }
       #printMatrixLabel td {
         font-size: ${baseFontPt}pt !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
       }
       #printMatrixLabel .multiline-row td {
         font-size: ${ingredientsFontPt}pt !important;
