@@ -13,27 +13,8 @@ export interface PrintPresetConfig {
 const STYLE_TAG_ID = "dynamic-print-style";
 
 /**
- * Calculate the maximum font size that fits within the paper.
- * A label has ~10 rows (header counts as 2). Each row ≈ fontSize * 1.6 (line + padding).
- * 1mm ≈ 2.835pt
- */
-function calcFittedFontPt(preset: PrintPresetConfig): number {
-  const availH = (preset.heightMm - preset.marginTop - preset.marginBottom) * 2.835;
-  const rows = 10; // header(2) + 8 data rows
-  const maxFontFromHeight = availH / (rows * 1.6);
-
-  // Also check width: labels column (30%) needs ~15 chars, value column (48%) ~25 chars
-  // 1pt ≈ 0.6 avg char width. Available width in pt:
-  const availW = (preset.widthMm - preset.marginLeft - preset.marginRight) * 2.835;
-  const labelColW = availW * 0.3;
-  const maxFontFromWidth = labelColW / (15 * 0.55);
-
-  return Math.min(maxFontFromHeight, maxFontFromWidth);
-}
-
-/**
- * Inject a <style> tag that overrides @page size and body dimensions
- * for printing. Called before window.print().
+ * Inject print styles. Uses user fontSize directly and applies CSS scale
+ * transform if content would overflow the paper.
  */
 export function injectPrintStyles(preset: PrintPresetConfig): void {
   const existing = document.getElementById(STYLE_TAG_ID);
@@ -42,26 +23,31 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
   const style = document.createElement("style");
   style.id = STYLE_TAG_ID;
 
-  // Calculate maximum font that fits
-  const maxFontPt = calcFittedFontPt(preset);
+  // Available area in mm
+  const availH = preset.heightMm - preset.marginTop - preset.marginBottom;
+  const availW = preset.widthMm - preset.marginLeft - preset.marginRight;
 
-  // Font size: user value capped to max, or auto-calculated
-  let baseFontPt: number;
-  if (preset.fontSize > 0) {
-    baseFontPt = Math.min(preset.fontSize, maxFontPt);
-  } else {
-    baseFontPt = Math.max(3.5, Math.min(maxFontPt, (preset.heightMm / 45) * 5));
-  }
+  // Font: user value or auto
+  const baseFontPt = preset.fontSize > 0
+    ? preset.fontSize
+    : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
 
   const headerFontPt = baseFontPt * 1.15;
-  const subHeaderFontPt = baseFontPt * 0.85;
   const ingredientsFontPt = Math.max(3, baseFontPt * 0.85);
 
-  // QR: proportional to available height (takes ~40% of height, in 22% width column)
-  const availHmm = preset.heightMm - preset.marginTop - preset.marginBottom;
-  const availWmm = preset.widthMm - preset.marginLeft - preset.marginRight;
-  const qrMm = Math.min(availHmm * 0.5, availWmm * 0.2);
+  // Estimate content height at this font size (in mm)
+  // Each row ≈ fontSize_pt * 0.5mm (empirical), header ≈ fontSize * 1.2mm
+  const rowCount = 10;
+  const estimatedH = (baseFontPt * 1.2) + (rowCount * baseFontPt * 0.55);
+
+  // Scale factor: shrink if content overflows
+  const scaleY = Math.min(1, availH / estimatedH);
+  const scaleX = Math.min(1, availW / (baseFontPt * 15)); // rough width check
+  const scaleFactor = Math.min(scaleX, scaleY);
+
+  // QR size proportional to paper
   const pxPerMm = preset.dpi / 25.4;
+  const qrMm = Math.min(availH * 0.45, availW * 0.2);
   const qrPx = Math.max(30, Math.round(qrMm * pxPerMm));
 
   // Page size
@@ -77,25 +63,22 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
       }
       #printMatrixContainer {
         padding: ${preset.marginTop}mm ${preset.marginRight}mm ${preset.marginBottom}mm ${preset.marginLeft}mm !important;
-        width: 100% !important;
-        height: 100% !important;
+        width: ${preset.widthMm}mm !important;
+        height: ${preset.heightMm}mm !important;
         overflow: hidden !important;
       }
       #printMatrixLabel {
         font-size: ${baseFontPt}pt !important;
-        width: 100% !important;
-        height: 100% !important;
+        transform-origin: top left !important;
+        transform: scale(${scaleFactor.toFixed(4)}) !important;
+        width: ${(100 / scaleFactor).toFixed(2)}% !important;
       }
       #printMatrixLabel table {
         width: 100% !important;
-        height: 100% !important;
         table-layout: fixed !important;
       }
       #printMatrixLabel th {
         font-size: ${headerFontPt}pt !important;
-      }
-      #printMatrixLabel th .sub-header {
-        font-size: ${subHeaderFontPt}pt !important;
       }
       #printMatrixLabel td {
         font-size: ${baseFontPt}pt !important;
@@ -126,5 +109,5 @@ export const DEFAULT_PRINT_PRESET: PrintPresetConfig = {
   marginLeft: 0,
   orientation: "landscape",
   dpi: 203,
-  fontSize: 0, // 0 = auto
+  fontSize: 0,
 };
