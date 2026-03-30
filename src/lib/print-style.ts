@@ -60,6 +60,38 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
     }
   `;
   document.head.appendChild(style);
+
+  // Auto-scale content to fit within paper
+  requestAnimationFrame(() => {
+    const container = document.getElementById("printMatrixContainer");
+    const label = document.getElementById("printMatrixLabel");
+    if (!container || !label) return;
+
+    // Calculate available space in pixels (1mm ≈ 3.78px at 96dpi)
+    const pxPerMm = 3.78;
+    const availW = (preset.widthMm - preset.marginLeft - preset.marginRight) * pxPerMm;
+    const availH = (preset.heightMm - preset.marginTop - preset.marginBottom) * pxPerMm;
+
+    // Reset any previous transform
+    label.style.transform = "";
+    label.style.transformOrigin = "top left";
+
+    // Measure actual content size
+    const contentW = label.scrollWidth;
+    const contentH = label.scrollHeight;
+
+    if (contentW > 0 && contentH > 0) {
+      const scaleX = availW / contentW;
+      const scaleY = availH / contentH;
+      const scale = Math.min(scaleX, scaleY, 1); // Never scale up, only down
+
+      if (scale < 1) {
+        label.style.transform = `scale(${scale})`;
+        label.style.width = `${contentW}px`;
+        label.style.height = `${contentH}px`;
+      }
+    }
+  });
 }
 
 export const DEFAULT_PRINT_PRESET: PrintPresetConfig = {
