@@ -122,11 +122,6 @@ export function hasPermission(
 ): boolean {
   if (rol === "ADMIN") return true;
 
-  // Plan-based feature gating
-  if (permission === PERMISOS.ai_features && instancePlan !== "ENTERPRISE") {
-    return false;
-  }
-
   // VIEWER is read-only — block write-oriented modules
   if (rol === "VIEWER") {
     const blocked: string[] = [PERMISOS.import, PERMISOS.export, PERMISOS.ai_features];

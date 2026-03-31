@@ -38,6 +38,7 @@ export function Sidebar() {
   const allNavItems = [
     { href: "/", label: t("products"), icon: LayoutDashboard, permKey: "dashboard" },
     { href: "/products/new", label: t("newProduct"), icon: Package, permKey: "products" },
+    { href: "/labels", label: t("labels"), icon: Tag, permKey: "labels" },
     { href: "/bitacora", label: t("bitacora"), icon: ClipboardList, permKey: "bitacora" },
     { href: "/ai", label: t("ai"), icon: Bot, permKey: "ai" },
     { href: "/instances", label: t("instances"), icon: Building2, permKey: "instances" },
