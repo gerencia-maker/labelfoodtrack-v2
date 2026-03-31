@@ -284,11 +284,26 @@ export function UserManagement({ instanceId }: { instanceId?: string } = {}) {
   }
 
   function togglePermiso(perm: string) {
-    setFormPermisos((prev) =>
-      prev.includes(perm)
-        ? prev.filter((p) => p !== perm)
-        : [...prev, perm]
-    );
+    setFormPermisos((prev) => {
+      if (prev.includes(perm)) {
+        // Removing — if it's a base module with sub-actions, remove those too
+        const subActions = MODULE_ACTIONS[perm];
+        if (subActions) {
+          const subKeys = subActions.map((a) => `${perm}.${a.key}`);
+          return prev.filter((p) => p !== perm && !subKeys.includes(p));
+        }
+        return prev.filter((p) => p !== perm);
+      } else {
+        // Adding — if it's a base module with sub-actions, add all sub-actions too
+        const subActions = MODULE_ACTIONS[perm];
+        if (subActions) {
+          const subKeys = subActions.map((a) => `${perm}.${a.key}`);
+          const newPerms = new Set([...prev, perm, ...subKeys]);
+          return [...newPerms];
+        }
+        return [...prev, perm];
+      }
+    });
   }
 
   function toggleModuleExpanded(mod: string) {
