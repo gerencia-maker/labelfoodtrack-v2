@@ -63,8 +63,8 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
         width: ${preset.widthMm}mm !important;
         height: ${preset.heightMm}mm !important;
         padding: ${preset.marginTop}mm ${preset.marginRight}mm ${preset.marginBottom}mm ${preset.marginLeft}mm !important;
-        overflow: hidden !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
       }
       html, body {
         margin: 0 !important;
@@ -73,12 +73,10 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
       #printMatrixLabel {
         font-size: ${baseFontPt.toFixed(1)}pt !important;
         width: 100% !important;
-        height: 100% !important;
-        overflow: hidden !important;
+        overflow: visible !important;
       }
       #printMatrixLabel table {
         width: 100% !important;
-        height: 100% !important;
         table-layout: fixed !important;
         border-collapse: collapse !important;
       }

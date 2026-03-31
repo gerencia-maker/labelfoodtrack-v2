@@ -44,42 +44,44 @@ export function usePrintPreset() {
   }, [getToken]);
 
   const triggerPrint = useCallback(() => {
-    // Step 1: inject styles with user font size
-    injectPrintStyles(preset);
-
     const label = document.getElementById("printMatrixLabel");
-    if (label) {
-      const pxPerMm = 3.78;
-      const availH = (preset.heightMm - preset.marginTop - preset.marginBottom) * pxPerMm;
+    if (!label) {
+      injectPrintStyles(preset);
+      setTimeout(() => window.print(), 200);
+      return;
+    }
 
-      // Reset
-      label.style.transform = "none";
-      label.style.width = `${(preset.widthMm - preset.marginLeft - preset.marginRight) * pxPerMm}px`;
+    const pxPerMm = 3.78;
+    const availH = (preset.heightMm - preset.marginTop - preset.marginBottom) * pxPerMm;
+    const availW = (preset.widthMm - preset.marginLeft - preset.marginRight) * pxPerMm;
+
+    let currentFont = preset.fontSize > 0
+      ? preset.fontSize
+      : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
+
+    // Iteratively reduce font until content fits (max 10 iterations)
+    for (let i = 0; i < 10; i++) {
+      const adjustedPreset = { ...preset, fontSize: currentFont };
+      injectPrintStyles(adjustedPreset);
+
+      // Force reflow
+      label.style.width = `${availW}px`;
       label.style.height = "auto";
+      label.offsetHeight; // force reflow
 
       const contentH = label.scrollHeight;
 
-      // If overflows, reduce font size and re-inject
-      if (contentH > availH && contentH > 0) {
-        const scale = availH / contentH;
-        const currentFont = preset.fontSize > 0
-          ? preset.fontSize
-          : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
-        const adjustedFont = currentFont * scale * 0.95; // 5% extra margin
-
-        // Re-inject with reduced font
-        const adjustedPreset = { ...preset, fontSize: adjustedFont };
-        injectPrintStyles(adjustedPreset);
-
-        // Reset inline styles
-        label.style.transform = "";
+      if (contentH <= availH) {
+        // Fits! Clean up inline styles
         label.style.width = "";
         label.style.height = "";
-      } else {
-        label.style.transform = "";
-        label.style.width = "";
-        label.style.height = "";
+        break;
       }
+
+      // Reduce font by 10%
+      currentFont *= 0.9;
+      label.style.width = "";
+      label.style.height = "";
     }
 
     setTimeout(() => window.print(), 200);
