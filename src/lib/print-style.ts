@@ -97,7 +97,14 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
         width: 28% !important;
         white-space: nowrap !important;
       }
-      #printMatrixLabel .multiline-row td {
+      #printMatrixLabel .multiline-row td:first-child {
+        font-size: ${baseFontPt}pt !important;
+        font-weight: 600 !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+      }
+      #printMatrixLabel .multiline-row td:nth-child(2) {
         font-size: ${ingredientsFontPt}pt !important;
         line-height: 1.0 !important;
         max-height: ${availH * 0.2}mm !important;

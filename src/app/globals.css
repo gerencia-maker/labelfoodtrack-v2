@@ -148,15 +148,17 @@ html.dark ::-webkit-scrollbar-thumb {
   border-bottom: none;
 }
 
-.screen-matrix-label .multiline-row td {
+.screen-matrix-label .multiline-row td:first-child {
   vertical-align: middle;
   font-size: 13px;
-  line-height: 1.4;
+  font-weight: 600;
   text-align: center;
 }
 
 .screen-matrix-label .multiline-row td:nth-child(2) {
   text-align: left;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .screen-matrix-label .qr-cell {
@@ -251,7 +253,12 @@ html.dark ::-webkit-scrollbar-thumb {
   border-bottom: none;
 }
 
-#printMatrixLabel .multiline-row td {
+#printMatrixLabel .multiline-row td:first-child {
+  vertical-align: middle;
+  text-align: center;
+  font-weight: 600;
+}
+#printMatrixLabel .multiline-row td:nth-child(2) {
   vertical-align: middle;
   padding-top: 1px;
   padding-bottom: 1px;
@@ -344,7 +351,13 @@ html.dark ::-webkit-scrollbar-thumb {
     border-right: 0.5px solid #000;
   }
   #printMatrixLabel tr:last-child td { border-bottom: none; }
-  #printMatrixLabel .multiline-row td {
+  #printMatrixLabel .multiline-row td:first-child {
+    vertical-align: middle;
+    text-align: center;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  #printMatrixLabel .multiline-row td:nth-child(2) {
     vertical-align: top;
     line-height: 1.05;
     white-space: normal;
