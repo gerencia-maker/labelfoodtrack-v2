@@ -141,9 +141,20 @@ export function usePrintPreset() {
         el.style.setProperty("padding", "1px 2px", "important");
         el.style.setProperty("line-height", "1.15", "important");
       });
-      label.querySelectorAll(".multiline-row td").forEach(el => {
-        (el as HTMLElement).style.setProperty("font-size", `${Math.max(2.5, fontPt * 0.75).toFixed(1)}pt`, "important");
-        (el as HTMLElement).style.setProperty("line-height", "1.05", "important");
+      label.querySelectorAll(".multiline-row").forEach(row => {
+        const cells = row.querySelectorAll("td");
+        // First cell = label ("Ingredientes:") → same size as other labels
+        if (cells[0]) {
+          (cells[0] as HTMLElement).style.setProperty("font-size", `${fontPt.toFixed(1)}pt`, "important");
+          (cells[0] as HTMLElement).style.setProperty("font-weight", "600", "important");
+          (cells[0] as HTMLElement).style.setProperty("vertical-align", "middle", "important");
+          (cells[0] as HTMLElement).style.setProperty("text-align", "center", "important");
+        }
+        // Second cell = content → can be same size, tighter line-height
+        if (cells[1]) {
+          (cells[1] as HTMLElement).style.setProperty("font-size", `${fontPt.toFixed(1)}pt`, "important");
+          (cells[1] as HTMLElement).style.setProperty("line-height", "1.05", "important");
+        }
       });
     }
 
