@@ -43,7 +43,7 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
 
   const baseFontPt = userFontPt * scale;
   const headerFontPt = baseFontPt * 1.15;
-  const ingredientsFontPt = baseFontPt;
+  const ingredientsFontPt = Math.max(2.5, baseFontPt * 0.75);
 
   // QR proportional
   const qrMm = Math.min(availW * 0.18, availH * 0.6);

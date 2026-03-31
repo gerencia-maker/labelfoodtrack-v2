@@ -150,9 +150,9 @@ export function usePrintPreset() {
           (cells[0] as HTMLElement).style.setProperty("vertical-align", "middle", "important");
           (cells[0] as HTMLElement).style.setProperty("text-align", "center", "important");
         }
-        // Second cell = content → can be same size, tighter line-height
+        // Second cell = content → smaller font for long text
         if (cells[1]) {
-          (cells[1] as HTMLElement).style.setProperty("font-size", `${fontPt.toFixed(1)}pt`, "important");
+          (cells[1] as HTMLElement).style.setProperty("font-size", `${Math.max(2.5, fontPt * 0.75).toFixed(1)}pt`, "important");
           (cells[1] as HTMLElement).style.setProperty("line-height", "1.05", "important");
         }
       });
