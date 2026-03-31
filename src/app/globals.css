@@ -277,14 +277,8 @@ html.dark ::-webkit-scrollbar-thumb {
   image-rendering: pixelated;
 }
 
-/* ===== Print media query - copied from v1 ===== */
+/* ===== Print — minimal base, dynamic styles from print-style.ts ===== */
 @media print {
-  /* Default @page - overridden dynamically by print-style.ts when preset exists */
-  @page {
-    size: 100mm 45mm landscape;
-    margin: 0mm !important;
-  }
-
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -292,29 +286,16 @@ html.dark ::-webkit-scrollbar-thumb {
   }
 
   html, body {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
-    overflow: hidden !important;
   }
 
-  /* Hide all UI: use visibility:hidden on root so children can override */
-  body > * {
-    visibility: hidden !important;
-  }
+  /* Hide all UI */
+  body > * { visibility: hidden !important; }
+  .print\:hidden, nav, header, aside, footer { display: none !important; }
 
-  .print\:hidden,
-  nav,
-  header,
-  aside,
-  footer {
-    display: none !important;
-  }
-
+  /* Show only print container */
   #printMatrixContainer {
     display: block !important;
     visibility: visible !important;
@@ -322,113 +303,59 @@ html.dark ::-webkit-scrollbar-thumb {
     top: 0 !important;
     left: 0 !important;
     z-index: 999999 !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
-    padding: 0 !important;
     margin: 0 !important;
-    box-sizing: border-box !important;
-    box-shadow: none !important;
-    border: none !important;
     background: #fff !important;
     overflow: hidden !important;
+    /* width, height, padding set by print-style.ts */
   }
-
-  #printMatrixContainer * {
-    visibility: visible !important;
-  }
+  #printMatrixContainer * { visibility: visible !important; }
 
   #printMatrixLabel {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
     font-family: Arial, sans-serif;
-    font-size: 5pt;
     color: #000;
     background: #fff;
-    overflow: hidden;
+    /* font-size, width set by print-style.ts */
   }
-
   #printMatrixLabel table {
     width: 100%;
-    height: 100%;
     border-collapse: collapse;
     border: 1px solid #000;
     table-layout: fixed;
   }
-
   #printMatrixLabel th {
-    border: none;
     border-bottom: 1px solid #000;
-    padding: 0.2mm 0.2mm;
     text-align: center;
-    font-size: 5pt;
     font-weight: 700;
-    background: #fff;
-    color: #000;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
+    padding: 0.3mm;
   }
-
   #printMatrixLabel td {
     border-bottom: 0.5px solid #000;
-    padding: 0.1mm 0.3mm;
     text-align: left;
     vertical-align: middle;
-    background: #fff;
-    color: #000;
-    font-size: 5pt;
-    line-height: 1.05;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding: 0.2mm 0.5mm;
+    line-height: 1.15;
+    word-break: break-word;
   }
-
   #printMatrixLabel td:first-child {
-    width: 30%;
     font-weight: 600;
     border-right: 0.5px solid #000;
     white-space: nowrap;
   }
-
   #printMatrixLabel td:nth-child(2) {
-    width: 48%;
     border-right: 0.5px solid #000;
   }
-
-  #printMatrixLabel td:nth-child(3) {
-    width: 22%;
-  }
-
-  #printMatrixLabel tr:last-child td {
-    border-bottom: none;
-  }
-
+  #printMatrixLabel tr:last-child td { border-bottom: none; }
   #printMatrixLabel .multiline-row td {
     vertical-align: top;
-    padding-top: 0.1mm;
-    padding-bottom: 0.1mm;
-    font-size: 4.5pt;
-    line-height: 1.1;
+    line-height: 1.05;
     white-space: normal;
-    overflow: visible;
   }
-
   #printMatrixLabel .qr-cell {
     text-align: center !important;
     vertical-align: middle !important;
-    padding: 1px !important;
-    width: 22% !important;
+    padding: 0.5mm !important;
   }
-
   #printMatrixLabel .qr-cell canvas {
-    width: auto !important;
-    height: auto !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
     display: block !important;
     margin: 0 auto !important;
     image-rendering: pixelated;
