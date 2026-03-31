@@ -44,47 +44,44 @@ export function usePrintPreset() {
   }, [getToken]);
 
   const triggerPrint = useCallback(() => {
-    // 1. Inject print styles (font, page size, QR)
+    // Step 1: inject styles with user font size
     injectPrintStyles(preset);
 
-    // 2. Auto-scale: measure real DOM content
     const label = document.getElementById("printMatrixLabel");
     if (label) {
-      const pxPerMm = 3.78; // 96dpi screen
-      const availW = (preset.widthMm - preset.marginLeft - preset.marginRight) * pxPerMm;
+      const pxPerMm = 3.78;
       const availH = (preset.heightMm - preset.marginTop - preset.marginBottom) * pxPerMm;
 
-      // Reset previous transforms
+      // Reset
       label.style.transform = "none";
-      label.style.transformOrigin = "top left";
-      label.style.width = `${availW}px`;
+      label.style.width = `${(preset.widthMm - preset.marginLeft - preset.marginRight) * pxPerMm}px`;
       label.style.height = "auto";
 
-      // Measure natural content size
       const contentH = label.scrollHeight;
-      const contentW = label.scrollWidth;
 
-      console.log("[print-debug]", {
-        availW, availH, contentW, contentH,
-        fontSize: preset.fontSize,
-        preset,
-      });
+      // If overflows, reduce font size and re-inject
+      if (contentH > availH && contentH > 0) {
+        const scale = availH / contentH;
+        const currentFont = preset.fontSize > 0
+          ? preset.fontSize
+          : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
+        const adjustedFont = currentFont * scale * 0.95; // 5% extra margin
 
-      if (contentH > availH || contentW > availW) {
-        const scaleX = availW / contentW;
-        const scaleY = availH / contentH;
-        const scale = Math.min(scaleX, scaleY);
-        console.log("[print-debug] scaling to:", scale);
-        label.style.transform = `scale(${scale})`;
-        label.style.width = `${availW / scale}px`;
-        label.style.height = `${contentH}px`;
+        // Re-inject with reduced font
+        const adjustedPreset = { ...preset, fontSize: adjustedFont };
+        injectPrintStyles(adjustedPreset);
+
+        // Reset inline styles
+        label.style.transform = "";
+        label.style.width = "";
+        label.style.height = "";
       } else {
-        label.style.width = "100%";
-        label.style.height = "100%";
+        label.style.transform = "";
+        label.style.width = "";
+        label.style.height = "";
       }
     }
 
-    // 3. Print
     setTimeout(() => window.print(), 200);
   }, [preset]);
 
