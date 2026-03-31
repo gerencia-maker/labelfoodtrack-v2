@@ -44,47 +44,8 @@ export function usePrintPreset() {
   }, [getToken]);
 
   const triggerPrint = useCallback(() => {
-    const label = document.getElementById("printMatrixLabel");
-    if (!label) {
-      injectPrintStyles(preset);
-      setTimeout(() => window.print(), 200);
-      return;
-    }
-
-    const pxPerMm = 3.78;
-    const availH = (preset.heightMm - preset.marginTop - preset.marginBottom) * pxPerMm;
-    const availW = (preset.widthMm - preset.marginLeft - preset.marginRight) * pxPerMm;
-
-    let currentFont = preset.fontSize > 0
-      ? preset.fontSize
-      : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
-
-    // Iteratively reduce font until content fits (max 10 iterations)
-    for (let i = 0; i < 10; i++) {
-      const adjustedPreset = { ...preset, fontSize: currentFont };
-      injectPrintStyles(adjustedPreset);
-
-      // Force reflow
-      label.style.width = `${availW}px`;
-      label.style.height = "auto";
-      label.offsetHeight; // force reflow
-
-      const contentH = label.scrollHeight;
-
-      if (contentH <= availH) {
-        // Fits! Clean up inline styles
-        label.style.width = "";
-        label.style.height = "";
-        break;
-      }
-
-      // Reduce font by 10%
-      currentFont *= 0.9;
-      label.style.width = "";
-      label.style.height = "";
-    }
-
-    setTimeout(() => window.print(), 200);
+    injectPrintStyles(preset);
+    setTimeout(() => window.print(), 150);
   }, [preset]);
 
   return { preset, triggerPrint };

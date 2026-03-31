@@ -28,17 +28,18 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
     : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
 
   // Calculate how much space this font needs (in mm)
-  // 1pt = 0.353mm. Each row = font * lineHeight(1.3) + padding(0.6mm)
-  // Header = font * 1.15 * 1.3 + subtitle + padding ≈ font * 0.353 * 3
-  // 10 body rows (product, chain, date, expiry, weight, packed, ingredients, allergens, dest, lot)
+  // 1pt = 0.353mm
+  // Header: brand + subtitle ≈ font * 4
+  // Each row: font * lineHeight + padding + border ≈ font * 1.5 + 0.5mm
+  // Rows: product, chain, date, expiry, weight, packed, ingredients(x3), dest, lot = ~12 rows
   const ptToMm = 0.353;
-  const headerH = userFontPt * ptToMm * 3.5;
-  const rowH = userFontPt * ptToMm * 1.3 + 0.4;
-  const ingredientExtraH = userFontPt * ptToMm * 3; // multi-line ingredients ~3 extra lines
-  const totalContentH = headerH + (9 * rowH) + ingredientExtraH;
+  const headerH = userFontPt * ptToMm * 4;
+  const rowH = userFontPt * ptToMm * 1.5 + 0.5;
+  const totalRows = 12; // including multi-line ingredients
+  const totalContentH = headerH + (totalRows * rowH);
 
-  // Scale to fit
-  const scale = Math.min(1, availH / totalContentH);
+  // Scale to fit with 10% safety margin
+  const scale = Math.min(1, (availH * 0.9) / totalContentH);
 
   const baseFontPt = userFontPt * scale;
   const headerFontPt = baseFontPt * 1.15;
