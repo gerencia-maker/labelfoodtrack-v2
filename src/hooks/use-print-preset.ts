@@ -71,7 +71,7 @@ export function usePrintPreset() {
       const ptToMm = 0.353;
       const headerH = userFontPt * ptToMm * 3;
       const rowH = userFontPt * ptToMm * 1.3 + 0.3;
-      const totalH = headerH + (10 * rowH);
+      const totalH = headerH + (11 * rowH);
       const availH = h - mt - mb;
       const scale = Math.min(1, availH / totalH);
       const fontPt = userFontPt * scale;

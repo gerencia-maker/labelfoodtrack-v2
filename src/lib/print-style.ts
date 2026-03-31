@@ -35,7 +35,7 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
   const ptToMm = 0.353;
   const headerH = userFontPt * ptToMm * 3;
   const rowH = userFontPt * ptToMm * 1.3 + 0.3;
-  const totalContentH = headerH + (10 * rowH);
+  const totalContentH = headerH + (11 * rowH);
 
   // Scale to fit
   const scale = Math.min(1, availH / totalContentH);
