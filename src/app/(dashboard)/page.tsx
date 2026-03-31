@@ -41,7 +41,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [dates, setDates] = useState<Record<string, string>>({});
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
-  const { getToken, userData, hasActionPermission } = useAuth();
+  const { getToken, userData, hasActionPermission, isSuperAdmin } = useAuth();
   const t = useTranslations("products");
   const router = useRouter();
   const { toast } = useToast();
@@ -56,7 +56,7 @@ export default function ProductsPage() {
 
   const [dateResetKey, setDateResetKey] = useState(0);
   const handleDateChange = (productId: string, value: string) => {
-    if (value && value < today) {
+    if (value && value < today && !isSuperAdmin) {
       toast({ title: t("pastDateError"), variant: "error" });
       setDates((prev) => ({ ...prev, [productId]: "" }));
       setDateResetKey((k) => k + 1);
