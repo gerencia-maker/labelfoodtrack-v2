@@ -145,7 +145,19 @@ export function usePrintPreset() {
       });
     }
 
-    setTimeout(() => window.print(), 200);
+    // Print, then clean up inline styles
+    setTimeout(() => {
+      window.print();
+
+      // After print dialog closes, reset inline styles
+      if (container) container.removeAttribute("style");
+      if (label) label.removeAttribute("style");
+      const table = label?.querySelector("table") as HTMLTableElement | null;
+      if (table) table.removeAttribute("style");
+      label?.querySelectorAll("th, td").forEach(el => (el as HTMLElement).removeAttribute("style"));
+      const qrCanvas = label?.querySelector(".qr-cell canvas") as HTMLCanvasElement | null;
+      if (qrCanvas) qrCanvas.removeAttribute("style");
+    }, 200);
   }, [preset]);
 
   return { preset, triggerPrint };
