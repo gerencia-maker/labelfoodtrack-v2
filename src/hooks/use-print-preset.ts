@@ -69,11 +69,11 @@ export function usePrintPreset() {
         ? preset.fontSize
         : Math.max(3.5, Math.min(7, (h / 45) * 5));
       const ptToMm = 0.353;
-      const headerH = userFontPt * ptToMm * 4;
-      const rowH = userFontPt * ptToMm * 1.5 + 0.5;
-      const totalH = headerH + (12 * rowH);
+      const headerH = userFontPt * ptToMm * 3;
+      const rowH = userFontPt * ptToMm * 1.3 + 0.3;
+      const totalH = headerH + (10 * rowH);
       const availH = h - mt - mb;
-      const scale = Math.min(1, (availH * 0.85) / totalH);
+      const scale = Math.min(1, availH / totalH);
       const fontPt = userFontPt * scale;
 
       // Apply fixed px dimensions inline

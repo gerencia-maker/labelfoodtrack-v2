@@ -33,13 +33,12 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
   // Each row: font * lineHeight + padding + border ≈ font * 1.5 + 0.5mm
   // Rows: product, chain, date, expiry, weight, packed, ingredients(x3), dest, lot = ~12 rows
   const ptToMm = 0.353;
-  const headerH = userFontPt * ptToMm * 4;
-  const rowH = userFontPt * ptToMm * 1.5 + 0.5;
-  const totalRows = 12; // including multi-line ingredients
-  const totalContentH = headerH + (totalRows * rowH);
+  const headerH = userFontPt * ptToMm * 3;
+  const rowH = userFontPt * ptToMm * 1.3 + 0.3;
+  const totalContentH = headerH + (10 * rowH);
 
-  // Scale to fit with 10% safety margin
-  const scale = Math.min(1, (availH * 0.9) / totalContentH);
+  // Scale to fit
+  const scale = Math.min(1, availH / totalContentH);
 
   const baseFontPt = userFontPt * scale;
   const headerFontPt = baseFontPt * 1.15;
