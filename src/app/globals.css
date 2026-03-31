@@ -182,12 +182,13 @@ html.dark ::-webkit-scrollbar-thumb {
   }
 }
 
-/* ===== Print Matrix Label - Screen styles (hidden) ===== */
+/* ===== Print Matrix Label - Screen styles (hidden but measurable) ===== */
 #printMatrixContainer {
-  display: none !important;
-  visibility: hidden !important;
-  position: absolute !important;
-  left: -9999px !important;
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  visibility: hidden;
+  z-index: -1;
 }
 
 #printMatrixLabel {
