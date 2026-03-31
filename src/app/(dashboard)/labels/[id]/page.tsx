@@ -8,7 +8,6 @@ import { useTranslations } from "next-intl";
 import { usePrintPreset } from "@/hooks/use-print-preset";
 import { type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
-import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer, Trash2, Copy, Lock } from "lucide-react";
 import Link from "next/link";
@@ -133,7 +132,6 @@ export default function LabelDetailPage({
     DEMO_MODE ? (DEMO_LABELS[id] || null) : null
   );
   const [loading, setLoading] = useState(!DEMO_MODE);
-  const [showPrintModal, setShowPrintModal] = useState(false);
 
   const canDelete = hasActionPermission("labels", "eliminar");
 
@@ -175,22 +173,15 @@ export default function LabelDetailPage({
         e.preventDefault();
         e.stopImmediatePropagation();
         if (label && isCreatedToday) {
-          setShowPrintModal(true);
+          triggerPrint();
         }
       }
     };
-    const handleBeforePrint = (e: Event) => {
-      if (!showPrintModal) {
-        e.preventDefault();
-      }
-    };
     document.addEventListener("keydown", handleKeydown, { capture: true });
-    window.addEventListener("beforeprint", handleBeforePrint);
     return () => {
       document.removeEventListener("keydown", handleKeydown, { capture: true });
-      window.removeEventListener("beforeprint", handleBeforePrint);
     };
-  }, [label, showPrintModal, isCreatedToday]);
+  }, [label, isCreatedToday, triggerPrint]);
 
   const handleDelete = async () => {
     if (!confirm(t("confirmDelete"))) return;
@@ -215,62 +206,11 @@ export default function LabelDetailPage({
     }
   };
 
-  // Print flow: show modal, then create bitacora entry + print
+  // Print directly — no quantity modal on existing labels
   const handlePrintClick = () => {
-    setShowPrintModal(true);
+    triggerPrint();
   };
 
-  const handlePrintConfirm = async (quantity: string) => {
-    if (!label) return;
-
-    if (DEMO_MODE) {
-      setShowPrintModal(false);
-      setTimeout(() => triggerPrint(), 300);
-      return;
-    }
-
-    const token = await getToken();
-    if (!token) return;
-
-    // Compute cold chain and ISO expiry dates from product data
-    const p = label.product;
-    const coldChain = p
-      ? resolveColdChain(p.refrigeratedDays, p.frozenDays, p.ambientDays)
-      : null;
-
-    const computeExpiryISO = (days: number): string | null => {
-      if (!label.productionDate || days <= 0) return null;
-      const d = new Date(label.productionDate + "T00:00:00");
-      if (isNaN(d.getTime())) return null;
-      d.setDate(d.getDate() + days);
-      return d.toISOString().split("T")[0];
-    };
-
-    // Create bitacora entry with quantity
-    await fetch("/api/bitacora", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        productName: label.productName,
-        category: p?.category || null,
-        processDate: label.productionDate,
-        quantityProduced: quantity,
-        quantity: label.netContent || null,
-        packedBy: label.packedBy,
-        destination: label.destination,
-        batch: label.batch,
-        coldChain: coldChain !== "--" ? coldChain : null,
-        expiryRefrigerated: p ? computeExpiryISO(p.refrigeratedDays) : null,
-        expiryFrozen: p ? computeExpiryISO(p.frozenDays) : null,
-      }),
-    });
-
-    setShowPrintModal(false);
-    setTimeout(() => triggerPrint(), 300);
-  };
 
   if (loading) {
     return (
@@ -411,13 +351,6 @@ export default function LabelDetailPage({
       {/* Print */}
       <LabelPrint data={previewData} />
 
-      {/* Modal cantidad producida */}
-      <PrintFlowModal
-        open={showPrintModal}
-        onClose={() => setShowPrintModal(false)}
-        onConfirm={handlePrintConfirm}
-        productName={label.productName}
-      />
     </>
   );
 }
