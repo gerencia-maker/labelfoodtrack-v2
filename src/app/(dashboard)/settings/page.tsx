@@ -646,9 +646,16 @@ function PaperConfigTab() {
                 onChange={(e) => setFontSize(Number(e.target.value))}
                 className="flex-1 accent-orange-500"
               />
-              <span className="text-sm font-mono font-semibold text-slate-700 dark:text-slate-300 min-w-[60px] text-center">
-                {fontSize === 0 ? "Auto" : `${fontSize} pt`}
-              </span>
+              <input
+                type="number"
+                min="0"
+                max="30"
+                step="0.5"
+                value={fontSize}
+                onChange={(e) => setFontSize(Number(e.target.value) || 0)}
+                className="w-20 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm font-mono font-semibold text-slate-700 dark:text-slate-300 text-center focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
+              />
+              <span className="text-xs text-slate-400">pt</span>
             </div>
             <div className="flex gap-1.5 mt-1.5">
               {[0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24].map((val) => (
