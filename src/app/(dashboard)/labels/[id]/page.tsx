@@ -10,7 +10,7 @@ import { type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
 import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Trash2, Copy } from "lucide-react";
+import { ArrowLeft, Printer, Trash2, Copy, Lock } from "lucide-react";
 import Link from "next/link";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -137,6 +137,18 @@ export default function LabelDetailPage({
 
   const canDelete = hasActionPermission("labels", "eliminar");
 
+  // Only allow printing on the same day the label was created
+  const isCreatedToday = (() => {
+    if (!label) return false;
+    const created = new Date(label.createdAt);
+    const now = new Date();
+    return (
+      created.getFullYear() === now.getFullYear() &&
+      created.getMonth() === now.getMonth() &&
+      created.getDate() === now.getDate()
+    );
+  })();
+
   const loadLabel = useCallback(async () => {
     if (DEMO_MODE) return;
     const token = await getToken();
@@ -162,7 +174,7 @@ export default function LabelDetailPage({
       if ((e.ctrlKey || e.metaKey) && (e.key === "p" || e.key === "P")) {
         e.preventDefault();
         e.stopImmediatePropagation();
-        if (label) {
+        if (label && isCreatedToday) {
           setShowPrintModal(true);
         }
       }
@@ -178,7 +190,7 @@ export default function LabelDetailPage({
       document.removeEventListener("keydown", handleKeydown, { capture: true });
       window.removeEventListener("beforeprint", handleBeforePrint);
     };
-  }, [label, showPrintModal]);
+  }, [label, showPrintModal, isCreatedToday]);
 
   const handleDelete = async () => {
     if (!confirm(t("confirmDelete"))) return;
@@ -329,10 +341,17 @@ export default function LabelDetailPage({
 
           <div className="flex items-center gap-2">
             {hasActionPermission("labels", "imprimir") && (
-              <Button variant="outline" size="sm" onClick={handlePrintClick} className="gap-1.5">
-                <Printer className="h-3.5 w-3.5" />
-                {t("print")}
-              </Button>
+              isCreatedToday ? (
+                <Button variant="outline" size="sm" onClick={handlePrintClick} className="gap-1.5">
+                  <Printer className="h-3.5 w-3.5" />
+                  {t("print")}
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" disabled className="gap-1.5 opacity-50 cursor-not-allowed">
+                  <Lock className="h-3.5 w-3.5" />
+                  {t("print")}
+                </Button>
+              )
             )}
             {hasActionPermission("labels", "duplicar") && (
               <Link href="/labels/new">
