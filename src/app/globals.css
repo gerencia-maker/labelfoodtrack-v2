@@ -255,7 +255,6 @@ html.dark ::-webkit-scrollbar-thumb {
   vertical-align: middle;
   padding-top: 1px;
   padding-bottom: 1px;
-  font-size: 6pt;
   text-align: justify;
   line-height: 1.15;
 }
