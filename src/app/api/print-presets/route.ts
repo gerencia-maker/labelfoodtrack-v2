@@ -6,21 +6,24 @@ import { hasActionPermission } from "@/lib/permissions";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
+/** GET — list all presets for the instance */
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
   if (DEMO_MODE) {
-    return NextResponse.json(null);
+    return NextResponse.json([]);
   }
 
-  const preset = await prisma.printPreset.findFirst({
+  const presets = await prisma.printPreset.findMany({
     where: { ...tenantWhere(user) },
+    orderBy: { name: "asc" },
   });
 
-  return NextResponse.json(preset);
+  return NextResponse.json(presets);
 }
 
+/** POST — create a new preset */
 export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
@@ -31,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   if (DEMO_MODE) {
     const body = await request.json();
-    return NextResponse.json({ id: "demo-preset", ...body }, { status: 200 });
+    return NextResponse.json({ id: "demo-preset", ...body }, { status: 201 });
   }
 
   if (!user.instanceId) {
@@ -48,21 +51,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const existing = await prisma.printPreset.findFirst({
+  // If this is the first preset, make it active
+  const count = await prisma.printPreset.count({
     where: { instanceId: user.instanceId },
   });
 
-  let preset;
-  if (existing) {
-    preset = await prisma.printPreset.update({
-      where: { id: existing.id },
-      data: parsed.data,
-    });
-  } else {
-    preset = await prisma.printPreset.create({
-      data: { ...parsed.data, instanceId: user.instanceId },
-    });
-  }
+  const preset = await prisma.printPreset.create({
+    data: {
+      ...parsed.data,
+      isActive: count === 0,
+      instanceId: user.instanceId,
+    },
+  });
 
-  return NextResponse.json(preset, { status: existing ? 200 : 201 });
+  return NextResponse.json(preset, { status: 201 });
 }

@@ -158,19 +158,20 @@ model BitacoraEntry {
 }
 
 model PrintPreset {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   name         String
   widthMm      Float
   heightMm     Float
-  marginTop    Float  @default(0)
-  marginRight  Float  @default(0)
-  marginBottom Float  @default(0)
-  marginLeft   Float  @default(0)
-  orientation  String @default("portrait")
-  dpi          Int    @default(203)
-  fontSize     Float  @default(0)
-  printScale   Int    @default(100)
+  marginTop    Float   @default(0)
+  marginRight  Float   @default(0)
+  marginBottom Float   @default(0)
+  marginLeft   Float   @default(0)
+  orientation  String  @default("portrait")
+  dpi          Int     @default(203)
+  fontSize     Float   @default(0)
+  printScale   Int     @default(100)
   stockType    String?
+  isActive     Boolean @default(false)
 
   instanceId String
   instance   Instance @relation(fields: [instanceId], references: [id])

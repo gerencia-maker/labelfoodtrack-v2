@@ -21,7 +21,11 @@ export function usePrintPreset() {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
-          const data = await res.json();
+          const list = await res.json();
+          // Find active preset, or fall back to first
+          const data = Array.isArray(list)
+            ? list.find((p: { isActive?: boolean }) => p.isActive) || list[0]
+            : list;
           if (data) {
             setPreset({
               widthMm: data.widthMm,

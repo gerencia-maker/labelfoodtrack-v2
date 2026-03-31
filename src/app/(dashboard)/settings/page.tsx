@@ -338,6 +338,23 @@ function AccountTab() {
 }
 
 /* ─── Paper Config Tab ─── */
+interface PresetRecord {
+  id: string;
+  name: string;
+  widthMm: number;
+  heightMm: number;
+  marginTop: number;
+  marginRight: number;
+  marginBottom: number;
+  marginLeft: number;
+  orientation: string;
+  dpi: number;
+  fontSize: number;
+  printScale: number;
+  stockType: string | null;
+  isActive: boolean;
+}
+
 function PaperConfigTab() {
   const { getToken } = useAuth();
   const { toast } = useToast();
@@ -345,6 +362,9 @@ function PaperConfigTab() {
 
   const [paperLoading, setPaperLoading] = useState(true);
   const [paperSaving, setPaperSaving] = useState(false);
+  const [templates, setTemplates] = useState<PresetRecord[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const [presetName, setPresetName] = useState("Etiqueta estandar");
   const [widthMm, setWidthMm] = useState(100);
   const [heightMm, setHeightMm] = useState(45);
@@ -360,46 +380,66 @@ function PaperConfigTab() {
   const [printScale, setPrintScale] = useState(100);
   const [stockType, setStockType] = useState("Die-Cut Labels");
 
+  const loadFromRecord = (data: PresetRecord) => {
+    setSelectedId(data.id);
+    setPresetName(data.name);
+    setWidthMm(data.widthMm);
+    setHeightMm(data.heightMm);
+    setMarginTop(data.marginTop);
+    setMarginRight(data.marginRight);
+    setMarginBottom(data.marginBottom);
+    setMarginLeft(data.marginLeft);
+    setOrientation(data.orientation as "portrait" | "landscape");
+    setDpi(data.dpi || 203);
+    setFontSize(data.fontSize || 0);
+    setPrintScale(data.printScale || 100);
+    setStockType(data.stockType || "Die-Cut Labels");
+  };
+
+  const loadTemplates = async () => {
+    const token = await getToken();
+    if (!token) return;
+    try {
+      const res = await fetch("/api/print-presets", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const list: PresetRecord[] = await res.json();
+        setTemplates(list);
+        // Load active or first
+        const active = list.find((p) => p.isActive) || list[0];
+        if (active) loadFromRecord(active);
+      }
+    } catch {
+      // Use defaults
+    }
+  };
+
   useEffect(() => {
     if (DEMO_MODE) {
       setPaperLoading(false);
       return;
     }
-    async function load() {
-      const token = await getToken();
-      if (!token) {
-        setPaperLoading(false);
-        return;
-      }
-      try {
-        const res = await fetch("/api/print-presets", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data) {
-            setPresetName(data.name);
-            setWidthMm(data.widthMm);
-            setHeightMm(data.heightMm);
-            setMarginTop(data.marginTop);
-            setMarginRight(data.marginRight);
-            setMarginBottom(data.marginBottom);
-            setMarginLeft(data.marginLeft);
-            setOrientation(data.orientation);
-            setDpi(data.dpi || 203);
-            setFontSize(data.fontSize || 0);
-            setPrintScale(data.printScale || 100);
-            setStockType(data.stockType || "Die-Cut Labels");
-          }
-        }
-      } catch {
-        // Use defaults
-      }
-      setPaperLoading(false);
-    }
-    load();
+    loadTemplates().finally(() => setPaperLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getToken]);
 
+  const getFormData = () => ({
+    name: presetName,
+    widthMm,
+    heightMm,
+    marginTop,
+    marginRight,
+    marginBottom,
+    marginLeft,
+    orientation,
+    dpi,
+    fontSize,
+    printScale,
+    stockType: stockType || null,
+  });
+
+  /** Save (update existing) */
   const handleSavePaper = async () => {
     setPaperSaving(true);
     try {
@@ -409,29 +449,46 @@ function PaperConfigTab() {
       }
       const token = await getToken();
       if (!token) return;
+
+      if (selectedId) {
+        // Update existing
+        const res = await fetch(`/api/print-presets/${selectedId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify(getFormData()),
+        });
+        if (res.ok) {
+          toast({ title: t("paperSaved"), variant: "success" });
+          await loadTemplates();
+        } else {
+          const err = await res.json();
+          toast({ title: err.error || "Error", variant: "error" });
+        }
+      } else {
+        // Create new
+        await handleSaveAsNew();
+      }
+    } finally {
+      setPaperSaving(false);
+    }
+  };
+
+  /** Save as new template */
+  const handleSaveAsNew = async () => {
+    setPaperSaving(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
       const res = await fetch("/api/print-presets", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: presetName,
-          widthMm,
-          heightMm,
-          marginTop,
-          marginRight,
-          marginBottom,
-          marginLeft,
-          orientation,
-          dpi,
-          fontSize,
-          printScale,
-          stockType: stockType || null,
-        }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(getFormData()),
       });
       if (res.ok) {
-        toast({ title: t("paperSaved"), variant: "success" });
+        const created: PresetRecord = await res.json();
+        toast({ title: t("presetCreated"), variant: "success" });
+        await loadTemplates();
+        setSelectedId(created.id);
       } else {
         const err = await res.json();
         toast({ title: err.error || "Error", variant: "error" });
@@ -440,6 +497,40 @@ function PaperConfigTab() {
       setPaperSaving(false);
     }
   };
+
+  /** Delete current template */
+  const handleDelete = async () => {
+    if (!selectedId) return;
+    if (!confirm(t("confirmDeleteTemplate"))) return;
+    const token = await getToken();
+    if (!token) return;
+    const res = await fetch(`/api/print-presets/${selectedId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      toast({ title: t("presetDeleted"), variant: "success" });
+      setSelectedId(null);
+      await loadTemplates();
+    }
+  };
+
+  /** Activate current template */
+  const handleActivate = async () => {
+    if (!selectedId) return;
+    const token = await getToken();
+    if (!token) return;
+    const res = await fetch(`/api/print-presets/${selectedId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      toast({ title: t("presetActivated"), variant: "success" });
+      await loadTemplates();
+    }
+  };
+
+  const currentIsActive = templates.find((t) => t.id === selectedId)?.isActive ?? false;
 
   return (
     <div className="rounded-2xl border border-orange-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 p-6 shadow-[var(--shadow-warm-sm)] space-y-4">
@@ -457,6 +548,81 @@ function PaperConfigTab() {
         </div>
       ) : (
         <div className="space-y-4">
+          {/* ── Template selector ── */}
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+                {t("selectTemplate")}
+              </label>
+              <select
+                value={selectedId || ""}
+                onChange={(e) => {
+                  const tpl = templates.find((t) => t.id === e.target.value);
+                  if (tpl) loadFromRecord(tpl);
+                }}
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
+              >
+                {templates.length === 0 && (
+                  <option value="">{t("noTemplates")}</option>
+                )}
+                {templates.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    {tpl.name} — {tpl.widthMm}x{tpl.heightMm}mm
+                    {tpl.isActive ? ` ★` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {selectedId && !currentIsActive && (
+              <button
+                type="button"
+                onClick={handleActivate}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/30 px-3 py-2 text-xs font-medium text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors"
+                title={t("activePreset")}
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                {t("activePreset")}
+              </button>
+            )}
+            {selectedId && currentIsActive && (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-100 dark:bg-green-900/40 px-3 py-2 text-xs font-medium text-green-700 dark:text-green-300">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                {t("activePreset")}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedId(null);
+                setPresetName("Nuevo template");
+                setWidthMm(100);
+                setHeightMm(50);
+                setMarginTop(0);
+                setMarginRight(0);
+                setMarginBottom(0);
+                setMarginLeft(0);
+                setOrientation("landscape");
+                setDpi(203);
+                setFontSize(0);
+                setPrintScale(100);
+                setStockType("Die-Cut Labels");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/30 px-3 py-2 text-xs font-medium text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t("newTemplate")}
+            </button>
+            {selectedId && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 px-3 py-2 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
           {/* Name + Stock Type */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -736,8 +902,18 @@ function PaperConfigTab() {
             />
           </div>
 
-          {/* Save Button */}
-          <div className="flex justify-end pt-2 border-t border-orange-100 dark:border-slate-700/50">
+          {/* Action buttons */}
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-orange-100 dark:border-slate-700/50">
+            {selectedId && (
+              <button
+                onClick={handleSaveAsNew}
+                disabled={paperSaving || !presetName}
+                className="inline-flex items-center gap-2 rounded-lg border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/30 px-4 py-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                {t("saveAsNew")}
+              </button>
+            )}
             <button
               onClick={handleSavePaper}
               disabled={paperSaving || !presetName}
