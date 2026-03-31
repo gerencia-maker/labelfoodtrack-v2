@@ -135,17 +135,16 @@ export default function LabelDetailPage({
 
   const canDelete = hasActionPermission("labels", "eliminar");
 
-  // Only allow printing on the same day the label was created (super admin bypasses)
+  // Only allow printing if production date is today (super admin bypasses)
   const canPrintToday = (() => {
     if (isSuperAdmin) return true;
-    if (!label) return false;
-    const created = new Date(label.createdAt);
-    const now = new Date();
-    return (
-      created.getFullYear() === now.getFullYear() &&
-      created.getMonth() === now.getMonth() &&
-      created.getDate() === now.getDate()
-    );
+    if (!label || !label.productionDate) return false;
+    const prod = label.productionDate.includes("T")
+      ? label.productionDate.split("T")[0]
+      : label.productionDate;
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    return prod === todayStr;
   })();
 
   const loadLabel = useCallback(async () => {
