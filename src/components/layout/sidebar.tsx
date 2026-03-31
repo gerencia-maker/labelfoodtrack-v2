@@ -21,7 +21,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { canAccessNavItem } from "@/lib/permissions";
+import { canAccessNavItem, hasActionPermission } from "@/lib/permissions";
 
 const MotionLink = motion.create(Link);
 
@@ -37,7 +37,7 @@ export function Sidebar() {
 
   const allNavItems = [
     { href: "/", label: t("products"), icon: LayoutDashboard, permKey: "dashboard" },
-    { href: "/products/new", label: t("newProduct"), icon: Package, permKey: "products" },
+    { href: "/products/new", label: t("newProduct"), icon: Package, permKey: "products", actionKey: "crear" },
     { href: "/labels", label: t("labels"), icon: Tag, permKey: "labels" },
     { href: "/bitacora", label: t("bitacora"), icon: ClipboardList, permKey: "bitacora" },
     { href: "/ai", label: t("ai"), icon: Bot, permKey: "ai" },
@@ -45,9 +45,11 @@ export function Sidebar() {
     { href: "/settings", label: t("settings"), icon: Settings, permKey: "settings" },
   ];
 
-  const navItems = allNavItems.filter((item) =>
-    canAccessNavItem(role, permisos, item.permKey)
-  );
+  const navItems = allNavItems.filter((item) => {
+    if (!canAccessNavItem(role, permisos, item.permKey)) return false;
+    if (item.actionKey) return hasActionPermission(role, permisos, item.permKey, item.actionKey);
+    return true;
+  });
 
   return (
     <aside
