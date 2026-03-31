@@ -33,6 +33,7 @@ export function usePrintPreset() {
               orientation: data.orientation || "landscape",
               dpi: data.dpi || 203,
               fontSize: data.fontSize || 0,
+              printScale: data.printScale || 100,
             });
           }
         }
@@ -52,12 +53,13 @@ export function usePrintPreset() {
     const label = document.getElementById("printMatrixLabel");
 
     if (container && label) {
-      const w = preset.widthMm;
-      const h = preset.heightMm;
-      const mt = preset.marginTop;
-      const mr = preset.marginRight;
-      const mb = preset.marginBottom;
-      const ml = preset.marginLeft;
+      const ps = (preset.printScale || 100) / 100; // scale factor
+      const w = preset.widthMm * ps;
+      const h = preset.heightMm * ps;
+      const mt = preset.marginTop * ps;
+      const mr = preset.marginRight * ps;
+      const mb = preset.marginBottom * ps;
+      const ml = preset.marginLeft * ps;
 
       const containerWpx = Math.round(w * PX_PER_MM);
       const containerHpx = Math.round(h * PX_PER_MM);

@@ -357,6 +357,7 @@ function PaperConfigTab() {
   );
   const [dpi, setDpi] = useState(203);
   const [fontSize, setFontSize] = useState(0);
+  const [printScale, setPrintScale] = useState(100);
   const [stockType, setStockType] = useState("Die-Cut Labels");
 
   useEffect(() => {
@@ -387,6 +388,7 @@ function PaperConfigTab() {
             setOrientation(data.orientation);
             setDpi(data.dpi || 203);
             setFontSize(data.fontSize || 0);
+            setPrintScale(data.printScale || 100);
             setStockType(data.stockType || "Die-Cut Labels");
           }
         }
@@ -424,6 +426,7 @@ function PaperConfigTab() {
           orientation,
           dpi,
           fontSize,
+          printScale,
           stockType: stockType || null,
         }),
       });
@@ -670,6 +673,50 @@ function PaperConfigTab() {
                   }`}
                 >
                   {val === 0 ? "Auto" : `${val}pt`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Print scale */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+              {t("printScale")}
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="50"
+                max="200"
+                step="5"
+                value={printScale}
+                onChange={(e) => setPrintScale(Number(e.target.value))}
+                className="flex-1 accent-orange-500"
+              />
+              <input
+                type="number"
+                min="50"
+                max="200"
+                step="5"
+                value={printScale}
+                onChange={(e) => setPrintScale(Number(e.target.value) || 100)}
+                className="w-20 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm font-mono font-semibold text-slate-700 dark:text-slate-300 text-center focus:ring-2 focus:ring-orange-500/30 focus:border-transparent outline-none"
+              />
+              <span className="text-xs text-slate-400">%</span>
+            </div>
+            <div className="flex gap-1.5 mt-1.5">
+              {[80, 90, 100, 110, 115, 120, 130, 150].map((val) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setPrintScale(val)}
+                  className={`px-2 py-0.5 text-[11px] rounded-md border transition-colors ${
+                    printScale === val
+                      ? "bg-orange-500 text-white border-orange-500"
+                      : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600"
+                  }`}
+                >
+                  {val}%
                 </button>
               ))}
             </div>

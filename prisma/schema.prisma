@@ -169,6 +169,7 @@ model PrintPreset {
   orientation  String @default("portrait")
   dpi          Int    @default(203)
   fontSize     Float  @default(0)
+  printScale   Int    @default(100)
   stockType    String?
 
   instanceId String

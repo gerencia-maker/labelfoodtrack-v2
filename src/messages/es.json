@@ -253,6 +253,7 @@
     "portrait": "Vertical",
     "dpi": "Resolucion (DPI)",
     "fontSize": "Tamano de letra (impresion)",
+    "printScale": "Escala de impresion",
     "stockType": "Tipo de papel",
     "savePaperConfig": "Guardar configuracion",
     "paperSaved": "Configuracion de papel guardada",

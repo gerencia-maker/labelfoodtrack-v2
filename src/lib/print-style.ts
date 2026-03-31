@@ -8,6 +8,7 @@ export interface PrintPresetConfig {
   orientation: "landscape" | "portrait";
   dpi: number;
   fontSize: number; // base font size in pt (0 = auto)
+  printScale: number; // print scale % (100 = normal, 115 = 15% bigger)
 }
 
 const STYLE_TAG_ID = "dynamic-print-style";
@@ -127,4 +128,5 @@ export const DEFAULT_PRINT_PRESET: PrintPresetConfig = {
   orientation: "landscape",
   dpi: 203,
   fontSize: 0,
+  printScale: 100,
 };

@@ -253,6 +253,7 @@
     "portrait": "Portrait",
     "dpi": "Resolution (DPI)",
     "fontSize": "Font size (print)",
+    "printScale": "Print scale",
     "stockType": "Stock type",
     "savePaperConfig": "Save configuration",
     "paperSaved": "Paper configuration saved",
