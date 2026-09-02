@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   createPrintStyles,
+  getPreviewWidthForViewportDvh,
   getPrintLayout,
   type PrintPresetConfig,
 } from "../src/lib/print-style";
@@ -35,6 +36,18 @@ test("content scale never changes the physical paper dimensions", () => {
   assert.equal(enlarged.pageWidthMm, normal.pageWidthMm);
   assert.equal(enlarged.pageHeightMm, normal.pageHeightMm);
   assert.ok(enlarged.baseFontPt >= normal.baseFontPt);
+});
+
+test("screen preview fits portrait and landscape paper without changing its ratio", () => {
+  const landscape = getPrintLayout(preset);
+  const portrait = getPrintLayout({ ...preset, orientation: "portrait" });
+
+  const landscapeWidth = getPreviewWidthForViewportDvh(landscape);
+  const portraitWidth = getPreviewWidthForViewportDvh(portrait);
+
+  assert.equal(landscapeWidth, 70 * (100 / 45));
+  assert.equal(portraitWidth, 70 * (45 / 100));
+  assert.equal(portraitWidth / portrait.pageWidthMm * portrait.pageHeightMm, 70);
 });
 
 test("print CSS uses valid custom page dimensions and physical QR units", () => {

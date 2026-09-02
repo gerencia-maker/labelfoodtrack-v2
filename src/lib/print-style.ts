@@ -22,6 +22,17 @@ export interface PrintLayout {
   qrSizeMm: number;
 }
 
+/**
+ * Keep the on-screen paper preview inside a useful viewport while preserving
+ * the exact physical aspect ratio. This does not affect print dimensions.
+ */
+export function getPreviewWidthForViewportDvh(
+  layout: Pick<PrintLayout, "pageWidthMm" | "pageHeightMm">,
+  maxHeightDvh = 70
+): number {
+  return Math.max(1, maxHeightDvh * (layout.pageWidthMm / layout.pageHeightMm));
+}
+
 const STYLE_TAG_ID = "dynamic-print-style";
 
 export function getPrintLayout(preset: PrintPresetConfig): PrintLayout {

@@ -27,6 +27,7 @@ export async function PUT(request: NextRequest, ctx: Ctx) {
   if (!user.instanceId) {
     return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
   }
+  const instanceId = user.instanceId;
 
   const body = await request.json();
   const parsed = printPresetSchema.safeParse(body);
@@ -39,16 +40,23 @@ export async function PUT(request: NextRequest, ctx: Ctx) {
   }
 
   const existing = await prisma.printPreset.findFirst({
-    where: { id, instanceId: user.instanceId },
+    where: { id, instanceId },
     select: { id: true },
   });
   if (!existing) {
     return NextResponse.json({ error: "Preset no encontrado" }, { status: 404 });
   }
 
-  const preset = await prisma.printPreset.update({
-    where: { id: existing.id },
-    data: parsed.data,
+  // Saving a template also applies it. Keep the active selection atomic.
+  const preset = await prisma.$transaction(async (tx) => {
+    await tx.printPreset.updateMany({
+      where: { instanceId },
+      data: { isActive: false },
+    });
+    return tx.printPreset.update({
+      where: { id: existing.id },
+      data: { ...parsed.data, isActive: true },
+    });
   });
 
   return NextResponse.json(preset);

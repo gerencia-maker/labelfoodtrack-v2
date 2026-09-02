@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
   if (!user.instanceId) {
     return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
   }
+  const instanceId = user.instanceId;
 
   const body = await request.json();
   const parsed = printPresetSchema.safeParse(body);
@@ -52,17 +53,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // If this is the first preset, make it active
-  const count = await prisma.printPreset.count({
-    where: { instanceId: user.instanceId },
-  });
-
-  const preset = await prisma.printPreset.create({
-    data: {
-      ...parsed.data,
-      isActive: count === 0,
-      instanceId: user.instanceId,
-    },
+  // A saved template is immediately the active print configuration.
+  const preset = await prisma.$transaction(async (tx) => {
+    await tx.printPreset.updateMany({
+      where: { instanceId },
+      data: { isActive: false },
+    });
+    return tx.printPreset.create({
+      data: {
+        ...parsed.data,
+        isActive: true,
+        instanceId,
+      },
+    });
   });
 
   return NextResponse.json(preset, { status: 201 });

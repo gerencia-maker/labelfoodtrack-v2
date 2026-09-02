@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import type { LabelPreviewData } from "./label-preview";
 import {
   DEFAULT_PRINT_PRESET,
+  getPreviewWidthForViewportDvh,
   getPrintLayout,
   type PrintPresetConfig,
 } from "@/lib/print-style";
@@ -24,12 +25,15 @@ interface LabelPrintProps {
 export function LabelPrint({ data, screenPreview, preset = DEFAULT_PRINT_PRESET }: LabelPrintProps) {
   const t = useTranslations("labels");
   const layout = getPrintLayout(preset);
+  const previewViewportWidthDvh = getPreviewWidthForViewportDvh(layout);
   const mmInContainerUnits = 100 / layout.pageWidthMm;
   const ptToMm = 25.4 / 72;
 
   const previewContainerStyle = screenPreview
     ? ({
         aspectRatio: `${layout.pageWidthMm} / ${layout.pageHeightMm}`,
+        maxWidth: `min(1100px, ${previewViewportWidthDvh.toFixed(2)}dvh)`,
+        marginInline: "auto",
         "--preview-font-size": `${layout.baseFontPt * ptToMm * mmInContainerUnits}cqw`,
         "--preview-header-size": `${layout.headerFontPt * ptToMm * mmInContainerUnits}cqw`,
         "--preview-details-size": `${layout.detailsFontPt * ptToMm * mmInContainerUnits}cqw`,
