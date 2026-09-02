@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission } from "@/lib/permissions";
 import { getDemoInstances, createDemoInstance } from "@/lib/demo-data";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -16,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // Super-admin or gerencia email: list all instances
-    if (user.isSuperAdmin || user.email === "gerencia@gestionpg.com") {
+    if (user.isSuperAdmin) {
       const instances = await prisma.instance.findMany({
         orderBy: { name: "asc" },
         include: { _count: { select: { users: true } } },
@@ -40,8 +39,7 @@ export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  // Only super-admin email can create instances
-  if (user.email !== "gerencia@gestionpg.com") {
+  if (!user.isSuperAdmin) {
     return forbidden();
   }
 

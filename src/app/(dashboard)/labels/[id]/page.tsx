@@ -11,6 +11,7 @@ import { LabelPrint } from "@/components/labels/label-print";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer, Trash2, Copy, Lock } from "lucide-react";
 import Link from "next/link";
+import { buildQrUrl } from "@/lib/label-utils";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -123,10 +124,10 @@ export default function LabelDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { getToken, userData, hasActionPermission, isSuperAdmin } = useAuth();
+  const { getToken, hasActionPermission, isSuperAdmin } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("labels");
-  const { triggerPrint } = usePrintPreset();
+  const { preset, triggerPrint } = usePrintPreset();
 
   const [label, setLabel] = useState<LabelDetail | null>(
     DEMO_MODE ? (DEMO_LABELS[id] || null) : null
@@ -163,6 +164,8 @@ export default function LabelDetailPage({
   }, [id, getToken]);
 
   useEffect(() => {
+    // The loader synchronizes this route with its remote API resource.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadLabel();
   }, [loadLabel]);
 
@@ -229,19 +232,7 @@ export default function LabelDetailPage({
   const expiryRefrigerated = p && label.productionDate ? buildExpiryDate(label.productionDate, p.refrigeratedDays) : "--";
   const expiryFrozen = p && label.productionDate ? buildExpiryDate(label.productionDate, p.frozenDays) : "--";
 
-  // Generate QR data on the fly if not stored
-  const qrData = label.qrData || (label.batch ? JSON.stringify({
-    producto: label.productName,
-    marca: label.brand || "",
-    lote: label.batch,
-    contenido: label.netContent || "",
-    produccion: label.productionDate || "",
-    cadenaFrio: coldChain,
-    venceRefrigerado: expiryRefrigerated !== "--" ? expiryRefrigerated : undefined,
-    venceCongelado: expiryFrozen !== "--" ? expiryFrozen : undefined,
-    envasadoPor: label.packedBy || undefined,
-    destino: label.destination || undefined,
-  }) : "");
+  const qrData = label.qrData || buildQrUrl(label.id);
 
   const previewData: LabelPreviewData = {
     brand: label.brand || "RANCHERITO",
@@ -265,7 +256,7 @@ export default function LabelDetailPage({
     <>
       <div className="print:hidden">
         {/* ── Sticky top bar (v1 style) ── */}
-        <div className="-mx-6 -mt-6 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
+        <div className="-mx-3 -mt-3 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 bg-white px-3 py-3 shadow-[var(--shadow-warm-sm)] dark:border-orange-900/30 dark:bg-slate-900 sm:-mx-4 sm:-mt-4 sm:px-4 md:-mx-6 md:-mt-6">
           <div className="flex items-center gap-3">
             <Link href="/labels">
               <Button variant="ghost" size="sm" className="gap-1.5 text-slate-600 dark:text-slate-400">
@@ -312,7 +303,7 @@ export default function LabelDetailPage({
         {/* ── Real print label preview (HERO — centered) ── */}
         <div className="flex justify-center mb-4">
           <div className="w-full max-w-[900px]">
-            <LabelPrint data={previewData} screenPreview />
+            <LabelPrint data={previewData} screenPreview preset={preset} />
           </div>
         </div>
 
@@ -349,7 +340,7 @@ export default function LabelDetailPage({
       </div>
 
       {/* Print */}
-      <LabelPrint data={previewData} />
+        <LabelPrint data={previewData} preset={preset} />
 
     </>
   );

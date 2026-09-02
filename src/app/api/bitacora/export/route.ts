@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission } from "@/lib/permissions";
+import { hasActionPermission, hasPermission } from "@/lib/permissions";
 import * as XLSX from "xlsx";
+
+function spreadsheetSafe(value: unknown): string {
+  const text = String(value ?? "");
+  return /^[=+\-@]/.test(text) ? `'${text}` : text;
+}
 
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  if (!hasPermission(user.role, user.permisos, "export")) {
+  if (
+    !hasPermission(user.role, user.permisos, "export") &&
+    !hasActionPermission(user.role, user.permisos, "configuration", "exportar_datos") &&
+    !hasActionPermission(user.role, user.permisos, "bitacora", "exportar")
+  ) {
     return forbidden();
   }
 
@@ -37,17 +46,17 @@ export async function GET(request: NextRequest) {
   ];
 
   const rows = entries.map((e: typeof entries[number]) => [
-    e.productName,
-    e.category || "",
-    e.coldChain || "",
+    spreadsheetSafe(e.productName),
+    spreadsheetSafe(e.category),
+    spreadsheetSafe(e.coldChain),
     e.processDate ? e.processDate.toISOString().split("T")[0] : "",
     e.expiryRefrigerated ? e.expiryRefrigerated.toISOString().split("T")[0] : "",
     e.expiryFrozen ? e.expiryFrozen.toISOString().split("T")[0] : "",
-    e.quantity || "",
-    e.quantityProduced || "",
-    e.packedBy || "",
-    e.destination || "",
-    e.batch || "",
+    spreadsheetSafe(e.quantity),
+    spreadsheetSafe(e.quantityProduced),
+    spreadsheetSafe(e.packedBy),
+    spreadsheetSafe(e.destination),
+    spreadsheetSafe(e.batch),
     e.traceDate ? e.traceDate.toISOString().split("T")[0] : "",
     e.createdAt.toISOString().split("T")[0],
   ]);

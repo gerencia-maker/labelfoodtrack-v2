@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validations/product";
-import { hasActionPermission } from "@/lib/permissions";
+import { hasActionPermission, hasPermission } from "@/lib/permissions";
 
 export async function GET(
   request: NextRequest,
@@ -10,6 +10,7 @@ export async function GET(
 ) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
+  if (!hasPermission(user.role, user.permisos, "products")) return forbidden();
 
   const { id } = await params;
 

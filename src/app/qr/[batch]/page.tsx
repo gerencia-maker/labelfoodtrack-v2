@@ -78,17 +78,6 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return "--";
-  d.setDate(d.getDate() + days);
-  return d.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 export default function QRLabelPage({
   params,
 }: {

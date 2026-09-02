@@ -66,14 +66,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Instance is required (except super-admin)
-      const isSuperEmail = email.trim().toLowerCase() === "gerencia@gestionpg.com";
-      if (!selectedInstance && !isSuperEmail) {
-        setError(t("instanceRequired"));
-        setLoading(false);
-        return;
-      }
-
       // Set instance cookie before login
       if (selectedInstance) {
         document.cookie = `lft-instance-id=${selectedInstance.id};path=/;max-age=${60 * 60 * 24 * 365}`;
@@ -95,6 +87,12 @@ export default function LoginPage() {
         const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
         if (res.ok) {
           const userData = await res.json();
+          if (!userData.isSuperAdmin && !selectedInstance) {
+            await (await import("firebase/auth")).getAuth().signOut();
+            setError(t("instanceRequired"));
+            setLoading(false);
+            return;
+          }
           // Super-admin can access any instance
           if (!userData.isSuperAdmin && selectedInstance && userData.instanceId !== selectedInstance.id) {
             // Sign out - wrong instance

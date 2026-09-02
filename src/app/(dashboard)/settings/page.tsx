@@ -5,6 +5,10 @@ import { useAuth } from "@/contexts/auth-context";
 import { RequirePermission } from "@/components/require-permission";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
+import { LabelPrint } from "@/components/labels/label-print";
+import type { LabelPreviewData } from "@/components/labels/label-preview";
+import { usePrintPreset } from "@/hooks/use-print-preset";
+import { getPrintLayout, type PrintPresetConfig } from "@/lib/print-style";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Download,
@@ -28,8 +32,26 @@ import {
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
+const CALIBRATION_LABEL: LabelPreviewData = {
+  brand: "LABELFOODTRACK — PRUEBA",
+  productName: "CALIBRACION DE IMPRESION",
+  netContent: "500 g",
+  productionDate: "2026-09-02",
+  batch: "TEST-100045",
+  coldChain: "Refrigerado (0°C a 4°C)",
+  expiryRefrigerated: "10/09/2026",
+  expiryFrozen: "02/12/2026",
+  destination: "PRUEBA",
+  packedBy: "CONTROL DE CALIDAD",
+  ingredients: "Texto de prueba para verificar ajuste, bordes y legibilidad.",
+  allergens: "PRUEBA",
+  storage: "Mantener refrigerado.",
+  usage: "No usar como etiqueta de produccion.",
+  qrData: "https://labelfoodtrack.local/print-calibration",
+};
+
 export default function SettingsPage() {
-  const { userData, hasActionPermission } = useAuth();
+  const { hasActionPermission } = useAuth();
   const t = useTranslations("settings");
 
   const canAccount = hasActionPermission("configuration", "ver_cuenta");
@@ -359,6 +381,7 @@ function PaperConfigTab() {
   const { getToken } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("settings");
+  const { triggerPrint } = usePrintPreset();
 
   const [paperLoading, setPaperLoading] = useState(true);
   const [paperSaving, setPaperSaving] = useState(false);
@@ -379,6 +402,23 @@ function PaperConfigTab() {
   const [fontSize, setFontSize] = useState(0);
   const [printScale, setPrintScale] = useState(100);
   const [stockType, setStockType] = useState("Die-Cut Labels");
+
+  const currentPrintPreset: PrintPresetConfig = {
+    widthMm,
+    heightMm,
+    marginTop,
+    marginRight,
+    marginBottom,
+    marginLeft,
+    orientation,
+    dpi,
+    fontSize,
+    printScale,
+  };
+  const currentLayout = getPrintLayout(currentPrintPreset);
+  const hasValidPrintableArea =
+    currentLayout.pageWidthMm - marginLeft - marginRight >= 5 &&
+    currentLayout.pageHeightMm - marginTop - marginBottom >= 5;
 
   const loadFromRecord = (data: PresetRecord) => {
     setSelectedId(data.id);
@@ -438,6 +478,11 @@ function PaperConfigTab() {
     printScale,
     stockType: stockType || null,
   });
+
+  const handlePrintTest = () => {
+    if (!hasValidPrintableArea) return;
+    void triggerPrint(currentPrintPreset);
+  };
 
   /** Save (update existing) */
   const handleSavePaper = async () => {
@@ -549,7 +594,7 @@ function PaperConfigTab() {
       ) : (
         <div className="space-y-4">
           {/* ── Template selector ── */}
-          <div className="flex items-end gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="flex-1">
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                 {t("selectTemplate")}
@@ -624,7 +669,7 @@ function PaperConfigTab() {
           </div>
 
           {/* Name + Stock Type */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                 {t("presetName")}
@@ -652,8 +697,17 @@ function PaperConfigTab() {
             </div>
           </div>
 
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-300">
+            {t("physicalSizeHint", {
+              width: currentLayout.pageWidthMm,
+              height: currentLayout.pageHeightMm,
+              printableWidth: Math.max(0, currentLayout.pageWidthMm - marginLeft - marginRight),
+              printableHeight: Math.max(0, currentLayout.pageHeightMm - marginTop - marginBottom),
+            })}
+          </div>
+
           {/* Width + Height */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                 {t("paperWidth")}
@@ -689,7 +743,7 @@ function PaperConfigTab() {
             <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
               {t("margins")}
             </label>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div>
                 <label className="block text-[10px] text-slate-400 dark:text-slate-500 mb-0.5">
                   {t("marginTop")}
@@ -752,7 +806,7 @@ function PaperConfigTab() {
           </div>
 
           {/* Orientation + DPI */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
                 {t("orientation")}
@@ -797,6 +851,9 @@ function PaperConfigTab() {
                   </button>
                 ))}
               </div>
+              <p className="mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+                {t("dpiHint")}
+              </p>
             </div>
           </div>
 
@@ -826,7 +883,7 @@ function PaperConfigTab() {
               />
               <span className="text-xs text-slate-400">pt</span>
             </div>
-            <div className="flex gap-1.5 mt-1.5">
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
               {[0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24].map((val) => (
                 <button
                   key={val}
@@ -870,7 +927,7 @@ function PaperConfigTab() {
               />
               <span className="text-xs text-slate-400">%</span>
             </div>
-            <div className="flex gap-1.5 mt-1.5">
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
               {[80, 90, 100, 110, 115, 120, 130, 150].map((val) => (
                 <button
                   key={val}
@@ -899,34 +956,59 @@ function PaperConfigTab() {
               ml={marginLeft}
               fontSize={fontSize}
               orientation={orientation}
+              printScale={printScale}
             />
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-orange-100 dark:border-slate-700/50">
-            {selectedId && (
-              <button
-                onClick={handleSaveAsNew}
-                disabled={paperSaving || !presetName}
-                className="inline-flex items-center gap-2 rounded-lg border border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-900/30 px-4 py-2 text-sm font-medium text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-                {t("saveAsNew")}
-              </button>
-            )}
-            <button
-              onClick={handleSavePaper}
-              disabled={paperSaving || !presetName}
-              className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {paperSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              {t("savePaperConfig")}
-            </button>
+          {!hasValidPrintableArea && (
+            <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              {t("invalidPrintArea")}
+            </div>
+          )}
+
+          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            {t("driverHint")}
           </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-col gap-2 border-t border-orange-100 pt-2 dark:border-slate-700/50 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={handlePrintTest}
+              disabled={!hasValidPrintableArea}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-blue-300 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
+            >
+              <Printer className="h-4 w-4" />
+              {t("printTest")}
+            </button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {selectedId && (
+                <button
+                  onClick={handleSaveAsNew}
+                  disabled={paperSaving || !presetName || !hasValidPrintableArea}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 transition-colors hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-orange-700 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/50"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("saveAsNew")}
+                </button>
+              )}
+              <button
+                onClick={handleSavePaper}
+                disabled={paperSaving || !presetName || !hasValidPrintableArea}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {paperSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {t("savePaperConfig")}
+              </button>
+            </div>
+          </div>
+          <LabelPrint data={CALIBRATION_LABEL} preset={currentPrintPreset} />
         </div>
       )}
     </div>
@@ -1522,6 +1604,7 @@ function LabelPreview({
   ml,
   fontSize: fs,
   orientation,
+  printScale,
 }: {
   width: number;
   height: number;
@@ -1531,13 +1614,26 @@ function LabelPreview({
   ml: number;
   fontSize: number;
   orientation: "landscape" | "portrait";
+  printScale: number;
 }) {
   const tableRef = useRef<HTMLTableElement>(null);
   const [contentScale, setContentScale] = useState(1);
 
   const maxDisplay = 400;
-  const paperW = orientation === "landscape" ? Math.max(width, 1) : Math.max(height, 1);
-  const paperH = orientation === "landscape" ? Math.max(height, 1) : Math.max(width, 1);
+  const layout = getPrintLayout({
+    widthMm: width,
+    heightMm: height,
+    marginTop: mt,
+    marginRight: mr,
+    marginBottom: mb,
+    marginLeft: ml,
+    orientation,
+    dpi: 203,
+    fontSize: fs,
+    printScale,
+  });
+  const paperW = layout.pageWidthMm;
+  const paperH = layout.pageHeightMm;
   const displayScale = maxDisplay / Math.max(paperW, paperH);
   const w = paperW * displayScale;
   const h = paperH * displayScale;
@@ -1547,11 +1643,10 @@ function LabelPreview({
   const areaY = mt * displayScale;
 
   // Font size in preview pixels
-  const basePt = fs > 0 ? fs : Math.max(3.5, Math.min(7, (height / 45) * 5));
-  const fontPx = basePt * displayScale * 0.4;
-  const headerPx = fontPx * 1.3;
+  const fontPx = layout.baseFontPt * (25.4 / 72) * displayScale;
+  const headerPx = layout.headerFontPt * (25.4 / 72) * displayScale;
   const pad = displayScale * 0.4;
-  const qrSize = Math.min(areaH * 0.45, areaW * 0.2);
+  const qrSize = layout.qrSizeMm * displayScale;
 
   // Auto-scale: measure table and shrink if overflows
   useEffect(() => {
@@ -1570,7 +1665,7 @@ function LabelPreview({
         setContentScale(1);
       }
     });
-  }, [fs, width, height, mt, mr, mb, ml, orientation, areaW, areaH]);
+  }, [fs, width, height, mt, mr, mb, ml, orientation, printScale, areaW, areaH]);
 
   return (
     <div className="flex flex-col items-center gap-2">

@@ -87,7 +87,7 @@ export function InstanceSelector() {
         ) : (
           <Globe size={14} />
         )}
-        <span className="max-w-[140px] truncate">
+        <span className="max-w-[72px] truncate sm:max-w-[140px]">
           {loading ? "..." : selected ? selected.name : "Todas las instancias"}
         </span>
         <ChevronDown size={12} className={cn("transition-transform", open && "rotate-180")} />

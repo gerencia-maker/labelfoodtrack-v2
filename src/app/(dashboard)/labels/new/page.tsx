@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
@@ -11,17 +11,16 @@ import { type LabelPreviewData } from "@/components/labels/label-preview";
 import { LabelPrint } from "@/components/labels/label-print";
 import { PrintFlowModal } from "@/components/labels/print-flow-modal";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Printer, Save, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Printer, Save } from "lucide-react";
 import Link from "next/link";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export default function NewLabelPage() {
-  const router = useRouter();
   const { getToken, hasActionPermission } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("labels");
-  const { triggerPrint } = usePrintPreset();
+  const { preset, triggerPrint } = usePrintPreset();
   const searchParams = useSearchParams();
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +47,6 @@ export default function NewLabelPage() {
 
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [pendingSaveData, setPendingSaveData] = useState<LabelSaveData | null>(null);
-  const [formCollapsed, setFormCollapsed] = useState(false);
 
   // Intercept Ctrl+P / Cmd+P → open print modal instead of browser print
   useEffect(() => {
@@ -98,45 +96,34 @@ export default function NewLabelPage() {
 
     if (!token) return;
 
-    const labelRes = await fetch("/api/labels", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(pendingSaveData),
-    });
+    try {
+      const labelRes = await fetch("/api/labels", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ...pendingSaveData, quantityProduced: quantity }),
+      });
 
-    if (!labelRes.ok) {
-      const err = await labelRes.json();
-      toast({ title: err.error || "Error al guardar etiqueta", variant: "error" });
-      return;
+      if (!labelRes.ok) {
+        const err = await labelRes.json();
+        toast({ title: err.error || "Error al guardar etiqueta", variant: "error" });
+        return;
+      }
+
+      const savedLabel = await labelRes.json();
+      if (savedLabel.qrData) {
+        setPreviewData((current) => ({ ...current, qrData: savedLabel.qrData }));
+      }
+
+      toast({ title: t("saved"), variant: "success" });
+      setPendingSaveData(null);
+      setShowPrintModal(false);
+      setTimeout(() => triggerPrint(), 300);
+    } catch {
+      toast({ title: "No fue posible guardar la etiqueta", variant: "error" });
     }
-
-    await fetch("/api/bitacora", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        productName: pendingSaveData.productName,
-        category: pendingSaveData.category || null,
-        processDate: pendingSaveData.productionDate,
-        quantityProduced: quantity,
-        quantity: pendingSaveData.netContent || null,
-        packedBy: pendingSaveData.packedBy,
-        destination: pendingSaveData.destination,
-        batch: pendingSaveData.batch,
-        coldChain: pendingSaveData.coldChain || null,
-        expiryRefrigerated: pendingSaveData.expiryRefrigerated,
-        expiryFrozen: pendingSaveData.expiryFrozen,
-      }),
-    });
-
-    toast({ title: t("saved"), variant: "success" });
-    setShowPrintModal(false);
-    setTimeout(() => triggerPrint(), 300);
   };
 
   const handlePrint = () => {
@@ -149,7 +136,7 @@ export default function NewLabelPage() {
     <>
       <div className="print:hidden">
         {/* ── Sticky top bar (v1 style) ── */}
-        <div className="-mx-6 -mt-6 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 py-3 shadow-[var(--shadow-warm-sm)]">
+        <div className="-mx-3 -mt-3 mb-4 flex items-center justify-between gap-3 border-b border-orange-100 bg-white px-3 py-3 shadow-[var(--shadow-warm-sm)] dark:border-orange-900/30 dark:bg-slate-900 sm:-mx-4 sm:-mt-4 sm:px-4 md:-mx-6 md:-mt-6">
           <Link href="/labels">
             <Button variant="ghost" size="sm" className="gap-1.5 text-slate-600 dark:text-slate-400">
               <ArrowLeft className="h-4 w-4" />
@@ -193,7 +180,7 @@ export default function NewLabelPage() {
           <div className="flex-1 min-w-0">
             <div className="lg:sticky lg:top-4">
               {hasProduct ? (
-                <LabelPrint data={previewData} screenPreview />
+                <LabelPrint data={previewData} screenPreview preset={preset} />
               ) : (
                 <EmptyPreview brand={previewData.brand} />
               )}
@@ -204,7 +191,7 @@ export default function NewLabelPage() {
 
       {/* Print component (hidden on screen) */}
       <div ref={printRef}>
-        <LabelPrint data={previewData} />
+        <LabelPrint data={previewData} preset={preset} />
       </div>
 
       {/* Print quantity modal */}

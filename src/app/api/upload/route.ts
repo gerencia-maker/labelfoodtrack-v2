@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth, unauthorized } from "@/lib/auth";
+import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
+import { hasActionPermission } from "@/lib/permissions";
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -11,6 +12,10 @@ cloudinary.config({
 export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
+
+  if (!hasActionPermission(user.role, user.permisos, "configuration", "editar_instancia")) {
+    return forbidden();
+  }
 
   if (
     !process.env.CLOUDINARY_CLOUD_NAME ||

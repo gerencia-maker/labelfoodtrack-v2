@@ -5,16 +5,13 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import {
   Save,
   Loader2,
-  Wand2,
   Package,
   Thermometer,
   Snowflake,
   Sun,
-  CalendarDays,
   Scale,
   Hash,
   MapPin,
@@ -27,6 +24,7 @@ import {
   calculateExpiry,
   generateBatch,
   buildQuantityLabel,
+  buildQrUrl,
 } from "@/lib/label-utils";
 import type { LabelPreviewData } from "./label-preview";
 
@@ -105,13 +103,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   const [productId, setProductId] = useState(defaultValues?.productId || "");
   const [netContentQty, setNetContentQty] = useState(parsedDefault.qty);
   const [netContentUnit, setNetContentUnit] = useState(parsedDefault.unit);
-  const [productionDate, setProductionDate] = useState(
+  const [productionDate] = useState(
     defaultValues?.productionDate || new Date().toISOString().split("T")[0]
   );
   const [batch, setBatch] = useState(defaultValues?.batch || "");
   const [packedBy, setPackedBy] = useState(defaultValues?.packedBy || userData?.ubicacion || "");
   const [destination, setDestination] = useState(defaultValues?.destination || "");
-  const [autoGenerateBatch, setAutoGenerateBatch] = useState(!defaultValues?.batch);
+  const [autoGenerateBatch] = useState(!defaultValues?.batch);
   const [coldChainType, setColdChainType] = useState<string>("");
 
   // Producto seleccionado
@@ -268,7 +266,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     const netContent = netContentQty ? `${netContentQty} ${netContentUnit}` : "";
     const quantityLabel = buildQuantityLabel(netContent, selectedProduct.servingSize);
 
-    const qrData = batch ? `https://qr.labelfoodtrack.com/${encodeURIComponent(batch)}` : "";
+    const qrData = buildQrUrl(batch);
 
     onPreviewChange({
       brand,
@@ -296,9 +294,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     setSaving(true);
     try {
       const netContent = netContentQty ? `${netContentQty} ${netContentUnit}` : "";
-      const qrData = batch
-        ? `https://qr.labelfoodtrack.com/${encodeURIComponent(batch)}`
-        : "";
+      const qrData = buildQrUrl(batch);
 
       // Compute ISO expiry dates for bitácora storage
       const computeExpiryISO = (days: number): string | null => {

@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasActionPermission } from "@/lib/permissions";
+import { hasActionPermission, hasPermission } from "@/lib/permissions";
 import * as XLSX from "xlsx";
+
+const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
+const MAX_IMPORT_ROWS = 5_000;
+
+interface ImportedProduct {
+  code: string;
+  batchAbbr: string | null;
+  name: string;
+  category: string | null;
+  refrigeratedDays: number;
+  frozenDays: number;
+  ambientDays: number;
+}
 
 // Map Spanish headers → Product model field names
 // Matches the export format exactly
@@ -18,7 +31,7 @@ const HEADER_MAP: Record<string, string> = {
 
 const INT_FIELDS = new Set(["refrigeratedDays", "frozenDays", "ambientDays"]);
 
-function parseRow(raw: Record<string, unknown>): Record<string, unknown> | null {
+function parseRow(raw: Record<string, unknown>): ImportedProduct | null {
   const row: Record<string, unknown> = {};
 
   for (const [header, field] of Object.entries(HEADER_MAP)) {
@@ -42,14 +55,18 @@ function parseRow(raw: Record<string, unknown>): Record<string, unknown> | null 
     row[field] = str || null;
   }
 
-  return row;
+  return row as unknown as ImportedProduct;
 }
 
 export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  if (!hasActionPermission(user.role, user.permisos, "products", "crear")) {
+  if (
+    !hasActionPermission(user.role, user.permisos, "products", "importar") &&
+    !hasActionPermission(user.role, user.permisos, "configuration", "importar_datos") &&
+    !hasPermission(user.role, user.permisos, "import")
+  ) {
     return forbidden();
   }
 
@@ -63,6 +80,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No se envio archivo" }, { status: 400 });
   }
 
+  if (file.size > MAX_IMPORT_BYTES) {
+    return NextResponse.json({ error: "El archivo debe ser menor a 5 MB" }, { status: 413 });
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
   const wb = XLSX.read(buffer, { type: "buffer" });
   const ws = wb.Sheets[wb.SheetNames[0]];
@@ -73,6 +94,12 @@ export async function POST(request: NextRequest) {
   const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws);
   if (rawRows.length === 0) {
     return NextResponse.json({ error: "No se encontraron filas" }, { status: 400 });
+  }
+  if (rawRows.length > MAX_IMPORT_ROWS) {
+    return NextResponse.json(
+      { error: `El archivo supera el limite de ${MAX_IMPORT_ROWS} filas` },
+      { status: 413 }
+    );
   }
 
   // Validate headers
@@ -99,7 +126,14 @@ export async function POST(request: NextRequest) {
     }
 
     const code = parsed.code as string;
-    const { code: _code, ...dataWithoutCode } = parsed;
+    const dataWithoutCode: Omit<ImportedProduct, "code"> = {
+      batchAbbr: parsed.batchAbbr,
+      name: parsed.name,
+      category: parsed.category,
+      refrigeratedDays: parsed.refrigeratedDays,
+      frozenDays: parsed.frozenDays,
+      ambientDays: parsed.ambientDays,
+    };
 
     try {
       const existing = await prisma.product.findFirst({
@@ -114,7 +148,7 @@ export async function POST(request: NextRequest) {
         updated++;
       } else {
         await prisma.product.create({
-          data: { ...parsed, instanceId: user.instanceId } as Parameters<typeof prisma.product.create>[0]["data"],
+          data: { ...parsed, instanceId: user.instanceId },
         });
         created++;
       }

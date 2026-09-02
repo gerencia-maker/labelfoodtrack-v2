@@ -11,7 +11,64 @@ export interface PrintPresetConfig {
   printScale: number; // print scale % (100 = normal, 115 = 15% bigger)
 }
 
+export interface PrintLayout {
+  pageWidthMm: number;
+  pageHeightMm: number;
+  printableWidthMm: number;
+  printableHeightMm: number;
+  baseFontPt: number;
+  headerFontPt: number;
+  detailsFontPt: number;
+  qrSizeMm: number;
+}
+
 const STYLE_TAG_ID = "dynamic-print-style";
+
+export function getPrintLayout(preset: PrintPresetConfig): PrintLayout {
+  const rawWidth = Math.max(10, preset.widthMm);
+  const rawHeight = Math.max(10, preset.heightMm);
+  const pageWidthMm = preset.orientation === "landscape"
+    ? Math.max(rawWidth, rawHeight)
+    : Math.min(rawWidth, rawHeight);
+  const pageHeightMm = preset.orientation === "landscape"
+    ? Math.min(rawWidth, rawHeight)
+    : Math.max(rawWidth, rawHeight);
+
+  const printableWidthMm = Math.max(
+    1,
+    pageWidthMm - preset.marginLeft - preset.marginRight
+  );
+  const printableHeightMm = Math.max(
+    1,
+    pageHeightMm - preset.marginTop - preset.marginBottom
+  );
+  const contentScale = Math.min(2, Math.max(0.5, preset.printScale / 100));
+
+  const automaticFontPt = Math.max(3.5, Math.min(7, (pageHeightMm / 45) * 5));
+  const requestedFontPt = (preset.fontSize > 0 ? preset.fontSize : automaticFontPt) * contentScale;
+  const ptToMm = 25.4 / 72;
+  const estimatedHeightMm = requestedFontPt * ptToMm * 3
+    + 11 * (requestedFontPt * ptToMm * 1.3 + 0.3);
+  const fitScale = Math.min(1, printableHeightMm / estimatedHeightMm);
+  const baseFontPt = Math.max(2.5, requestedFontPt * fitScale);
+  const qrBaseMm = Math.min(printableWidthMm * 0.2, printableHeightMm * 0.58);
+  const qrSizeMm = Math.min(
+    printableWidthMm,
+    printableHeightMm,
+    Math.max(Math.min(12, qrBaseMm), qrBaseMm * Math.min(1.25, Math.max(0.75, contentScale)))
+  );
+
+  return {
+    pageWidthMm,
+    pageHeightMm,
+    printableWidthMm,
+    printableHeightMm,
+    baseFontPt,
+    headerFontPt: baseFontPt * 1.15,
+    detailsFontPt: Math.max(2.5, baseFontPt * 0.75),
+    qrSizeMm,
+  };
+}
 
 export function injectPrintStyles(preset: PrintPresetConfig): void {
   const existing = document.getElementById(STYLE_TAG_ID);
@@ -19,75 +76,54 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
 
   const style = document.createElement("style");
   style.id = STYLE_TAG_ID;
+  style.textContent = createPrintStyles(preset);
+  document.head.appendChild(style);
+}
 
-  const availH = preset.heightMm - preset.marginTop - preset.marginBottom;
-  const availW = preset.widthMm - preset.marginLeft - preset.marginRight;
+export function createPrintStyles(preset: PrintPresetConfig): string {
+  const layout = getPrintLayout(preset);
 
-  // User font or auto
-  const userFontPt = preset.fontSize > 0
-    ? preset.fontSize
-    : Math.max(3.5, Math.min(7, (preset.heightMm / 45) * 5));
-
-  // Calculate how much space this font needs (in mm)
-  // 1pt = 0.353mm
-  // Header: brand + subtitle ≈ font * 4
-  // Each row: font * lineHeight + padding + border ≈ font * 1.5 + 0.5mm
-  // Rows: product, chain, date, expiry, weight, packed, ingredients(x3), dest, lot = ~12 rows
-  const ptToMm = 0.353;
-  const headerH = userFontPt * ptToMm * 3;
-  const rowH = userFontPt * ptToMm * 1.3 + 0.3;
-  const totalContentH = headerH + (11 * rowH);
-
-  // Scale to fit
-  const scale = Math.min(1, availH / totalContentH);
-
-  const baseFontPt = userFontPt * scale;
-  const headerFontPt = baseFontPt * 1.15;
-  const ingredientsFontPt = Math.max(2.5, baseFontPt * 0.75);
-
-  // QR proportional
-  const qrMm = Math.min(availW * 0.18, availH * 0.6);
-  const pxPerMm = preset.dpi / 25.4;
-  const qrPx = Math.max(20, Math.round(qrMm * pxPerMm));
-
-  const pageSize = preset.orientation === "landscape"
-    ? `${preset.widthMm}mm ${preset.heightMm}mm landscape`
-    : `${preset.heightMm}mm ${preset.widthMm}mm portrait`;
-
-  style.textContent = `
+  return `
     @media print {
       @page {
-        size: ${pageSize};
+        size: ${layout.pageWidthMm}mm ${layout.pageHeightMm}mm;
         margin: 0mm !important;
       }
+      html, body {
+        width: ${layout.pageWidthMm}mm !important;
+        height: ${layout.pageHeightMm}mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
       #printMatrixContainer {
-        width: ${preset.widthMm}mm !important;
-        height: ${preset.heightMm}mm !important;
+        width: ${layout.pageWidthMm}mm !important;
+        height: ${layout.pageHeightMm}mm !important;
         padding: ${preset.marginTop}mm ${preset.marginRight}mm ${preset.marginBottom}mm ${preset.marginLeft}mm !important;
         box-sizing: border-box !important;
         overflow: hidden !important;
       }
-      html, body {
-        margin: 0 !important;
-        padding: 0 !important;
-      }
       #printMatrixLabel {
-        font-size: ${baseFontPt.toFixed(1)}pt !important;
+        font-size: ${layout.baseFontPt.toFixed(2)}pt !important;
         width: 100% !important;
-        overflow: visible !important;
+        height: 100% !important;
+        overflow: hidden !important;
       }
       #printMatrixLabel table {
         width: 100% !important;
+        height: 100% !important;
         table-layout: fixed !important;
         border-collapse: collapse !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       #printMatrixLabel th {
-        font-size: ${headerFontPt}pt !important;
+        font-size: ${layout.headerFontPt.toFixed(2)}pt !important;
         padding: 0.3mm 0.5mm !important;
         overflow: hidden !important;
       }
       #printMatrixLabel td {
-        font-size: ${baseFontPt}pt !important;
+        font-size: ${layout.baseFontPt.toFixed(2)}pt !important;
         padding: 0.2mm 0.5mm !important;
         overflow: hidden !important;
         word-break: break-word !important;
@@ -98,31 +134,30 @@ export function injectPrintStyles(preset: PrintPresetConfig): void {
         white-space: nowrap !important;
       }
       #printMatrixLabel .multiline-row td:first-child {
-        font-size: ${baseFontPt}pt !important;
+        font-size: ${layout.baseFontPt.toFixed(2)}pt !important;
         font-weight: 600 !important;
         vertical-align: middle !important;
         text-align: center !important;
         white-space: nowrap !important;
       }
       #printMatrixLabel .multiline-row td:nth-child(2) {
-        font-size: ${ingredientsFontPt}pt !important;
+        font-size: ${layout.detailsFontPt.toFixed(2)}pt !important;
         line-height: 1.0 !important;
-        max-height: ${availH * 0.2}mm !important;
+        max-height: ${layout.printableHeightMm * 0.2}mm !important;
         overflow: hidden !important;
       }
       #printMatrixLabel .qr-cell {
-        width: ${qrMm}mm !important;
+        width: ${layout.qrSizeMm}mm !important;
         padding: 0.3mm !important;
       }
       #printMatrixLabel .qr-cell canvas {
-        width: ${qrPx}px !important;
-        height: ${qrPx}px !important;
+        width: ${layout.qrSizeMm}mm !important;
+        height: ${layout.qrSizeMm}mm !important;
         max-width: 100% !important;
         max-height: 100% !important;
       }
     }
   `;
-  document.head.appendChild(style);
 }
 
 export const DEFAULT_PRINT_PRESET: PrintPresetConfig = {

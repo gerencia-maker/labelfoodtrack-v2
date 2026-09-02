@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validations/product";
-import { hasActionPermission } from "@/lib/permissions";
+import { hasActionPermission, hasPermission } from "@/lib/permissions";
 import { DEMO_PRODUCTS_BY_INSTANCE } from "@/lib/demo-data";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -10,6 +10,7 @@ const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
+  if (!hasPermission(user.role, user.permisos, "products")) return forbidden();
 
   if (DEMO_MODE) {
     if (user.instanceId && DEMO_PRODUCTS_BY_INSTANCE[user.instanceId]) {

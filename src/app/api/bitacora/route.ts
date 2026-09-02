@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { bitacoraSchema } from "@/lib/validations/bitacora";
-import { hasActionPermission } from "@/lib/permissions";
+import { toOptionalDate } from "@/lib/validations/common";
+import { hasActionPermission, hasPermission } from "@/lib/permissions";
 import { DEMO_ENTRIES_BY_INSTANCE } from "@/lib/demo-data";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -10,6 +11,7 @@ const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
+  if (!hasPermission(user.role, user.permisos, "bitacora")) return forbidden();
 
   if (DEMO_MODE) {
     let entries: unknown[];
@@ -22,8 +24,10 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get("limit") || "100");
-  const offset = parseInt(searchParams.get("offset") || "0");
+  const requestedLimit = Number.parseInt(searchParams.get("limit") || "100", 10);
+  const requestedOffset = Number.parseInt(searchParams.get("offset") || "0", 10);
+  const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 500) : 100;
+  const offset = Number.isFinite(requestedOffset) ? Math.max(requestedOffset, 0) : 0;
 
   const [entries, total] = await Promise.all([
     prisma.bitacoraEntry.findMany({
@@ -74,19 +78,15 @@ export async function POST(request: NextRequest) {
       productName: parsed.data.productName,
       category: parsed.data.category,
       coldChain: parsed.data.coldChain,
-      processDate: parsed.data.processDate ? new Date(parsed.data.processDate) : null,
-      expiryRefrigerated: parsed.data.expiryRefrigerated
-        ? new Date(parsed.data.expiryRefrigerated)
-        : null,
-      expiryFrozen: parsed.data.expiryFrozen
-        ? new Date(parsed.data.expiryFrozen)
-        : null,
+      processDate: toOptionalDate(parsed.data.processDate),
+      expiryRefrigerated: toOptionalDate(parsed.data.expiryRefrigerated),
+      expiryFrozen: toOptionalDate(parsed.data.expiryFrozen),
       quantity: parsed.data.quantity,
       quantityProduced: parsed.data.quantityProduced,
       packedBy: parsed.data.packedBy,
       destination: parsed.data.destination,
       batch: parsed.data.batch,
-      traceDate: parsed.data.traceDate ? new Date(parsed.data.traceDate) : null,
+      traceDate: toOptionalDate(parsed.data.traceDate),
       instanceId: user.instanceId,
     },
   });

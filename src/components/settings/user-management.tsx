@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/components/ui/toast";
 import { useTranslations } from "next-intl";
@@ -120,12 +120,7 @@ export function UserManagement({ instanceId }: { instanceId?: string } = {}) {
 
   const canManage = hasActionPermission("configuration", "gestionar_usuarios");
 
-  useEffect(() => {
-    if (!canManage) return;
-    loadUsers();
-  }, [canManage]);
-
-  async function loadUsers() {
+  const loadUsers = useCallback(async () => {
     if (DEMO_MODE) {
       setLoading(false);
       return;
@@ -144,7 +139,12 @@ export function UserManagement({ instanceId }: { instanceId?: string } = {}) {
       // ignore
     }
     setLoading(false);
-  }
+  }, [getToken, instanceId]);
+
+  useEffect(() => {
+    if (!canManage) return;
+    loadUsers();
+  }, [canManage, loadUsers]);
 
   function openCreate() {
     setEditingUser(null);

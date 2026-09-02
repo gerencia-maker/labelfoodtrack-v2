@@ -2,7 +2,7 @@
  * Promote a user to super-admin by setting instanceId = null.
  *
  * Usage:
- *   npx tsx scripts/promote-super-admin.ts gerencia@gesstionpg.com
+ *   npx tsx scripts/promote-super-admin.ts gerencia@gestionpg.com
  *   npx tsx scripts/promote-super-admin.ts <email>
  *
  * This gives the user access to ALL instances (super-admin).

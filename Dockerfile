@@ -4,6 +4,8 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
+# `npm ci` ejecuta postinstall, que genera el cliente a partir de este esquema.
+COPY prisma/schema.prisma ./prisma/schema.prisma
 RUN npm ci
 
 # --- Builder ---

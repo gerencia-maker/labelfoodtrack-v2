@@ -50,6 +50,14 @@ export function generateBatch(batchAbbr: string, productionDate: string): string
   return `${batchAbbr}-${dd}${mm}${yy}-${hh}${min}`;
 }
 
+/** Construye un enlace QR estable a partir del ID único de la etiqueta. */
+export function buildQrUrl(identifier: string): string {
+  if (!identifier) return "";
+  const baseUrl = (process.env.NEXT_PUBLIC_QR_BASE_URL || "https://qr.labelfoodtrack.com")
+    .replace(/\/+$/, "");
+  return `${baseUrl}/${encodeURIComponent(identifier)}`;
+}
+
 /** Construye texto de cantidad con porcion */
 export function buildQuantityLabel(
   netContent: string | null | undefined,

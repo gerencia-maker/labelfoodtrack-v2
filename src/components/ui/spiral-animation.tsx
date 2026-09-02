@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
 class Vector2D {
@@ -199,7 +199,7 @@ class Star {
 
         const depth = this.z - c.cameraZ
         const vx = depth * sx / c.viewZoom, vy = depth * sy / c.viewZoom
-        let sm = dp < 0.6 ? 1.0 + dp * 0.2 : 1.2 * (1 - (dp - 0.6) / 0.4) + this.finalScale * ((dp - 0.6) / 0.4)
+        const sm = dp < 0.6 ? 1.0 + dp * 0.2 : 1.2 * (1 - (dp - 0.6) / 0.4) + this.finalScale * ((dp - 0.6) / 0.4)
         c.showProjectedDot(new Vector3D(vx, vy, this.z), 8.5 * this.strokeWeightFactor * sm)
     }
 }

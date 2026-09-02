@@ -2,13 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere, type AuthUser } from "@/lib/auth";
 import { hasPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
+import OpenAI from "openai";
+import { z } from "zod";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 function getOpenAI() {
-  const { default: OpenAI } = require("openai") as { default: typeof import("openai").default };
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
+
+const chatRequestSchema = z
+  .object({
+    messages: z
+      .array(
+        z.object({
+          role: z.enum(["user", "assistant"]),
+          content: z.string().trim().min(1).max(8_000),
+        })
+      )
+      .min(1)
+      .max(20),
+    locale: z.enum(["es", "en", "pt"]).default("es"),
+  })
+  .refine(
+    ({ messages }) => messages.reduce((total, message) => total + message.content.length, 0) <= 30_000,
+    { message: "El historial de mensajes es demasiado largo", path: ["messages"] }
+  );
 
 // ─── Fetch real data for the user's instance ───
 async function fetchInstanceData(user: AuthUser) {
@@ -38,6 +57,7 @@ async function fetchInstanceData(user: AuthUser) {
         storage: true,
       },
       orderBy: { name: "asc" },
+      take: 500,
     }),
     prisma.bitacoraEntry.findMany({
       where: {
@@ -213,11 +233,21 @@ export async function POST(request: NextRequest) {
     return forbidden();
   }
 
-  const { messages, locale = "es" } = await request.json();
-
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return NextResponse.json({ error: "Mensajes requeridos" }, { status: 400 });
+  if (!DEMO_MODE && !user.instanceId) {
+    return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
   }
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: "El servicio de IA no esta configurado" }, { status: 503 });
+  }
+
+  const parsed = chatRequestSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Solicitud invalida", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
+  const { messages, locale } = parsed.data;
 
   try {
     // Fetch real instance data for context
@@ -239,11 +269,11 @@ export async function POST(request: NextRequest) {
 
     const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
         { role: "system", content: fullSystemPrompt },
-        ...messages.map((m: { role: string; content: string }) => ({
-          role: m.role as "user" | "assistant",
+        ...messages.map((m) => ({
+          role: m.role,
           content: m.content,
         })),
       ],

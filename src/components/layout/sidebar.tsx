@@ -19,13 +19,20 @@ import {
   LogOut,
   User,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { canAccessNavItem, hasActionPermission } from "@/lib/permissions";
 
 const MotionLink = motion.create(Link);
 
-export function Sidebar() {
+interface SidebarProps {
+  className?: string;
+  mobile?: boolean;
+  onNavigate?: () => void;
+}
+
+export function Sidebar({ className, mobile = false, onNavigate }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const t = useTranslations("nav");
@@ -55,13 +62,14 @@ export function Sidebar() {
     <aside
       className={cn(
         "flex h-screen flex-col border-r border-orange-200 dark:border-orange-900/30 bg-white dark:bg-slate-900 transition-all duration-300",
-        collapsed ? "w-16" : "w-64"
+        mobile ? "h-full w-72 max-w-[85vw]" : collapsed ? "w-16" : "w-64",
+        className
       )}
     >
       {/* Logo header */}
       <div className="flex h-20 items-center justify-between border-b border-orange-100 dark:border-orange-900/30 px-4 hover:bg-orange-50/50 dark:hover:bg-orange-500/5 transition-colors">
         {!collapsed && (
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5" onClick={onNavigate}>
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500"
               style={{ boxShadow: "0 4px 12px rgba(234, 88, 12, 0.3)" }}
             >
@@ -74,7 +82,7 @@ export function Sidebar() {
           </Link>
         )}
         {collapsed && (
-          <Link href="/" className="mx-auto">
+          <Link href="/" className="mx-auto" onClick={onNavigate}>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-rose-500"
               style={{ boxShadow: "0 4px 12px rgba(234, 88, 12, 0.3)" }}
             >
@@ -82,12 +90,22 @@ export function Sidebar() {
             </div>
           </Link>
         )}
-        {!collapsed && (
+        {!collapsed && !mobile && (
           <button
             onClick={() => setCollapsed(true)}
+            aria-label="Contraer menu"
             className="rounded-lg p-1.5 text-slate-400 dark:text-slate-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400 transition-colors"
           >
             <ChevronLeft size={18} />
+          </button>
+        )}
+        {mobile && (
+          <button
+            onClick={onNavigate}
+            aria-label="Cerrar menu"
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:text-slate-500 dark:hover:bg-orange-500/10 dark:hover:text-orange-400"
+          >
+            <X size={19} />
           </button>
         )}
       </div>
@@ -103,6 +121,7 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onNavigate}
                 className={cn(
                   "flex items-center justify-center rounded-xl p-2.5 transition-all duration-200",
                   isActive
@@ -137,6 +156,7 @@ export function Sidebar() {
 
               <MotionLink
                 href={item.href}
+                onClick={onNavigate}
                 variants={{
                   initial: { x: -16 },
                   hover: { x: 0 },
@@ -174,6 +194,7 @@ export function Sidebar() {
             </div>
             <button
               onClick={signOut}
+              aria-label={tAuth("logout")}
               className="rounded-lg p-2 text-slate-400 dark:text-slate-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400 transition-colors"
               title={tAuth("logout")}
             >
@@ -184,6 +205,7 @@ export function Sidebar() {
           <div className="flex flex-col items-center gap-2">
             <button
               onClick={() => setCollapsed(false)}
+              aria-label="Expandir menu"
               className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400 transition-colors"
             >
               <ChevronRight size={18} />

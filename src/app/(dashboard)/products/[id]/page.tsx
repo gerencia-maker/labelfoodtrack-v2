@@ -36,7 +36,7 @@ export default function EditProductPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const { getToken, userData, hasActionPermission } = useAuth();
+  const { getToken, hasActionPermission } = useAuth();
   const { toast } = useToast();
   const t = useTranslations("products");
   const tc = useTranslations("common");
@@ -66,6 +66,8 @@ export default function EditProductPage({
   }, [id, getToken]);
 
   useEffect(() => {
+    // The loader synchronizes this route with its remote API resource.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProduct();
   }, [loadProduct]);
 

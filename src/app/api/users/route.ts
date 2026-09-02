@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const queryInstanceId = request.nextUrl.searchParams.get("instanceId");
-    const effectiveInstanceId = (user.isSuperAdmin || user.email === "gerencia@gestionpg.com") && queryInstanceId
+    const effectiveInstanceId = user.isSuperAdmin && queryInstanceId
       ? queryInstanceId
       : user.instanceId;
     const where = effectiveInstanceId ? { instanceId: effectiveInstanceId } : {};
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { email, password, name, role, permisos, ubicacion } = body;
 
-  const targetInstanceId = (user.isSuperAdmin || user.email === "gerencia@gestionpg.com") && body.instanceId
+  const targetInstanceId = user.isSuperAdmin && body.instanceId
     ? body.instanceId
     : user.instanceId;
 

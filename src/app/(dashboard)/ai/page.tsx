@@ -76,7 +76,7 @@ export default function AIPage() {
         { role: "assistant", content: WELCOME_MESSAGES[locale] || WELCOME_MESSAGES.es, timestamp: new Date() },
       ]);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -155,7 +155,7 @@ export default function AIPage() {
         inputRef.current?.focus();
       }
     },
-    [input, loading, messages, getToken]
+    [input, loading, messages, getToken, locale]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

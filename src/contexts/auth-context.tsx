@@ -60,7 +60,7 @@ const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 const DEMO_USER_DATA: UserData = {
   id: "demo-user",
   firebaseUid: "demo-uid",
-  email: "gerencia@gesstionpg.com",
+  email: "gerencia@gestionpg.com",
   name: "Gerencia GestionPG",
   role: "ADMIN",
   permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"],
@@ -77,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // In DEMO_MODE, check if user was previously "logged out"
       const demoLoggedOut = sessionStorage.getItem("lft-demo-logout");
       if (!demoLoggedOut) {
+        // Demo session state is only available after the client mounts.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUserData(DEMO_USER_DATA);
       }
       setLoading(false);

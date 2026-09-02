@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission } from "@/lib/permissions";
+import { hasActionPermission } from "@/lib/permissions";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   // Only ADMIN can factory-reset
   if (user.role !== "ADMIN") return forbidden();
 
-  if (!hasPermission(user.role, user.permisos, "configuration")) {
+  if (!hasActionPermission(user.role, user.permisos, "configuration", "factory_reset")) {
     return forbidden();
   }
 

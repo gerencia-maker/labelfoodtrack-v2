@@ -24,6 +24,10 @@ export async function PUT(request: NextRequest, ctx: Ctx) {
     return NextResponse.json({ id, ...body });
   }
 
+  if (!user.instanceId) {
+    return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
+  }
+
   const body = await request.json();
   const parsed = printPresetSchema.safeParse(body);
 
@@ -34,8 +38,16 @@ export async function PUT(request: NextRequest, ctx: Ctx) {
     );
   }
 
+  const existing = await prisma.printPreset.findFirst({
+    where: { id, instanceId: user.instanceId },
+    select: { id: true },
+  });
+  if (!existing) {
+    return NextResponse.json({ error: "Preset no encontrado" }, { status: 404 });
+  }
+
   const preset = await prisma.printPreset.update({
-    where: { id },
+    where: { id: existing.id },
     data: parsed.data,
   });
 
@@ -57,12 +69,18 @@ export async function DELETE(request: NextRequest, ctx: Ctx) {
     return NextResponse.json({ ok: true });
   }
 
-  const preset = await prisma.printPreset.findUnique({ where: { id } });
+  if (!user.instanceId) {
+    return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
+  }
+
+  const preset = await prisma.printPreset.findFirst({
+    where: { id, instanceId: user.instanceId },
+  });
   if (!preset) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  await prisma.printPreset.delete({ where: { id } });
+  await prisma.printPreset.delete({ where: { id: preset.id } });
 
   // If deleted preset was active, activate another one
   if (preset.isActive && user.instanceId) {
@@ -99,16 +117,26 @@ export async function PATCH(request: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "No instance" }, { status: 400 });
   }
 
-  // Deactivate all, then activate this one
-  await prisma.printPreset.updateMany({
-    where: { instanceId: user.instanceId },
-    data: { isActive: false },
-  });
 
-  await prisma.printPreset.update({
-    where: { id },
-    data: { isActive: true },
+  const preset = await prisma.printPreset.findFirst({
+    where: { id, instanceId: user.instanceId },
+    select: { id: true },
   });
+  if (!preset) {
+    return NextResponse.json({ error: "Preset no encontrado" }, { status: 404 });
+  }
+
+  // Keep activation atomic so an instance never ends up with a partial update.
+  await prisma.$transaction([
+    prisma.printPreset.updateMany({
+      where: { instanceId: user.instanceId },
+      data: { isActive: false },
+    }),
+    prisma.printPreset.update({
+      where: { id: preset.id },
+      data: { isActive: true },
+    }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

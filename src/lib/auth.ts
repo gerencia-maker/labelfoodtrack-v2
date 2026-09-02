@@ -9,6 +9,8 @@ import { adminAuth, isFirebaseAdminConfigured } from "./firebase-admin";
 import { prisma } from "./prisma";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+const UNASSIGNED_INSTANCE_ID = "__unassigned__";
+let warnedMissingFirebaseAdmin = false;
 
 export interface AuthInstance {
   id: string;
@@ -36,7 +38,7 @@ export interface AuthUser {
 const demoUser: AuthUser = {
   id: "demo-user-id",
   firebaseUid: "demo-firebase-uid",
-  email: "gerencia@gesstionpg.com",
+  email: "gerencia@gestionpg.com",
   name: "Gerencia GestionPG",
   role: "ADMIN",
   permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"],
@@ -45,14 +47,22 @@ const demoUser: AuthUser = {
 };
 
 export async function verifyAuth(request: NextRequest): Promise<AuthUser | null> {
-  // Return demo user if DEMO_MODE or Firebase Admin is not configured
-  if (DEMO_MODE || !isFirebaseAdminConfigured) {
+  // Demo access must always be explicit. Missing production credentials must fail closed.
+  if (DEMO_MODE) {
     // Super-admin: read cookie to scope to a specific instance (same as real auth)
     const cookieInstanceId = request.cookies.get("lft-instance-id")?.value;
     return {
       ...demoUser,
       instanceId: cookieInstanceId || null,
     };
+  }
+
+  if (!isFirebaseAdminConfigured) {
+    if (!warnedMissingFirebaseAdmin) {
+      console.error("[auth] FIREBASE_SERVICE_ACCOUNT is missing; authentication is disabled");
+      warnedMissingFirebaseAdmin = true;
+    }
+    return null;
   }
 
   try {
@@ -251,7 +261,8 @@ export function requireRole(user: AuthUser, allowedRoles: string[]): Response | 
  * Super-admin (instanceId null) sees everything; tenant users see only their data.
  */
 export function tenantWhere(user: AuthUser): { instanceId?: string } {
-  return user.instanceId ? { instanceId: user.instanceId } : {};
+  if (user.isSuperAdmin && !user.instanceId) return {};
+  return { instanceId: user.instanceId ?? UNASSIGNED_INSTANCE_ID };
 }
 
 /**
@@ -259,5 +270,6 @@ export function tenantWhere(user: AuthUser): { instanceId?: string } {
  */
 export function checkTenantAccess(user: AuthUser, resourceInstanceId: string | null): boolean {
   if (user.isSuperAdmin) return true;
+  if (!user.instanceId || !resourceInstanceId) return false;
   return resourceInstanceId === user.instanceId;
 }

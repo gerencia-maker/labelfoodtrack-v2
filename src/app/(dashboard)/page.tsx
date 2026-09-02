@@ -12,7 +12,6 @@ import {
   Tag,
   LayoutGrid,
   List,
-  Package,
   Snowflake,
   Thermometer,
   Sun,
@@ -41,7 +40,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [dates, setDates] = useState<Record<string, string>>({});
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
-  const { getToken, userData, hasActionPermission, isSuperAdmin } = useAuth();
+  const { getToken, hasActionPermission, isSuperAdmin } = useAuth();
   const t = useTranslations("products");
   const router = useRouter();
   const { toast } = useToast();
@@ -50,7 +49,6 @@ export default function ProductsPage() {
   const canEdit = hasActionPermission("products", "editar");
   const canRotular = hasActionPermission("products", "rotular");
   const canEditDate = hasActionPermission("products", "editar_fecha");
-  const canEditShelfLife = hasActionPermission("products", "editar_caducidad");
   const today = new Date().toISOString().split("T")[0];
   const dateLabels = { today: t("today"), clearDate: t("clearDate"), useTodayDate: t("useTodayDate") };
 
@@ -442,6 +440,8 @@ function DateQuickPicker({
       prevValue.current = value;
       if (value) {
         const [y, m, d] = value.split("-");
+        // Keep partial inputs synchronized after an external reset/today action.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLocalDay(String(parseInt(d)));
         setLocalMonth(String(parseInt(m)));
         setLocalYear(y);

@@ -14,33 +14,44 @@ export async function GET(
   }
 
   try {
-    const label = await prisma.label.findFirst({
-      where: { batch },
-      include: {
-        product: {
-          select: {
-            name: true,
-            code: true,
-            category: true,
-            ingredients: true,
-            allergens: true,
-            storage: true,
-            usage: true,
-            refrigeratedDays: true,
-            frozenDays: true,
-            ambientDays: true,
-          },
-        },
-        instance: {
-          select: {
-            name: true,
-            brandName: true,
-            logoUrl: true,
-          },
+    const include = {
+      product: {
+        select: {
+          name: true,
+          code: true,
+          category: true,
+          ingredients: true,
+          allergens: true,
+          storage: true,
+          usage: true,
+          refrigeratedDays: true,
+          frozenDays: true,
+          ambientDays: true,
         },
       },
-      orderBy: { createdAt: "desc" },
+      instance: {
+        select: {
+          name: true,
+          brandName: true,
+          logoUrl: true,
+        },
+      },
+    } as const;
+
+    // New QR codes use the globally unique label ID. Batch lookup remains as
+    // a compatibility fallback for labels that were already printed.
+    let label = await prisma.label.findUnique({
+      where: { id: batch },
+      include,
     });
+
+    if (!label) {
+      label = await prisma.label.findFirst({
+        where: { batch },
+        include,
+        orderBy: { createdAt: "desc" },
+      });
+    }
 
     if (!label) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });

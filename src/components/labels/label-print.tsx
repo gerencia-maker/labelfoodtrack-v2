@@ -1,21 +1,52 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { useTranslations } from "next-intl";
 import type { LabelPreviewData } from "./label-preview";
+import {
+  DEFAULT_PRINT_PRESET,
+  getPrintLayout,
+  type PrintPresetConfig,
+} from "@/lib/print-style";
 
 interface LabelPrintProps {
   data: LabelPreviewData;
   /** When true, renders a screen-visible preview (not hidden) */
   screenPreview?: boolean;
+  preset?: PrintPresetConfig;
 }
 
 /**
  * Componente de impresion: tabla matricial 3 columnas con QR inline.
  * Con screenPreview=true se muestra en pantalla como preview real.
  */
-export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
+export function LabelPrint({ data, screenPreview, preset = DEFAULT_PRINT_PRESET }: LabelPrintProps) {
   const t = useTranslations("labels");
+  const layout = getPrintLayout(preset);
+  const mmInContainerUnits = 100 / layout.pageWidthMm;
+  const ptToMm = 25.4 / 72;
+
+  const previewContainerStyle = screenPreview
+    ? ({
+        aspectRatio: `${layout.pageWidthMm} / ${layout.pageHeightMm}`,
+        "--preview-font-size": `${layout.baseFontPt * ptToMm * mmInContainerUnits}cqw`,
+        "--preview-header-size": `${layout.headerFontPt * ptToMm * mmInContainerUnits}cqw`,
+        "--preview-details-size": `${layout.detailsFontPt * ptToMm * mmInContainerUnits}cqw`,
+        "--preview-pad-y": `${0.2 * mmInContainerUnits}cqw`,
+        "--preview-pad-x": `${0.5 * mmInContainerUnits}cqw`,
+        "--preview-qr-size": `${layout.qrSizeMm * mmInContainerUnits}cqw`,
+      } as CSSProperties)
+    : undefined;
+  const previewLabelStyle = screenPreview
+    ? ({
+        position: "absolute",
+        left: `${(preset.marginLeft / layout.pageWidthMm) * 100}%`,
+        top: `${(preset.marginTop / layout.pageHeightMm) * 100}%`,
+        width: `${(layout.printableWidthMm / layout.pageWidthMm) * 100}%`,
+        height: `${(layout.printableHeightMm / layout.pageHeightMm) * 100}%`,
+      } as CSSProperties)
+    : undefined;
 
   const formatDate = (dateStr: string) => {
     if (!dateStr || dateStr === "--") return "--";
@@ -44,8 +75,16 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
   const qrRowSpan = 5 + (hasRefrigerated ? 1 : 0) + (hasFrozen ? 1 : 0) + extraRows;
 
   return (
-    <div id={screenPreview ? undefined : "printMatrixContainer"} className={screenPreview ? "screen-print-preview" : undefined}>
-      <div id={screenPreview ? undefined : "printMatrixLabel"} className={screenPreview ? "screen-matrix-label" : undefined}>
+    <div
+      id={screenPreview ? undefined : "printMatrixContainer"}
+      className={screenPreview ? "screen-print-preview" : undefined}
+      style={previewContainerStyle}
+    >
+      <div
+        id={screenPreview ? undefined : "printMatrixLabel"}
+        className={screenPreview ? "screen-matrix-label" : undefined}
+        style={previewLabelStyle}
+      >
         <table>
           <thead>
             <tr>
@@ -63,7 +102,7 @@ export function LabelPrint({ data, screenPreview }: LabelPrintProps) {
                 {data.qrData ? (
                   <QRCodeCanvas
                     value={data.qrData}
-                    size={screenPreview ? 140 : 200}
+                    size={512}
                     level="H"
                     includeMargin={false}
                   />

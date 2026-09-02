@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const chatbotId = searchParams.get("chatbotId");
-  const days = parseInt(searchParams.get("days") || "7");
+  const requestedDays = Number.parseInt(searchParams.get("days") || "7", 10);
+  const days = Number.isFinite(requestedDays) ? Math.min(Math.max(requestedDays, 1), 90) : 7;
 
   if (!chatbotId) {
     return NextResponse.json({ error: "chatbotId es obligatorio" }, { status: 400 });

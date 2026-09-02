@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { RequirePermission } from "@/components/require-permission";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Tag, Search, Printer, Eye } from "lucide-react";
+import { Plus, Trash2, Tag, Search, Eye } from "lucide-react";
 import Link from "next/link";
 
 interface LabelItem {
@@ -22,7 +22,7 @@ export default function LabelsPage() {
   const [labels, setLabels] = useState<LabelItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const { getToken, userData, hasActionPermission } = useAuth();
+  const { getToken, hasActionPermission } = useAuth();
 
   const canCreate = hasActionPermission("labels", "crear");
   const canDelete = hasActionPermission("labels", "eliminar");

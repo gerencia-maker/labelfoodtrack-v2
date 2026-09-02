@@ -6,7 +6,7 @@ import { RequirePermission } from "@/components/require-permission";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Trash2, Download, ClipboardList, Search, FileSpreadsheet, FileText } from "lucide-react";
+import { Trash2, ClipboardList, Search, FileSpreadsheet, FileText } from "lucide-react";
 
 interface BitacoraEntry {
   id: string;
@@ -93,7 +93,7 @@ export default function BitacoraPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const { getToken, userData, hasActionPermission } = useAuth();
+  const { getToken, hasActionPermission } = useAuth();
   const t = useTranslations("bitacora");
 
   const canDelete = hasActionPermission("bitacora", "eliminar");

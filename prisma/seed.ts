@@ -37,7 +37,7 @@ async function main() {
     update: {},
     create: {
       firebaseUid: "super-admin-uid",
-      email: "gerencia@gesstionpg.com",
+      email: "gerencia@gestionpg.com",
       name: "Gerencia GestionPG",
       role: "ADMIN",
       status: "ACTIVE",

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, checkTenantAccess } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission } from "@/lib/permissions";
+import { hasActionPermission } from "@/lib/permissions";
 import { updateDemoInstance, deleteDemoInstance, getDemoInstance } from "@/lib/demo-data";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -13,7 +13,7 @@ export async function PUT(
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  if (!hasPermission(user.role, user.permisos, "configuration")) {
+  if (!hasActionPermission(user.role, user.permisos, "configuration", "editar_instancia")) {
     return forbidden();
   }
 
@@ -66,8 +66,7 @@ export async function DELETE(
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  // Only super-admin email can delete instances
-  if (user.email !== "gerencia@gestionpg.com") {
+  if (!user.isSuperAdmin) {
     return forbidden();
   }
 

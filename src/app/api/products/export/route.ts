@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission } from "@/lib/permissions";
+import { hasActionPermission, hasPermission } from "@/lib/permissions";
 import { DEMO_PRODUCTS_BY_INSTANCE } from "@/lib/demo-data";
 import * as XLSX from "xlsx";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
+function spreadsheetSafe(value: unknown): string | number {
+  if (typeof value === "number") return value;
+  const text = String(value ?? "");
+  return /^[=+\-@]/.test(text) ? `'${text}` : text;
+}
+
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
   if (!user) return unauthorized();
 
-  if (!hasPermission(user.role, user.permisos, "export")) {
+  if (
+    !hasPermission(user.role, user.permisos, "export") &&
+    !hasActionPermission(user.role, user.permisos, "configuration", "exportar_datos")
+  ) {
     return forbidden();
   }
 
@@ -46,10 +55,10 @@ export async function GET(request: NextRequest) {
   ];
 
   const rows = products.map((p) => [
-    p.code,
-    p.batchAbbr || "",
-    p.name,
-    p.category || "",
+    spreadsheetSafe(p.code),
+    spreadsheetSafe(p.batchAbbr),
+    spreadsheetSafe(p.name),
+    spreadsheetSafe(p.category),
     p.refrigeratedDays ?? 0,
     p.frozenDays ?? 0,
     p.ambientDays ?? 0,
@@ -81,8 +90,8 @@ export async function GET(request: NextRequest) {
   if (format === "csv") {
     const csvContent = [
       headers.join(","),
-      ...rows.map((row: (string | number | null)[]) =>
-        row.map((cell: string | number | null) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+      ...rows.map((row: (string | number)[]) =>
+        row.map((cell: string | number) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
       ),
     ].join("\n");
 

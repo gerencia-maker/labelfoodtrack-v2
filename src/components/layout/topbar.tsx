@@ -4,11 +4,15 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useLocale } from "@/contexts/locale-context";
 import { useTranslations } from "next-intl";
-import { LogOut, User, Globe, Moon, Sun } from "lucide-react";
+import { LogOut, User, Globe, Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InstanceSelector } from "./instance-selector";
 
-export function Topbar() {
+interface TopbarProps {
+  onMenuClick?: () => void;
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const { userData, signOut } = useAuth();
   const { locale, setLocale } = useLocale();
   const t = useTranslations("auth");
@@ -17,6 +21,8 @@ export function Topbar() {
   useEffect(() => {
     const saved = localStorage.getItem("lft-theme");
     if (saved === "dark") {
+      // Theme preference is only available after the client mounts.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDark(true);
       document.documentElement.classList.add("dark");
     }
@@ -35,8 +41,16 @@ export function Topbar() {
   };
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-orange-100 dark:border-orange-900/30 bg-white dark:bg-slate-900 px-4 md:px-6">
-      <div className="flex items-center gap-3">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-orange-100 bg-white px-3 dark:border-orange-900/30 dark:bg-slate-900 sm:px-4 md:px-6">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Abrir menu"
+          className="shrink-0 rounded-lg p-2 text-slate-500 transition-colors hover:bg-orange-50 hover:text-orange-700 dark:text-slate-400 dark:hover:bg-orange-500/10 dark:hover:text-orange-400 md:hidden"
+        >
+          <Menu size={20} />
+        </button>
         {userData?.instance?.logoUrl && (
           <img
             src={userData.instance.logoUrl}
@@ -44,8 +58,8 @@ export function Topbar() {
             className="h-9 max-w-[120px] md:max-w-[160px] rounded-lg object-contain"
           />
         )}
-        <div>
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <div className="hidden min-w-0 min-[480px]:block">
+          <h2 className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
             {userData?.instance?.name || userData?.name || ""}
           </h2>
           {userData?.instance?.brandName && userData.instance.brandName !== userData.instance.name && (
@@ -56,13 +70,14 @@ export function Topbar() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-3">
         {/* Super-admin instance selector */}
         <InstanceSelector />
 
         {/* Dark mode toggle */}
         <button
           onClick={toggleDark}
+          aria-label={dark ? "Activar modo claro" : "Activar modo oscuro"}
           className="rounded-lg p-2 text-slate-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400 transition-colors"
           title="Dark mode"
         >
@@ -92,7 +107,7 @@ export function Topbar() {
           size="icon"
           onClick={signOut}
           title={t("logout")}
-          className="text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+          className="hidden text-slate-500 hover:bg-red-50 hover:text-red-500 dark:text-slate-400 dark:hover:bg-red-500/10 dark:hover:text-red-400 sm:inline-flex"
         >
           <LogOut size={18} />
         </Button>

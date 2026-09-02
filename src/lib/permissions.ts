@@ -117,15 +117,14 @@ const NAV_PERMISSION_MAP: Record<string, PermisoCodigo> = {
 export function hasPermission(
   rol: string,
   permisos: string[],
-  permission: PermisoCodigo,
-  instancePlan?: string
+  permission: PermisoCodigo
 ): boolean {
   if (rol === "ADMIN") return true;
 
   // VIEWER is read-only — block write-oriented modules
   if (rol === "VIEWER") {
     const blocked: string[] = [PERMISOS.import, PERMISOS.export, PERMISOS.ai_features];
-    return !blocked.includes(permission);
+    if (blocked.includes(permission)) return false;
   }
 
   return permisos.includes(permission);
@@ -133,7 +132,7 @@ export function hasPermission(
 
 /**
  * Check if user has a specific sub-action permission within a module.
- * Backward compatible: if user has module but NO sub-permissions → full access.
+ * The module and the exact sub-permission are both required for non-admin users.
  */
 export function hasActionPermission(
   rol: string,
@@ -158,10 +157,9 @@ export function hasActionPermission(
 export function canAccessNavItem(
   rol: string,
   permisos: string[],
-  navLabelKey: string,
-  instancePlan?: string
+  navLabelKey: string
 ): boolean {
   const permission = NAV_PERMISSION_MAP[navLabelKey];
   if (!permission) return true;
-  return hasPermission(rol, permisos, permission, instancePlan);
+  return hasPermission(rol, permisos, permission);
 }
