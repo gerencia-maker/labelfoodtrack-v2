@@ -41,8 +41,6 @@ interface LabelData {
   batch: string | null;
   netContent: string | null;
   productionDate: string | null;
-  packedBy: string | null;
-  destination: string | null;
   coldChain: string | null;
   expiryRefrigerated: string | null;
   expiryFrozen: string | null;
@@ -388,16 +386,10 @@ export default function QRLabelPage({
               </div>
             )}
 
-            {/* Net content, Packed by, Destination */}
+            {/* Public product information */}
             <div className="grid grid-cols-2 gap-4">
               {label.netContent && (
                 <InfoItem label="Contenido neto" value={label.netContent} />
-              )}
-              {label.packedBy && (
-                <InfoItem label="Empacado por" value={label.packedBy} />
-              )}
-              {label.destination && (
-                <InfoItem label="Destino" value={label.destination} />
               )}
             </div>
 

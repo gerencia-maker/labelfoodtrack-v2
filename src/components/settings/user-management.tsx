@@ -175,7 +175,7 @@ export function UserManagement({ instanceId }: { instanceId?: string } = {}) {
   async function handleSave() {
     if (!formName.trim()) return;
     if (!editingUser && !formEmail.trim()) return;
-    if (!editingUser && formPassword.length < 6) {
+    if (!editingUser && formPassword.length < 12) {
       toast({ title: t("passwordTooShort"), variant: "error" });
       return;
     }

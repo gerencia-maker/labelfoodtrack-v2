@@ -3,7 +3,8 @@ import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission, hasPermission } from "@/lib/permissions";
 import { DEMO_PRODUCTS_BY_INSTANCE } from "@/lib/demo-data";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -24,6 +25,14 @@ export async function GET(request: NextRequest) {
     return forbidden();
   }
 
+  const limited = enforceRateLimit(request, {
+    scope: "product-export",
+    identifier: user.id,
+    limit: 20,
+    windowMs: 10 * 60_000,
+  });
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const format = searchParams.get("format") || "xlsx";
 
@@ -40,6 +49,7 @@ export async function GET(request: NextRequest) {
     products = await prisma.product.findMany({
       where: { ...tenantWhere(user) },
       orderBy: [{ category: "asc" }, { code: "asc" }],
+      take: 10_000,
     });
   }
 
@@ -67,19 +77,18 @@ export async function GET(request: NextRequest) {
   const dateStr = new Date().toISOString().split("T")[0];
 
   if (format === "xlsx") {
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Productos");
+    worksheet.addRows([headers, ...rows]);
 
-    // Auto-size columns
-    ws["!cols"] = headers.map((h, i) => {
+    worksheet.columns = headers.map((h, i) => {
       const maxLen = Math.max(h.length, ...rows.map((r) => String(r[i]).length));
-      return { wch: Math.min(maxLen + 2, 45) };
+      return { width: Math.min(maxLen + 2, 45) };
     });
+    worksheet.getRow(1).font = { bold: true };
+    const buf = await workbook.xlsx.writeBuffer();
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Productos");
-    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
-
-    return new NextResponse(buf, {
+    return new NextResponse(Buffer.from(buf), {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition": `attachment; filename="productos_${dateStr}.xlsx"`,

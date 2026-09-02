@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { bitacoraSchema } from "../src/lib/validations/bitacora";
 import { labelSchema } from "../src/lib/validations/label";
+import { productSchema } from "../src/lib/validations/product";
+import { createUserSchema, updateUserSchema } from "../src/lib/validations/user";
+import { updateInstanceSchema } from "../src/lib/validations/instance";
 
 const validLabel = {
   productId: "product-1",
@@ -31,4 +34,43 @@ test("traceability text fields have bounded lengths", () => {
 
   assert.equal(labelSchema.safeParse({ ...validLabel, packedBy: oversized }).success, false);
   assert.equal(bitacoraSchema.safeParse({ productName: oversized }).success, false);
+});
+
+test("user inputs reject weak passwords, unknown roles and unknown permissions", () => {
+  const baseUser = {
+    email: "user@example.com",
+    password: "a-secure-password",
+    name: "User",
+    role: "EDITOR",
+    permisos: ["products", "products.editar"],
+  };
+
+  assert.equal(createUserSchema.safeParse(baseUser).success, true);
+  assert.equal(createUserSchema.safeParse({ ...baseUser, password: "123456" }).success, false);
+  assert.equal(createUserSchema.safeParse({ ...baseUser, role: "OWNER" }).success, false);
+  assert.equal(
+    createUserSchema.safeParse({ ...baseUser, permisos: ["configuration.become_admin"] }).success,
+    false
+  );
+  assert.equal(updateUserSchema.safeParse({}).success, false);
+});
+
+test("instance and product inputs have bounded security-sensitive fields", () => {
+  assert.equal(updateInstanceSchema.safeParse({ plan: "UNLIMITED" }).success, false);
+  assert.equal(
+    updateInstanceSchema.safeParse({ destinations: Array.from({ length: 101 }, (_, i) => `D${i}`) })
+      .success,
+    false
+  );
+
+  const product = {
+    code: "P-1",
+    name: "Producto",
+    refrigeratedDays: 30,
+    frozenDays: 0,
+    ambientDays: 0,
+  };
+  assert.equal(productSchema.safeParse(product).success, true);
+  assert.equal(productSchema.safeParse({ ...product, refrigeratedDays: 100_000 }).success, false);
+  assert.equal(productSchema.safeParse({ ...product, name: "x".repeat(201) }).success, false);
 });

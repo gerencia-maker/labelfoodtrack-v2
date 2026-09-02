@@ -32,7 +32,7 @@ export default function LoginPage() {
   // Load instances for search
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (instanceSearch.length < 1) { setInstances([]); return; }
+      if (instanceSearch.trim().length < 2) { setInstances([]); return; }
       setLoadingInstances(true);
       try {
         const res = await fetch(`/api/instances/public?q=${encodeURIComponent(instanceSearch)}`);

@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
+import { verifyAuth, unauthorized, forbidden, tenantWhere, hasRecentAuthentication } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission } from "@/lib/permissions";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { z } from "zod";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+const resetSchema = z
+  .object({
+    module: z.enum(["all", "products", "labels", "bitacora"]),
+    confirmation: z.literal("ELIMINAR"),
+  })
+  .strict();
 
 export async function POST(request: NextRequest) {
   const user = await verifyAuth(request);
@@ -16,7 +24,26 @@ export async function POST(request: NextRequest) {
     return forbidden();
   }
 
-  const { module } = await request.json();
+  if (!hasRecentAuthentication(user)) {
+    return NextResponse.json(
+      { error: "Vuelve a iniciar sesion antes de eliminar datos" },
+      { status: 403 }
+    );
+  }
+
+  const limited = enforceRateLimit(request, {
+    scope: "factory-reset",
+    identifier: user.id,
+    limit: 5,
+    windowMs: 60 * 60_000,
+  });
+  if (limited) return limited;
+
+  const parsed = resetSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Confirmacion invalida" }, { status: 400 });
+  }
+  const { module } = parsed.data;
 
   if (DEMO_MODE) {
     return NextResponse.json({
@@ -36,42 +63,35 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    let deleted = 0;
+    const deleted = await prisma.$transaction(async (tx) => {
+      switch (module) {
+        case "all": {
+          const r1 = await tx.bitacoraEntry.deleteMany({ where });
+          const r2 = await tx.label.deleteMany({ where });
+          const r3 = await tx.product.deleteMany({ where });
+          return r1.count + r2.count + r3.count;
+        }
+        case "products": {
+          const r1 = await tx.label.deleteMany({
+            where: { ...where, productId: { not: null } },
+          });
+          const r2 = await tx.product.deleteMany({ where });
+          return r1.count + r2.count;
+        }
+        case "labels": {
+          const r = await tx.label.deleteMany({ where });
+          return r.count;
+        }
+        case "bitacora": {
+          const r = await tx.bitacoraEntry.deleteMany({ where });
+          return r.count;
+        }
+      }
+    });
 
-    switch (module) {
-      case "all": {
-        // Order matters: labels reference products
-        const r1 = await prisma.bitacoraEntry.deleteMany({ where });
-        const r2 = await prisma.label.deleteMany({ where });
-        const r3 = await prisma.product.deleteMany({ where });
-        deleted = r1.count + r2.count + r3.count;
-        break;
-      }
-      case "products": {
-        // Delete labels linked to products first, then products
-        const r1 = await prisma.label.deleteMany({
-          where: { ...where, productId: { not: null } },
-        });
-        const r2 = await prisma.product.deleteMany({ where });
-        deleted = r1.count + r2.count;
-        break;
-      }
-      case "labels": {
-        const r = await prisma.label.deleteMany({ where });
-        deleted = r.count;
-        break;
-      }
-      case "bitacora": {
-        const r = await prisma.bitacoraEntry.deleteMany({ where });
-        deleted = r.count;
-        break;
-      }
-      default:
-        return NextResponse.json(
-          { error: "Modulo no valido" },
-          { status: 400 }
-        );
-    }
+    console.warn(
+      `[security-audit] actor=${user.id} action=factory_reset instance=${where.instanceId} module=${module} deleted=${deleted}`
+    );
 
     return NextResponse.json({ success: true, deleted });
   } catch (err) {

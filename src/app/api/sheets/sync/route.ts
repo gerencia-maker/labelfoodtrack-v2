@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission } from "@/lib/permissions";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { z } from "zod";
+import ExcelJS from "exceljs";
+import { Readable } from "node:stream";
+
+const MAX_SHEET_BYTES = 5 * 1024 * 1024;
+const MAX_SHEET_ROWS = 5_000;
+const MAX_CELL_LENGTH = 1_000;
+
+const sheetSyncSchema = z
+  .object({
+    sheetId: z.string().regex(/^[A-Za-z0-9_-]{20,100}$/),
+    gid: z.string().regex(/^\d{1,20}$/).optional(),
+  })
+  .strict();
 
 /**
  * POST /api/sheets/sync
@@ -26,16 +41,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
   }
 
-  const { sheetId, gid } = await request.json();
+  const limited = enforceRateLimit(request, {
+    scope: "sheets-sync",
+    identifier: user.id,
+    limit: 10,
+    windowMs: 10 * 60_000,
+  });
+  if (limited) return limited;
 
-  if (!sheetId) {
-    return NextResponse.json({ error: "sheetId es requerido" }, { status: 400 });
+  const parsed = sheetSyncSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Identificador de Google Sheet invalido" }, { status: 400 });
   }
+  const { sheetId, gid } = parsed.data;
 
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid || "0"}`;
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/gviz/tq?tqx=out:csv&gid=${encodeURIComponent(gid || "0")}`;
 
   try {
-    const res = await fetch(csvUrl);
+    const res = await fetch(csvUrl, {
+      signal: AbortSignal.timeout(15_000),
+      redirect: "error",
+    });
     if (!res.ok) {
       return NextResponse.json(
         { error: "No se pudo acceder al Google Sheet. Verifica que sea publico." },
@@ -43,15 +69,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const csvText = await res.text();
-    const rows = parseCSV(csvText);
+    const declaredLength = Number(res.headers.get("content-length") || "0");
+    if (declaredLength > MAX_SHEET_BYTES) {
+      return NextResponse.json({ error: "El Google Sheet supera 5 MB" }, { status: 413 });
+    }
 
-    if (rows.length < 2) {
+    const csvText = await res.text();
+    if (Buffer.byteLength(csvText, "utf8") > MAX_SHEET_BYTES) {
+      return NextResponse.json({ error: "El Google Sheet supera 5 MB" }, { status: 413 });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = await workbook.csv.read(Readable.from(csvText));
+
+    if (worksheet.rowCount < 2) {
       return NextResponse.json({ error: "El sheet esta vacio o no tiene datos" }, { status: 400 });
     }
 
+    if (worksheet.rowCount - 1 > MAX_SHEET_ROWS) {
+      return NextResponse.json(
+        { error: `El sheet supera el limite de ${MAX_SHEET_ROWS} filas` },
+        { status: 413 }
+      );
+    }
+
     // Skip header row
-    const dataRows = rows.slice(1);
+    const dataRows: string[][] = [];
+    for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
+      const row = worksheet.getRow(rowNumber);
+      dataRows.push(
+        Array.from({ length: 11 }, (_, index) =>
+          row.getCell(index + 1).text.trim().slice(0, MAX_CELL_LENGTH)
+        )
+      );
+    }
     let imported = 0;
     let skipped = 0;
 
@@ -72,9 +123,9 @@ export async function POST(request: NextRequest) {
           batchAbbr: cleanCell(row[1]) || undefined,
           name,
           category: cleanCell(row[3]) || undefined,
-          refrigeratedDays: parseInt(row[4]) || 0,
-          frozenDays: parseInt(row[5]) || 0,
-          ambientDays: parseInt(row[6]) || 0,
+          refrigeratedDays: parseDays(row[4]),
+          frozenDays: parseDays(row[5]),
+          ambientDays: parseDays(row[6]),
           ingredients: cleanCell(row[7]) || undefined,
           allergens: cleanCell(row[8]) || undefined,
           storage: cleanCell(row[9]) || undefined,
@@ -85,9 +136,9 @@ export async function POST(request: NextRequest) {
           batchAbbr: cleanCell(row[1]),
           name,
           category: cleanCell(row[3]),
-          refrigeratedDays: parseInt(row[4]) || 0,
-          frozenDays: parseInt(row[5]) || 0,
-          ambientDays: parseInt(row[6]) || 0,
+          refrigeratedDays: parseDays(row[4]),
+          frozenDays: parseDays(row[5]),
+          ambientDays: parseDays(row[6]),
           ingredients: cleanCell(row[7]),
           allergens: cleanCell(row[8]),
           storage: cleanCell(row[9]),
@@ -116,41 +167,11 @@ export async function POST(request: NextRequest) {
 /** Limpia comillas dobles de celdas CSV */
 function cleanCell(val: string | undefined): string | null {
   if (!val) return null;
-  return val.replace(/^"|"$/g, "").trim() || null;
+  return val.replace(/^"|"$/g, "").trim().slice(0, MAX_CELL_LENGTH) || null;
 }
 
-/** Parser CSV simple que maneja comillas */
-function parseCSV(text: string): string[][] {
-  const rows: string[][] = [];
-  const lines = text.split("\n");
-
-  for (const line of lines) {
-    if (!line.trim()) continue;
-
-    const cells: string[] = [];
-    let current = "";
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (char === "," && !inQuotes) {
-        cells.push(current);
-        current = "";
-      } else {
-        current += char;
-      }
-    }
-    cells.push(current);
-    rows.push(cells);
-  }
-
-  return rows;
+function parseDays(value: string | undefined): number {
+  const parsed = Number.parseInt(value || "0", 10);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.min(3_650, Math.max(0, parsed));
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -8,6 +9,19 @@ export async function GET(
   { params }: { params: Promise<{ batch: string }> }
 ) {
   const { batch } = await params;
+
+  const limited = enforceRateLimit(request, {
+    scope: "public-qr",
+    limit: 60,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
+
+  // New QR codes contain the opaque, globally unique label ID. Predictable
+  // legacy batch numbers are intentionally rejected to preserve tenant isolation.
+  if (!/^c[a-z0-9]{20,30}$/i.test(batch)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   if (DEMO_MODE) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -38,20 +52,10 @@ export async function GET(
       },
     } as const;
 
-    // New QR codes use the globally unique label ID. Batch lookup remains as
-    // a compatibility fallback for labels that were already printed.
-    let label = await prisma.label.findUnique({
+    const label = await prisma.label.findUnique({
       where: { id: batch },
       include,
     });
-
-    if (!label) {
-      label = await prisma.label.findFirst({
-        where: { batch },
-        include,
-        orderBy: { createdAt: "desc" },
-      });
-    }
 
     if (!label) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -80,20 +84,21 @@ export async function GET(
 
     const prodDateISO = label.productionDate ? toDateStr(label.productionDate) : null;
 
-    return NextResponse.json({
-      productName: label.productName,
-      batch: label.batch,
-      netContent: label.netContent,
-      productionDate: prodDateISO,
-      packedBy: label.packedBy,
-      destination: label.destination,
-      coldChain: label.coldChain,
-      expiryRefrigerated,
-      expiryFrozen,
-      expiryAmbient,
-      product: label.product,
-      instance: label.instance,
-    });
+    return NextResponse.json(
+      {
+        productName: label.productName,
+        batch: label.batch,
+        netContent: label.netContent,
+        productionDate: prodDateISO,
+        coldChain: label.coldChain,
+        expiryRefrigerated,
+        expiryFrozen,
+        expiryAmbient,
+        product: label.product,
+        instance: label.instance,
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    );
   } catch {
     return NextResponse.json({ error: "Error" }, { status: 500 });
   }

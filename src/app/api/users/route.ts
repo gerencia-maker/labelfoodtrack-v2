@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
+import { verifyAuth, unauthorized, forbidden, hasRecentAuthentication } from "@/lib/auth";
 import { adminAuth, isFirebaseAdminConfigured } from "@/lib/firebase-admin";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission } from "@/lib/permissions";
+import { createUserSchema } from "@/lib/validations/user";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -40,6 +42,7 @@ export async function GET(request: NextRequest) {
         createdAt: true,
       },
       orderBy: { createdAt: "desc" },
+      take: 500,
     });
 
     return NextResponse.json(users);
@@ -56,23 +59,51 @@ export async function POST(request: NextRequest) {
     return forbidden();
   }
 
-  const body = await request.json();
-  const { email, password, name, role, permisos, ubicacion } = body;
+  const limited = enforceRateLimit(request, {
+    scope: "user-create",
+    identifier: user.id,
+    limit: 20,
+    windowMs: 60 * 60_000,
+  });
+  if (limited) return limited;
 
-  const targetInstanceId = user.isSuperAdmin && body.instanceId
-    ? body.instanceId
+  const parsed = createUserSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Datos invalidos", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
+
+  const { email, password, name, role, permisos, ubicacion, instanceId } = parsed.data;
+
+  if (role === "ADMIN" && user.role !== "ADMIN") {
+    return NextResponse.json(
+      { error: "Solo un administrador puede asignar el rol ADMIN" },
+      { status: 403 }
+    );
+  }
+  if (role === "ADMIN" && !hasRecentAuthentication(user)) {
+    return NextResponse.json(
+      { error: "Vuelve a iniciar sesion antes de crear un administrador" },
+      { status: 403 }
+    );
+  }
+
+  const targetInstanceId = user.isSuperAdmin && instanceId
+    ? instanceId
     : user.instanceId;
 
   if (!targetInstanceId) {
     return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
   }
 
-  if (!email || !name) {
-    return NextResponse.json({ error: "Email y nombre son requeridos" }, { status: 400 });
-  }
-
-  if (!password || password.length < 6) {
-    return NextResponse.json({ error: "La contraseña debe tener al menos 6 caracteres" }, { status: 400 });
+  const targetInstance = await prisma.instance.findUnique({
+    where: { id: targetInstanceId },
+    select: { id: true, activo: true },
+  });
+  if (!targetInstance || !targetInstance.activo) {
+    return NextResponse.json({ error: "Instancia no disponible" }, { status: 400 });
   }
 
   // Check if user already exists in DB
@@ -100,8 +131,8 @@ export async function POST(request: NextRequest) {
           firebaseUid: firebaseUser.uid,
           email,
           name,
-          role: role || "VIEWER",
-          permisos: permisos || [],
+          role,
+          permisos: role === "EDITOR" ? [...new Set(permisos)] : [],
           ubicacion: ubicacion || null,
           instanceId: targetInstanceId,
         },
@@ -119,6 +150,9 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      console.warn(
+        `[security-audit] actor=${user.id} action=user_create target=${newUser.id} instance=${targetInstanceId} role=${newUser.role}`
+      );
       return NextResponse.json(newUser, { status: 201 });
     } catch (dbError) {
       // Rollback: delete Firebase user if Prisma create fails
@@ -132,6 +166,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "El email ya existe en Firebase Auth" }, { status: 409 });
     }
     console.error("[users/POST] Error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "No se pudo crear el usuario" }, { status: 500 });
   }
 }

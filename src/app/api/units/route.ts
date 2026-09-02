@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission } from "@/lib/permissions";
+import { z } from "zod";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -17,6 +18,11 @@ const DEFAULT_UNITS = [
   // Unidades
   "und", "pza", "par", "docena",
 ];
+
+const unitsSchema = z
+  .array(z.string().trim().min(1).max(32))
+  .max(100)
+  .transform((units) => [...new Set(units)]);
 
 export async function GET(request: NextRequest) {
   const user = await verifyAuth(request);
@@ -60,19 +66,17 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  const body = await request.json();
-  const { units } = body;
-
-  if (!Array.isArray(units) || !units.every((u: unknown) => typeof u === "string")) {
+  const parsed = unitsSchema.safeParse((await request.json()).units);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "units debe ser un array de strings" },
+      { error: "Las unidades no son validas" },
       { status: 400 }
     );
   }
 
   const updated = await prisma.instance.update({
     where: { id: user.instanceId },
-    data: { units },
+    data: { units: parsed.data },
     select: { units: true },
   });
 

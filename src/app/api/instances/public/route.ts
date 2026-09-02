@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -9,7 +10,18 @@ const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
  * Used by the login page instance selector.
  */
 export async function GET(request: NextRequest) {
-  const q = request.nextUrl.searchParams.get("q") || "";
+  const limited = enforceRateLimit(request, {
+    scope: "public-instances",
+    limit: 30,
+    windowMs: 60_000,
+  });
+  if (limited) return limited;
+
+  const q = (request.nextUrl.searchParams.get("q") || "").trim();
+
+  if (q.length < 2 || q.length > 80) {
+    return NextResponse.json([], { headers: { "Cache-Control": "no-store" } });
+  }
 
   if (DEMO_MODE) {
     return NextResponse.json([
@@ -29,7 +41,7 @@ export async function GET(request: NextRequest) {
       take: 10,
     });
 
-    return NextResponse.json(instances);
+    return NextResponse.json(instances, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json([]);
   }

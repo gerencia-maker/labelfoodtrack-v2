@@ -160,7 +160,7 @@ function AccountTab() {
   const [changingPwd, setChangingPwd] = useState(false);
 
   const handleChangePassword = async () => {
-    if (newPwd.length < 6) {
+    if (newPwd.length < 12) {
       toast({ title: t("passwordTooShort"), variant: "error" });
       return;
     }
@@ -1313,7 +1313,7 @@ function ExportTab() {
               {importingProducts ? "Importando..." : t("importProducts")}
               <input
                 type="file"
-                accept=".xlsx,.xls,.csv"
+                accept=".xlsx,.csv"
                 className="hidden"
                 disabled={importingProducts}
                 onChange={(e) => {
@@ -1429,7 +1429,7 @@ function FactoryResetTab() {
           Authorization: `Bearer ${token}`,
         },
         credentials: "include",
-        body: JSON.stringify({ module: resetModule }),
+        body: JSON.stringify({ module: resetModule, confirmation: confirmText }),
       });
       if (res.ok) {
         const data = await res.json();

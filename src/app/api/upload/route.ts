@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { hasActionPermission } from "@/lib/permissions";
 import { v2 as cloudinary } from "cloudinary";
+import { enforceRateLimit } from "@/lib/rate-limit";
+
+const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
+function hasValidImageSignature(buffer: Buffer): boolean {
+  const isPng =
+    buffer.length >= 8 &&
+    buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  const isJpeg =
+    buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const isWebp =
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).toString("ascii") === "RIFF" &&
+    buffer.subarray(8, 12).toString("ascii") === "WEBP";
+  return isPng || isJpeg || isWebp;
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,6 +31,18 @@ export async function POST(request: NextRequest) {
 
   if (!hasActionPermission(user.role, user.permisos, "configuration", "editar_instancia")) {
     return forbidden();
+  }
+
+  const limited = enforceRateLimit(request, {
+    scope: "image-upload",
+    identifier: user.id,
+    limit: 20,
+    windowMs: 10 * 60_000,
+  });
+  if (limited) return limited;
+
+  if (!user.instanceId && !user.isSuperAdmin) {
+    return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
   }
 
   if (
@@ -36,8 +64,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No se envio archivo" }, { status: 400 });
     }
 
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "El archivo debe ser una imagen" }, { status: 400 });
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      return NextResponse.json(
+        { error: "Solo se permiten imagenes PNG, JPEG o WebP" },
+        { status: 400 }
+      );
     }
 
     if (file.size > 5 * 1024 * 1024) {
@@ -46,6 +77,10 @@ export async function POST(request: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    if (!hasValidImageSignature(buffer)) {
+      return NextResponse.json({ error: "El contenido del archivo no es una imagen valida" }, { status: 400 });
+    }
 
     const uploadResult = await new Promise<{ secure_url: string }>((resolve, reject) => {
       cloudinary.uploader

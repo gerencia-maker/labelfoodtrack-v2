@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission, hasPermission } from "@/lib/permissions";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { Readable } from "node:stream";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { validateXlsxArchive } from "@/lib/xlsx-security";
 
 const MAX_IMPORT_BYTES = 5 * 1024 * 1024;
 const MAX_IMPORT_ROWS = 5_000;
+const MAX_CELL_LENGTH = 1_000;
+const ALLOWED_EXTENSIONS = new Set(["xlsx", "csv"]);
 
 interface ImportedProduct {
   code: string;
@@ -38,7 +43,7 @@ function parseRow(raw: Record<string, unknown>): ImportedProduct | null {
     const val = raw[header];
 
     if (field === "code" || field === "name") {
-      const str = String(val ?? "").trim();
+      const str = String(val ?? "").trim().slice(0, MAX_CELL_LENGTH);
       if (!str) return null; // required
       row[field] = str;
       continue;
@@ -46,12 +51,12 @@ function parseRow(raw: Record<string, unknown>): ImportedProduct | null {
 
     if (INT_FIELDS.has(field)) {
       const n = Number(val);
-      row[field] = isNaN(n) ? 0 : Math.max(0, Math.round(n));
+      row[field] = isNaN(n) ? 0 : Math.min(3_650, Math.max(0, Math.round(n)));
       continue;
     }
 
     // String fields
-    const str = String(val ?? "").trim();
+    const str = String(val ?? "").trim().slice(0, MAX_CELL_LENGTH);
     row[field] = str || null;
   }
 
@@ -70,6 +75,14 @@ export async function POST(request: NextRequest) {
     return forbidden();
   }
 
+  const limited = enforceRateLimit(request, {
+    scope: "product-import",
+    identifier: user.id,
+    limit: 10,
+    windowMs: 10 * 60_000,
+  });
+  if (limited) return limited;
+
   if (!user.instanceId) {
     return NextResponse.json({ error: "Seleccione una instancia primero" }, { status: 400 });
   }
@@ -84,24 +97,65 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "El archivo debe ser menor a 5 MB" }, { status: 413 });
   }
 
+  const extension = file.name.split(".").pop()?.toLowerCase() || "";
+  if (!ALLOWED_EXTENSIONS.has(extension)) {
+    return NextResponse.json(
+      { error: "Solo se permiten archivos .xlsx o .csv" },
+      { status: 400 }
+    );
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
-  const wb = XLSX.read(buffer, { type: "buffer" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
+  if (extension === "xlsx" && !validateXlsxArchive(buffer)) {
+    return NextResponse.json(
+      { error: "El archivo XLSX es invalido o excede los limites de seguridad" },
+      { status: 400 }
+    );
+  }
+  const workbook = new ExcelJS.Workbook();
+  if (extension === "csv") {
+    await workbook.csv.read(Readable.from(buffer));
+  } else {
+    const workbookData = buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength
+    ) as ArrayBuffer;
+    await workbook.xlsx.load(workbookData);
+  }
+
+  const ws = workbook.worksheets[0];
   if (!ws) {
     return NextResponse.json({ error: "Archivo vacio" }, { status: 400 });
   }
 
-  const rawRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws);
-  if (rawRows.length === 0) {
-    return NextResponse.json({ error: "No se encontraron filas" }, { status: 400 });
-  }
-  if (rawRows.length > MAX_IMPORT_ROWS) {
+  if (ws.rowCount - 1 > MAX_IMPORT_ROWS) {
     return NextResponse.json(
       { error: `El archivo supera el limite de ${MAX_IMPORT_ROWS} filas` },
       { status: 413 }
     );
   }
 
+  const headers = ws.getRow(1).values;
+  const headerByColumn = new Map<number, string>();
+  if (Array.isArray(headers)) {
+    headers.forEach((value, index) => {
+      if (index > 0) headerByColumn.set(index, String(value ?? "").trim());
+    });
+  }
+
+  const rawRows: Record<string, unknown>[] = [];
+  for (let rowNumber = 2; rowNumber <= ws.rowCount; rowNumber++) {
+    const row = ws.getRow(rowNumber);
+    const raw: Record<string, unknown> = {};
+    for (const [column, header] of headerByColumn) {
+      raw[header] = row.getCell(column).text;
+    }
+    if (Object.values(raw).some((value) => String(value).trim())) rawRows.push(raw);
+  }
+
+  if (rawRows.length === 0) {
+    return NextResponse.json({ error: "No se encontraron filas" }, { status: 400 });
+  }
   // Validate headers
   const fileHeaders = Object.keys(rawRows[0]);
   const missing = ["Codigo", "Item"].filter((h) => !fileHeaders.includes(h));

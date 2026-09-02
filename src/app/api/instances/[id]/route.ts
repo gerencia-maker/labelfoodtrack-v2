@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth, unauthorized, forbidden, checkTenantAccess } from "@/lib/auth";
+import { verifyAuth, unauthorized, forbidden, checkTenantAccess, hasRecentAuthentication } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission } from "@/lib/permissions";
 import { updateDemoInstance, deleteDemoInstance, getDemoInstance } from "@/lib/demo-data";
+import { updateInstanceSchema } from "@/lib/validations/instance";
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -23,8 +24,21 @@ export async function PUT(
     return forbidden();
   }
 
-  const body = await request.json();
-  const { name, brandName, logoUrl, plan, activo, destinations, packers } = body;
+  const parsed = updateInstanceSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Datos invalidos", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
+  const { name, brandName, logoUrl, plan, activo, destinations, packers } = parsed.data;
+
+  if (!user.isSuperAdmin && (plan !== undefined || activo !== undefined)) {
+    return NextResponse.json(
+      { error: "Solo el administrador global puede cambiar el plan o estado de una instancia" },
+      { status: 403 }
+    );
+  }
 
   if (DEMO_MODE) {
     const updated = updateDemoInstance(id, { name, brandName, plan, activo, destinations, packers });
@@ -53,6 +67,9 @@ export async function PUT(
       },
     });
 
+    console.warn(
+      `[security-audit] actor=${user.id} action=instance_update target=${id}`
+    );
     return NextResponse.json(instance);
   } catch {
     return NextResponse.json({ error: "Error al actualizar" }, { status: 500 });
@@ -68,6 +85,13 @@ export async function DELETE(
 
   if (!user.isSuperAdmin) {
     return forbidden();
+  }
+
+  if (!hasRecentAuthentication(user)) {
+    return NextResponse.json(
+      { error: "Vuelve a iniciar sesion antes de eliminar una instancia" },
+      { status: 403 }
+    );
   }
 
   const { id } = await params;
@@ -92,6 +116,9 @@ export async function DELETE(
     }
 
     await prisma.instance.delete({ where: { id } });
+    console.warn(
+      `[security-audit] actor=${user.id} action=instance_delete target=${id}`
+    );
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Error al eliminar" }, { status: 500 });

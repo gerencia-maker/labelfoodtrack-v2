@@ -153,7 +153,7 @@ function InstancesContent() {
   };
 
   const handleLogoUpload = async (file: File) => {
-    if (!file.type.startsWith("image/")) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return;
     if (file.size > 5 * 1024 * 1024) return;
 
     setUploading(true);
@@ -348,7 +348,7 @@ function InstancesContent() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/png,image/jpeg,image/webp"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];

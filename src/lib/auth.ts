@@ -12,6 +12,10 @@ const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 const UNASSIGNED_INSTANCE_ID = "__unassigned__";
 let warnedMissingFirebaseAdmin = false;
 
+if (DEMO_MODE && process.env.NODE_ENV === "production") {
+  throw new Error("NEXT_PUBLIC_DEMO_MODE must never be enabled in production");
+}
+
 export interface AuthInstance {
   id: string;
   name: string;
@@ -30,6 +34,7 @@ export interface AuthUser {
   ubicacion?: string | null;
   instanceId: string | null;
   instance?: AuthInstance | null;
+  authTime?: number;
   /** True when user has no instanceId in DB (before cookie scoping) */
   isSuperAdmin: boolean;
 }
@@ -43,6 +48,7 @@ const demoUser: AuthUser = {
   role: "ADMIN",
   permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"],
   instanceId: null,
+  authTime: Math.floor(Date.now() / 1000),
   isSuperAdmin: true,
 };
 
@@ -54,6 +60,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
     return {
       ...demoUser,
       instanceId: cookieInstanceId || null,
+      authTime: Math.floor(Date.now() / 1000),
     };
   }
 
@@ -72,7 +79,9 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
     }
 
     const token = authHeader.split("Bearer ")[1];
-    const decoded = await adminAuth.verifyIdToken(token);
+    // Check revocation as well as signature/expiry. This also rejects disabled
+    // Firebase users instead of accepting an already-issued token for up to an hour.
+    const decoded = await adminAuth.verifyIdToken(token, true);
 
     let user = await prisma.user.findUnique({
       where: { firebaseUid: decoded.uid },
@@ -86,15 +95,16 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
         permisos: true,
         ubicacion: true,
         activo: true,
+        licenseEndDate: true,
         instanceId: true,
       },
     });
 
     // Auto-provision: if user doesn't exist by firebaseUid, check by email.
     // Migrated users may have old Firestore UIDs — link them to the new Firebase UID.
-    if (!user && decoded.email) {
-      const existingByEmail = await prisma.user.findUnique({
-        where: { email: decoded.email },
+    if (!user && decoded.email && decoded.email_verified) {
+      const existingByEmail = await prisma.user.findFirst({
+        where: { email: { equals: decoded.email, mode: "insensitive" } },
         select: {
           id: true,
           firebaseUid: true,
@@ -105,12 +115,18 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
           permisos: true,
           ubicacion: true,
           activo: true,
+          licenseEndDate: true,
           instanceId: true,
         },
       });
 
-      if (existingByEmail) {
-        // Link existing user to the new Firebase UID
+      const canRelink =
+        existingByEmail?.firebaseUid.startsWith("pending-") ||
+        process.env.ALLOW_FIREBASE_UID_RELINK === "true";
+
+      if (existingByEmail && canRelink) {
+        // Relinking is restricted to verified emails and must be explicitly
+        // enabled unless this is an invited placeholder account.
         user = await prisma.user.update({
           where: { id: existingByEmail.id },
           data: { firebaseUid: decoded.uid },
@@ -124,6 +140,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
             permisos: true,
             ubicacion: true,
             activo: true,
+            licenseEndDate: true,
             instanceId: true,
           },
         });
@@ -131,24 +148,32 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       }
     }
 
-    // If still no user, create a new one.
-    // First user ever becomes super-admin; subsequent users get VIEWER role.
+    // Bootstrap is explicit and single-purpose. Unknown Firebase users are not
+    // automatically inserted into the application database.
     if (!user) {
+      const bootstrapEmail = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase();
+      const tokenEmail = decoded.email?.trim().toLowerCase();
+      const canBootstrap =
+        !!bootstrapEmail &&
+        !!tokenEmail &&
+        decoded.email_verified === true &&
+        tokenEmail === bootstrapEmail;
+
+      if (!canBootstrap) return null;
+
       const userCount = await prisma.user.count();
-      const isFresh = userCount === 0;
+      if (userCount !== 0) return null;
 
       user = await prisma.user.create({
         data: {
           firebaseUid: decoded.uid,
-          email: decoded.email || "unknown@app.local",
-          name: decoded.name || decoded.email?.split("@")[0] || "Usuario",
-          role: isFresh ? "ADMIN" : "VIEWER",
+          email: tokenEmail,
+          name: decoded.name || tokenEmail.split("@")[0] || "Administrador",
+          role: "ADMIN",
           status: "ACTIVE",
           activo: true,
-          permisos: isFresh
-            ? ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"]
-            : ["dashboard", "products", "labels"],
-          instanceId: null, // super-admin if first, unassigned otherwise
+          permisos: ["dashboard", "products", "labels", "bitacora", "configuration", "ai_features", "export", "import", "instances"],
+          instanceId: null,
         },
         select: {
           id: true,
@@ -160,37 +185,39 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
           permisos: true,
           ubicacion: true,
           activo: true,
+          licenseEndDate: true,
           instanceId: true,
         },
       });
-      console.log(`[auth] Auto-provisioned user ${user.email} as ${user.role}`);
+      console.log(`[auth] Bootstrapped administrator ${user.email}`);
 
       // Create a default instance if none exist
-      if (isFresh) {
-        const instanceCount = await prisma.instance.count();
-        if (instanceCount === 0) {
-          await prisma.instance.create({
-            data: {
-              name: "Mi Empresa",
-              brandName: "Mi Marca",
-              destinations: [],
-              packers: [],
-              plan: "ENTERPRISE",
-              activo: true,
-            },
-          });
-          console.log("[auth] Created default instance 'Mi Empresa'");
-        }
+      const instanceCount = await prisma.instance.count();
+      if (instanceCount === 0) {
+        await prisma.instance.create({
+          data: {
+            name: "Mi Empresa",
+            brandName: "Mi Marca",
+            destinations: [],
+            packers: [],
+            plan: "ENTERPRISE",
+            activo: true,
+          },
+        });
+        console.log("[auth] Created default instance 'Mi Empresa'");
       }
     }
 
-    if (!user.activo || user.status !== "ACTIVE") {
+    if (
+      !user.activo ||
+      user.status !== "ACTIVE" ||
+      (user.licenseEndDate && user.licenseEndDate.getTime() < Date.now())
+    ) {
       return null;
     }
 
-    // Super-admin: instanceId = null OR specific super-admin email
-    const SUPER_ADMIN_EMAILS = ["gerencia@gestionpg.com"];
-    const isSuper = (user.role === "ADMIN" && !user.instanceId) || SUPER_ADMIN_EMAILS.includes(user.email);
+    // Global access must be explicit in the database; no email-address bypasses.
+    const isSuper = user.role === "ADMIN" && !user.instanceId;
     let effectiveInstanceId = user.instanceId;
     if (isSuper) {
       const cookieInstanceId = request.cookies.get("lft-instance-id")?.value;
@@ -204,9 +231,16 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
     if (effectiveInstanceId) {
       const inst = await prisma.instance.findUnique({
         where: { id: effectiveInstanceId },
-        select: { id: true, name: true, brandName: true, logoUrl: true, plan: true },
+        select: { id: true, name: true, brandName: true, logoUrl: true, plan: true, activo: true },
       });
-      instance = inst;
+      if (!inst || (!inst.activo && !isSuper)) return null;
+      instance = {
+        id: inst.id,
+        name: inst.name,
+        brandName: inst.brandName,
+        logoUrl: inst.logoUrl,
+        plan: inst.plan,
+      };
     }
 
     return {
@@ -220,6 +254,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
       instanceId: effectiveInstanceId,
       instance,
       isSuperAdmin: isSuper,
+      authTime: decoded.auth_time,
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -263,6 +298,11 @@ export function requireRole(user: AuthUser, allowedRoles: string[]): Response | 
 export function tenantWhere(user: AuthUser): { instanceId?: string } {
   if (user.isSuperAdmin && !user.instanceId) return {};
   return { instanceId: user.instanceId ?? UNASSIGNED_INSTANCE_ID };
+}
+
+export function hasRecentAuthentication(user: AuthUser, maxAgeSeconds = 15 * 60): boolean {
+  if (!user.authTime) return false;
+  return Math.floor(Date.now() / 1000) - user.authTime <= maxAgeSeconds;
 }
 
 /**

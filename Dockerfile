@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 
 # --- Dependencies ---
 FROM base AS deps
@@ -42,14 +42,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Prisma: schema + client
-COPY --from=builder /app/prisma ./prisma
+# Prisma client runtime
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-
-# Full node_modules for migration script (firebase-admin + all deps)
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/scripts/migrate.js ./scripts/migrate.js
 
 # Entrypoint script
 COPY --chown=nextjs:nodejs start.sh ./start.sh
@@ -59,5 +54,8 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1
 
 CMD ["./start.sh"]

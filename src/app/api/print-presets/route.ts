@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
   const presets = await prisma.printPreset.findMany({
     where: { ...tenantWhere(user) },
     orderBy: { name: "asc" },
+    take: 100,
   });
 
   return NextResponse.json(presets);

@@ -2,6 +2,10 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+if (process.env.ALLOW_DATABASE_SEED !== "true") {
+  throw new Error("Database seed disabled. Set ALLOW_DATABASE_SEED=true only in a disposable environment.");
+}
+
 async function main() {
   console.log("Seeding database...");
 

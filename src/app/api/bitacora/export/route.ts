@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAuth, unauthorized, forbidden, tenantWhere } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasActionPermission, hasPermission } from "@/lib/permissions";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 function spreadsheetSafe(value: unknown): string {
   const text = String(value ?? "");
@@ -21,12 +22,21 @@ export async function GET(request: NextRequest) {
     return forbidden();
   }
 
+  const limited = enforceRateLimit(request, {
+    scope: "bitacora-export",
+    identifier: user.id,
+    limit: 20,
+    windowMs: 10 * 60_000,
+  });
+  if (limited) return limited;
+
   const { searchParams } = new URL(request.url);
   const format = searchParams.get("format") || "csv";
 
   const entries = await prisma.bitacoraEntry.findMany({
     where: { ...tenantWhere(user) },
     orderBy: { createdAt: "desc" },
+    take: 10_000,
   });
 
   const headers = [
@@ -64,12 +74,19 @@ export async function GET(request: NextRequest) {
   const dateStr = new Date().toISOString().split("T")[0];
 
   if (format === "xlsx") {
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Bitacora");
-    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Bitacora");
+    worksheet.addRows([headers, ...rows]);
+    worksheet.columns = headers.map((header, index) => ({
+      width: Math.min(
+        Math.max(header.length, ...rows.map((row) => String(row[index]).length)) + 2,
+        45
+      ),
+    }));
+    worksheet.getRow(1).font = { bold: true };
+    const buf = await workbook.xlsx.writeBuffer();
 
-    return new NextResponse(buf, {
+    return new NextResponse(Buffer.from(buf), {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition": `attachment; filename="bitacora_${dateStr}.xlsx"`,

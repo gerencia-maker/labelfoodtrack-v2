@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { checkTenantAccess, tenantWhere, type AuthUser } from "../src/lib/auth";
+import {
+  checkTenantAccess,
+  hasRecentAuthentication,
+  tenantWhere,
+  type AuthUser,
+} from "../src/lib/auth";
 
 function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   return {
@@ -45,4 +50,12 @@ test("tenant access rejects cross-tenant and null resources", () => {
 test("super-admin tenant access bypass remains explicit", () => {
   const superAdmin = makeUser({ instanceId: null, isSuperAdmin: true, role: "ADMIN" });
   assert.equal(checkTenantAccess(superAdmin, "instance-b"), true);
+});
+
+test("sensitive actions require a recent Firebase authentication", () => {
+  const now = Math.floor(Date.now() / 1000);
+
+  assert.equal(hasRecentAuthentication(makeUser({ authTime: now - 60 })), true);
+  assert.equal(hasRecentAuthentication(makeUser({ authTime: now - 901 })), false);
+  assert.equal(hasRecentAuthentication(makeUser({ authTime: undefined })), false);
 });
