@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   createPrintStyles,
   getPreviewWidthForViewportDvh,
+  getPreviewWidthPx,
   getPrintLayout,
   type PrintPresetConfig,
 } from "../src/lib/print-style";
@@ -48,6 +49,17 @@ test("screen preview fits portrait and landscape paper without changing its rati
   assert.equal(landscapeWidth, 70 * (100 / 45));
   assert.equal(portraitWidth, 70 * (45 / 100));
   assert.equal(portraitWidth / portrait.pageWidthMm * portrait.pageHeightMm, 70);
+});
+
+test("explicit preview zoom uses CSS physical units and not printer DPI", () => {
+  const layout = getPrintLayout(preset);
+
+  assert.equal(getPreviewWidthPx(layout, 100), 100 * (96 / 25.4));
+  assert.equal(getPreviewWidthPx(layout, 50), 50 * (96 / 25.4));
+  assert.equal(
+    getPreviewWidthPx(getPrintLayout({ ...preset, dpi: 600 }), 100),
+    getPreviewWidthPx(layout, 100)
+  );
 });
 
 test("print CSS uses valid custom page dimensions and physical QR units", () => {

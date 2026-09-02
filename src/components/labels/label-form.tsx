@@ -18,6 +18,8 @@ import {
   UserCheck,
   ChevronDown,
   Printer,
+  Circle,
+  CircleCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import {
@@ -51,6 +53,9 @@ interface LabelFormProps {
   onSave: (data: LabelSaveData) => Promise<void>;
   defaultValues?: Partial<LabelSaveData>;
   isEdit?: boolean;
+  formId?: string;
+  printConfigurationReady?: boolean;
+  canSubmit?: boolean;
 }
 
 export interface LabelSaveData {
@@ -79,14 +84,23 @@ function parseNetContent(value: string): { qty: string; unit: string } {
   return { qty: value, unit: "g" };
 }
 
-const COLD_CHAIN_META: Record<string, { icon: typeof Thermometer; color: string; bg: string; border: string; activeBg: string }> = {
-  refrigerado: { icon: Thermometer, color: "text-white", bg: "bg-amber-500", border: "border-amber-500", activeBg: "bg-amber-500 shadow-lg shadow-amber-500/30" },
-  congelado: { icon: Snowflake, color: "text-white", bg: "bg-blue-500", border: "border-blue-500", activeBg: "bg-blue-500 shadow-lg shadow-blue-500/30" },
-  ambiente: { icon: Sun, color: "text-white", bg: "bg-emerald-500", border: "border-emerald-500", activeBg: "bg-emerald-500 shadow-lg shadow-emerald-500/30" },
-};
+function isValidDateOnly(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
 
-export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: LabelFormProps) {
+export function LabelForm({
+  onPreviewChange,
+  onSave,
+  defaultValues,
+  isEdit,
+  formId,
+  printConfigurationReady = true,
+  canSubmit = true,
+}: LabelFormProps) {
   const t = useTranslations("labels");
+  const tCommon = useTranslations("common");
   const { getToken, userData } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [saving, setSaving] = useState(false);
@@ -117,6 +131,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
     () => products.find((p) => p.id === productId) || null,
     [products, productId]
   );
+  const hasValidProductionDate = isValidDateOnly(productionDate);
 
   // Opciones de cadena de frio disponibles segun el producto
   const coldChainOptions = useMemo(() => {
@@ -351,10 +366,26 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form id={formId} onSubmit={handleSubmit} className="flex h-full flex-col">
+      <div className="border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
+            <Package size={18} />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">
+              {t("productionData")}
+            </h2>
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              {selectedProduct?.name || t("productionDataHint")}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* ── 1. Producto ── */}
       {!defaultValues?.productId && (
-      <section className="space-y-3">
+      <section className="space-y-3 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
         <SectionHeader icon={Package} title={t("product")} />
         <div>
           <Label htmlFor="productId">{t("selectProduct")}</Label>
@@ -404,45 +435,34 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
       )}
 
       {/* ── 2. Configuración de etiqueta (todo en una card) ── */}
-      <section className="rounded-2xl border border-orange-200/60 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
-        {/* Cadena de frío — pills compactas */}
+      <section className="flex flex-1 flex-col">
+        {/* Cadena de frío */}
         {coldChainOptions.length > 0 && (
-          <div className="border-b border-orange-100 dark:border-slate-700/50 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-2 flex items-center gap-1.5">
-              <Thermometer size={11} className="text-orange-400" />
+          <div className="border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+            <label htmlFor="coldChainType" className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <Thermometer size={14} className="text-blue-500" />
               {t("coldChainTitle")}
-            </p>
-            <div className="flex gap-2">
-              {coldChainOptions.map((opt) => {
-                const meta = COLD_CHAIN_META[opt.value];
-                const Icon = meta.icon;
-                const isSelected = coldChainType === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setColdChainType(opt.value)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                      isSelected
-                        ? `${meta.activeBg} ${meta.color}`
-                        : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600"
-                    }`}
-                  >
-                    <Icon size={13} />
-                    {coldChainLabels[opt.value] || opt.shortLabel}
-                    <span className="text-[10px] opacity-70">{opt.days}d</span>
-                  </button>
-                );
-              })}
-            </div>
+            </label>
+            <select
+              id="coldChainType"
+              value={coldChainType}
+              onChange={(event) => setColdChainType(event.target.value)}
+              className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            >
+              {coldChainOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {coldChainLabels[opt.value] || opt.shortLabel} · {opt.days} {t("days")}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
-        {/* Campos — grid compacto con cards */}
-        <div className="grid grid-cols-2 gap-3 px-4 py-3">
+        {/* Campos compactos */}
+        <div className="grid grid-cols-2 gap-4 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
           {/* Contenido neto */}
-          <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-500/10 dark:to-purple-500/5 border border-purple-200/60 dark:border-purple-500/20 p-3 space-y-1.5">
-            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-purple-600 dark:text-purple-400 font-bold">
+          <div className="space-y-1.5">
+            <Label htmlFor="netContentQty" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
               <Scale size={12} className="text-purple-500" />
               {t("weightQty")}
             </Label>
@@ -455,20 +475,22 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
                 placeholder="500"
                 value={netContentQty}
                 onChange={(e) => setNetContentQty(e.target.value)}
-                className="flex-1 h-9 text-sm font-medium bg-white dark:bg-slate-800 border-purple-200 dark:border-purple-500/30 focus:border-purple-400"
+                className="h-10 min-w-0 flex-1 rounded-lg border-slate-200 text-sm font-medium dark:border-slate-700 dark:bg-slate-900"
               />
               <UnitCombobox
                 value={netContentUnit}
                 units={dynamicUnits}
                 onChange={setNetContentUnit}
+                searchPlaceholder={t("searchUnit")}
+                emptyLabel={tCommon("noResults")}
               />
             </div>
           </div>
 
           {/* Lote */}
-          <div className="rounded-xl bg-gradient-to-br from-slate-50 to-slate-100/50 dark:from-slate-700/30 dark:to-slate-800/30 border border-slate-200/60 dark:border-slate-600/30 p-3 space-y-1.5">
+          <div className="min-w-0 space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="batch" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-300 font-bold">
+              <Label htmlFor="batch" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                 <Hash size={12} className="text-slate-500" />
                 {t("batch")}
               </Label>
@@ -478,13 +500,13 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               placeholder="L-010125-0930"
               value={batch}
               readOnly
-              className="h-9 text-sm font-medium bg-slate-100 dark:bg-slate-800"
+              className="h-10 rounded-lg border-slate-200 bg-slate-50 font-mono text-xs font-medium dark:border-slate-700 dark:bg-slate-900"
             />
           </div>
 
           {/* Empacado por */}
-          <div className="rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/50 dark:from-teal-500/10 dark:to-teal-500/5 border border-teal-200/60 dark:border-teal-500/20 p-3 space-y-1.5">
-            <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-teal-600 dark:text-teal-400 font-bold">
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="packedBy" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
               <UserCheck size={12} className="text-teal-500" />
               {t("packedBy")}
             </Label>
@@ -492,7 +514,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               id="packedBy"
               value={packedBy}
               onChange={(e) => setPackedBy(e.target.value)}
-              className="flex h-9 w-full rounded-lg border border-teal-200 bg-white px-2.5 text-sm font-medium dark:border-teal-500/30 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+              className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
             >
               <option value="">{t("selectPlaceholder")}</option>
               {packedByOptions.map((p) => (
@@ -502,8 +524,8 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
 
           {/* Destino */}
-          <div className="rounded-xl bg-gradient-to-br from-rose-50 to-rose-100/50 dark:from-rose-500/10 dark:to-rose-500/5 border border-rose-200/60 dark:border-rose-500/20 p-3 space-y-1.5">
-            <Label htmlFor="destination" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-rose-600 dark:text-rose-400 font-bold">
+          <div className="col-span-2 space-y-1.5">
+            <Label htmlFor="destination" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
               <MapPin size={12} className="text-rose-500" />
               {t("destination")}
             </Label>
@@ -511,7 +533,7 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
               id="destination"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="flex h-9 w-full rounded-lg border border-rose-200 bg-white px-2.5 text-sm font-medium dark:border-rose-500/30 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400"
+              className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-500/15 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
             >
               <option value="">{t("selectPlaceholder")}</option>
               {destinations.map((d) => (
@@ -521,12 +543,18 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
           </div>
         </div>
 
+        <div className="space-y-2 border-b border-slate-100 bg-slate-50/60 px-5 py-4 text-xs dark:border-slate-800 dark:bg-slate-950/30">
+          <ValidationRow ready={Boolean(selectedProduct)} label={t("validationProduct")} />
+          <ValidationRow ready={hasValidProductionDate} label={t("validationDate")} />
+          <ValidationRow ready={printConfigurationReady} label={t("validationPrintConfig")} />
+        </div>
+
         {/* Guardar e imprimir — prominente */}
-        <div className="border-t border-orange-100 dark:border-slate-700/50 px-4 py-4">
+        <div className="mt-auto px-5 py-4">
           <button
             type="submit"
-            disabled={saving || !productId}
-            className="w-full flex items-center justify-center gap-3 h-14 rounded-xl text-base font-bold text-white bg-gradient-to-r from-orange-500 via-orange-600 to-red-500 hover:from-orange-600 hover:via-orange-700 hover:to-red-600 shadow-lg shadow-orange-300/40 dark:shadow-orange-900/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed animate-pulse-subtle"
+            disabled={saving || !selectedProduct || !hasValidProductionDate || !printConfigurationReady || !canSubmit}
+            className="flex h-12 w-full items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -545,7 +573,28 @@ export function LabelForm({ onPreviewChange, onSave, defaultValues, isEdit }: La
   );
 }
 
-function UnitCombobox({ value, units, onChange }: { value: string; units: string[]; onChange: (v: string) => void }) {
+function ValidationRow({ ready, label }: { ready: boolean; label: string }) {
+  return (
+    <div className={ready ? "flex items-center gap-2 text-emerald-700 dark:text-emerald-400" : "flex items-center gap-2 text-slate-400 dark:text-slate-500"}>
+      {ready ? <CircleCheck size={15} /> : <Circle size={15} />}
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function UnitCombobox({
+  value,
+  units,
+  onChange,
+  searchPlaceholder,
+  emptyLabel,
+}: {
+  value: string;
+  units: string[];
+  onChange: (value: string) => void;
+  searchPlaceholder: string;
+  emptyLabel: string;
+}) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -571,7 +620,7 @@ function UnitCombobox({ value, units, onChange }: { value: string; units: string
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen(!open); setSearch(""); }}
-        className="flex items-center justify-between gap-1 w-20 h-9 rounded-lg border border-purple-200 dark:border-purple-500/30 bg-white dark:bg-slate-800 px-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-purple-400 transition-colors"
+        className="flex h-10 w-20 items-center justify-between gap-1 rounded-lg border border-slate-200 bg-white px-2 text-sm font-medium text-slate-700 transition-colors hover:border-purple-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
       >
         <span className="truncate">{value}</span>
         <ChevronDown size={12} className="text-slate-400 shrink-0" />
@@ -584,14 +633,14 @@ function UnitCombobox({ value, units, onChange }: { value: string; units: string
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar..."
+              placeholder={searchPlaceholder}
               className="w-full rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 px-2 py-1 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:border-purple-400"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
           <div className="max-h-48 overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="px-3 py-2 text-xs text-slate-400">Sin resultados</div>
+              <div className="px-3 py-2 text-xs text-slate-400">{emptyLabel}</div>
             ) : (
               filtered.map((u) => (
                 <button

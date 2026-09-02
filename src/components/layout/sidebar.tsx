@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -43,13 +43,13 @@ export function Sidebar({ className, mobile = false, onNavigate }: SidebarProps)
   const permisos = userData?.permisos || [];
 
   const allNavItems = [
-    { href: "/", label: t("products"), icon: LayoutDashboard, permKey: "dashboard" },
-    { href: "/products/new", label: t("newProduct"), icon: Package, permKey: "products", actionKey: "crear" },
-    { href: "/labels", label: t("labels"), icon: Tag, permKey: "labels" },
-    { href: "/bitacora", label: t("bitacora"), icon: ClipboardList, permKey: "bitacora" },
-    { href: "/ai", label: t("ai"), icon: Bot, permKey: "ai" },
-    { href: "/instances", label: t("instances"), icon: Building2, permKey: "instances" },
-    { href: "/settings", label: t("settings"), icon: Settings, permKey: "settings" },
+    { href: "/", label: t("products"), icon: LayoutDashboard, permKey: "dashboard", group: "production" },
+    { href: "/products/new", label: t("newProduct"), icon: Package, permKey: "products", actionKey: "crear", group: "production" },
+    { href: "/labels", label: t("labels"), icon: Tag, permKey: "labels", group: "production" },
+    { href: "/bitacora", label: t("bitacora"), icon: ClipboardList, permKey: "bitacora", group: "production" },
+    { href: "/ai", label: t("ai"), icon: Bot, permKey: "ai", group: "production" },
+    { href: "/instances", label: t("instances"), icon: Building2, permKey: "instances", group: "administration" },
+    { href: "/settings", label: t("settings"), icon: Settings, permKey: "settings", group: "administration" },
   ];
 
   const navItems = allNavItems.filter((item) => {
@@ -67,7 +67,7 @@ export function Sidebar({ className, mobile = false, onNavigate }: SidebarProps)
       )}
     >
       {/* Logo header */}
-      <div className="flex h-20 items-center justify-between border-b border-orange-100 dark:border-orange-900/30 px-4 hover:bg-orange-50/50 dark:hover:bg-orange-500/5 transition-colors">
+      <div className="flex h-16 items-center justify-between border-b border-orange-100 px-3.5 transition-colors hover:bg-orange-50/50 dark:border-orange-900/30 dark:hover:bg-orange-500/5">
         {!collapsed && (
           <Link href="/" className="flex items-center gap-2.5" onClick={onNavigate}>
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500"
@@ -112,67 +112,78 @@ export function Sidebar({ className, mobile = false, onNavigate }: SidebarProps)
 
       {/* Navigation with motion */}
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto overflow-x-hidden">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
+        {navItems.map((item, index) => {
+          const isActive = item.href === "/"
+            ? pathname === "/" || (pathname.startsWith("/products/") && pathname !== "/products/new")
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
-
-          if (collapsed) {
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onNavigate}
-                className={cn(
-                  "flex items-center justify-center rounded-xl p-2.5 transition-all duration-200",
-                  isActive
-                    ? "bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-200 dark:shadow-orange-500/20"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400"
-                )}
-                title={item.label}
-              >
-                <Icon size={20} />
-              </Link>
-            );
-          }
+          const startsGroup = index === 0 || navItems[index - 1]?.group !== item.group;
+          const groupLabel = item.group === "production"
+            ? t("productionSection")
+            : t("administrationSection");
 
           return (
-            <motion.div
-              key={item.href}
-              className="flex items-center cursor-pointer"
-              initial="initial"
-              whileHover={isActive ? undefined : "hover"}
-            >
-              {/* Arrow indicator */}
-              <motion.div
-                variants={{
-                  initial: { x: "-100%", opacity: 0 },
-                  hover: { x: 0, opacity: 1 },
-                }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="shrink-0 text-orange-500"
-              >
-                <ArrowRight strokeWidth={2.5} size={16} />
-              </motion.div>
+            <Fragment key={item.href}>
+              {startsGroup && !collapsed && (
+                <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
+                  {groupLabel}
+                </p>
+              )}
+              {startsGroup && collapsed && index > 0 && (
+                <div className="my-2 border-t border-slate-100 dark:border-slate-800" />
+              )}
+              {collapsed ? (
+                <Link
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={cn(
+                    "flex items-center justify-center rounded-xl p-2.5 transition-all duration-200",
+                    isActive
+                      ? "bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-200 dark:shadow-orange-500/20"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-700 dark:hover:text-orange-400"
+                  )}
+                  title={item.label}
+                >
+                  <Icon size={20} />
+                </Link>
+              ) : (
+                <motion.div
+                  className="flex cursor-pointer items-center"
+                  initial="initial"
+                  whileHover={isActive ? undefined : "hover"}
+                >
+                  <motion.div
+                    variants={{
+                      initial: { x: "-100%", opacity: 0 },
+                      hover: { x: 0, opacity: 1 },
+                    }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    className="shrink-0 text-orange-500"
+                  >
+                    <ArrowRight strokeWidth={2.5} size={16} />
+                  </motion.div>
 
-              <MotionLink
-                href={item.href}
-                onClick={onNavigate}
-                variants={{
-                  initial: { x: -16 },
-                  hover: { x: 0 },
-                }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200 w-full",
-                  isActive
-                    ? "bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-200 dark:shadow-orange-500/20"
-                    : "text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400"
-                )}
-              >
-                <Icon size={20} className="shrink-0" />
-                <span>{item.label}</span>
-              </MotionLink>
-            </motion.div>
+                  <MotionLink
+                    href={item.href}
+                    onClick={onNavigate}
+                    variants={{
+                      initial: { x: -16 },
+                      hover: { x: 0 },
+                    }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-200",
+                      isActive
+                        ? "bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg shadow-orange-200 dark:shadow-orange-500/20"
+                        : "text-slate-600 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-400"
+                    )}
+                  >
+                    <Icon size={20} className="shrink-0" />
+                    <span>{item.label}</span>
+                  </MotionLink>
+                </motion.div>
+              )}
+            </Fragment>
           );
         })}
       </nav>

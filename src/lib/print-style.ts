@@ -33,6 +33,18 @@ export function getPreviewWidthForViewportDvh(
   return Math.max(1, maxHeightDvh * (layout.pageWidthMm / layout.pageHeightMm));
 }
 
+/**
+ * Convert the label width to CSS pixels for explicit preview zoom levels.
+ * CSS defines one inch as 96px, so this remains independent from printer DPI.
+ */
+export function getPreviewWidthPx(
+  layout: Pick<PrintLayout, "pageWidthMm">,
+  zoomPercent: number
+): number {
+  const safeZoom = Math.max(1, zoomPercent);
+  return layout.pageWidthMm * (96 / 25.4) * (safeZoom / 100);
+}
+
 const STYLE_TAG_ID = "dynamic-print-style";
 
 export function getPrintLayout(preset: PrintPresetConfig): PrintLayout {

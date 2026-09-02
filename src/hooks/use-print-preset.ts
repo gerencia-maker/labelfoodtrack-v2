@@ -11,6 +11,8 @@ import {
 export function usePrintPreset() {
   const { getToken } = useAuth();
   const [preset, setPreset] = useState<PrintPresetConfig>(DEFAULT_PRINT_PRESET);
+  const [presetName, setPresetName] = useState("Etiqueta estandar");
+  const [hasSavedPreset, setHasSavedPreset] = useState(false);
   const [presetLoaded, setPresetLoaded] = useState(false);
 
   const loadPreset = useCallback(async (): Promise<PrintPresetConfig> => {
@@ -40,6 +42,8 @@ export function usePrintPreset() {
               printScale: data.printScale || 100,
             };
             setPreset(loadedPreset);
+            setPresetName(data.name || "Etiqueta estandar");
+            setHasSavedPreset(true);
             return loadedPreset;
           }
         }
@@ -67,5 +71,5 @@ export function usePrintPreset() {
     window.print();
   }, [loadPreset, preset, presetLoaded]);
 
-  return { preset, presetLoaded, triggerPrint };
+  return { preset, presetName, hasSavedPreset, presetLoaded, triggerPrint };
 }

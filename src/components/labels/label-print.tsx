@@ -7,6 +7,7 @@ import type { LabelPreviewData } from "./label-preview";
 import {
   DEFAULT_PRINT_PRESET,
   getPreviewWidthForViewportDvh,
+  getPreviewWidthPx,
   getPrintLayout,
   type PrintPresetConfig,
 } from "@/lib/print-style";
@@ -15,6 +16,7 @@ interface LabelPrintProps {
   data: LabelPreviewData;
   /** When true, renders a screen-visible preview (not hidden) */
   screenPreview?: boolean;
+  previewZoom?: "fit" | 50 | 100;
   preset?: PrintPresetConfig;
 }
 
@@ -22,17 +24,29 @@ interface LabelPrintProps {
  * Componente de impresion: tabla matricial 3 columnas con QR inline.
  * Con screenPreview=true se muestra en pantalla como preview real.
  */
-export function LabelPrint({ data, screenPreview, preset = DEFAULT_PRINT_PRESET }: LabelPrintProps) {
+export function LabelPrint({
+  data,
+  screenPreview,
+  previewZoom = "fit",
+  preset = DEFAULT_PRINT_PRESET,
+}: LabelPrintProps) {
   const t = useTranslations("labels");
   const layout = getPrintLayout(preset);
   const previewViewportWidthDvh = getPreviewWidthForViewportDvh(layout);
+  const requestedPreviewWidthPx =
+    previewZoom === "fit" ? null : getPreviewWidthPx(layout, previewZoom);
   const mmInContainerUnits = 100 / layout.pageWidthMm;
   const ptToMm = 25.4 / 72;
 
   const previewContainerStyle = screenPreview
     ? ({
         aspectRatio: `${layout.pageWidthMm} / ${layout.pageHeightMm}`,
-        maxWidth: `min(1100px, ${previewViewportWidthDvh.toFixed(2)}dvh)`,
+        width: requestedPreviewWidthPx === null ? "100%" : `${requestedPreviewWidthPx}px`,
+        maxWidth:
+          requestedPreviewWidthPx === null
+            ? `min(1100px, ${previewViewportWidthDvh.toFixed(2)}dvh)`
+            : "none",
+        flex: "0 0 auto",
         marginInline: "auto",
         "--preview-font-size": `${layout.baseFontPt * ptToMm * mmInContainerUnits}cqw`,
         "--preview-header-size": `${layout.headerFontPt * ptToMm * mmInContainerUnits}cqw`,
