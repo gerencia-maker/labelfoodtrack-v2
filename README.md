@@ -2,6 +2,40 @@
 
 Aplicación multiempresa para gestionar productos, generar e imprimir etiquetas de alimentos, registrar trazabilidad en bitácora y consultar información pública por QR.
 
+## Versión documentada
+
+| Dato | Valor |
+| --- | --- |
+| Versión | `2.0.0` |
+| Revisión | `2026-09-02` |
+| Rama de producción | `main` |
+| Última versión funcional | [`c4fb529`](https://github.com/gerencia-maker/labelfoodtrack-v2/commit/c4fb529b7cd3af3fc7c6de7cd6a880687ca4ff9e) |
+| Aplicación | [labelfoodtrack.com](https://labelfoodtrack.com) |
+| Punto de restauración | [`restore-before-label-editor-redesign-20260902`](https://github.com/gerencia-maker/labelfoodtrack-v2/tree/restore-before-label-editor-redesign-20260902) |
+
+### Cambios incluidos en esta revisión
+
+- Espacio de producción de etiquetas rediseñado con formulario compacto y vista previa adaptable.
+- Zoom de vista previa `Ajustar`, `50 %` y `100 %` sin alterar las dimensiones físicas de impresión.
+- Perfil de impresión activo visible con tamaño, orientación y DPI.
+- Flujo seguro de guardar antes de imprimir para utilizar el identificador QR generado por el servidor.
+- Validación visible de producto, fecha y configuración de impresión.
+- Navegación agrupada por Producción y Administración, con rutas activas consistentes.
+- Endurecimiento de autorización por instancia, validaciones de entrada y acciones sensibles.
+- Contenedor de producción corregido para evitar la generación de Prisma con permisos incorrectos durante el arranque.
+
+### Historial reciente
+
+| Commit | Cambio |
+| --- | --- |
+| [`c4fb529`](https://github.com/gerencia-maker/labelfoodtrack-v2/commit/c4fb529b7cd3af3fc7c6de7cd6a880687ca4ff9e) | Rediseño del espacio de producción de etiquetas. |
+| [`94c8507`](https://github.com/gerencia-maker/labelfoodtrack-v2/commit/94c85074e85f47f8e15b65dd0f55bdf371fb4afc) | Ajuste de vista previa y activación del preset guardado. |
+| [`45965fa`](https://github.com/gerencia-maker/labelfoodtrack-v2/commit/45965fa2428b0d77c681fbb732d6e2fb77a036a3) | Actualización del entorno de GitHub Actions. |
+| [`385d34f`](https://github.com/gerencia-maker/labelfoodtrack-v2/commit/385d34f) | Refuerzo de seguridad y despliegue. |
+| [`ddd7b6d`](https://github.com/gerencia-maker/labelfoodtrack-v2/commit/ddd7b6d) | Corrección del arranque de Prisma en el contenedor. |
+
+Para volver al estado anterior al rediseño, se debe desplegar el tag de restauración o crear un commit de reversión. No es necesario reescribir el historial de `main`.
+
 ## Funcionalidades
 
 - Catálogo de productos con vida útil por cadena de frío e información nutricional.
